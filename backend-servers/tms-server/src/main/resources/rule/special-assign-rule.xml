@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rules>
+	<!-- 特殊规则值越小越先匹配 code(物流方式代码) 1.ZoneId与wmsZoneId 与express表达式 必须全部满足 2. code 
+		物流方式code 3. chain 如果规则匹配，但是物流方式未满足(仓库-物流-标签,仓库-区域)的关系，false 表示指派失败 true 则交给后面的handler处理 -->
+
+	<!-- 如果产品标签里面包含BJT 走泰国博佳途 -->
+	<rule zoneId="11" zoneName="泰国" express="#keywords.contains('THAILANDBJT')"
+		code="THAILANDBJT" sort="1">
+	</rule>
+
+	<!-- 发货仓是泰国仓 目的地也是泰国 直接走NIM -->
+	<rule zoneId="11" zoneName="泰国" wmsZoneId="11" wmsZoneName="泰国仓库"
+		code="THAILAND_NIM" sort="2" chain="false">
+	</rule>
+
+	<!--区域是泰国 订单总额<1350 走泰国b2c -->
+	<rule zoneId="11" zoneName="泰国" express="#orderAmount &lt;1350"
+	code="THAILAND_TIMES_B2C" sort="3" chain="true">
+	</rule>
+
+
+</rules>

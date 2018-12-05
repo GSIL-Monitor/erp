@@ -1,0 +1,182 @@
+<style type="text/css">
+    .form-item-model{
+        width: 90%;
+        margin-top: 20px;
+    }
+    .star-cls{
+        color:#FF0000;
+    }
+</style>
+</br>
+<div class="layui-form form-item-model">
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="star-cls">*</span>类型</label>
+        <div class="layui-input-block">
+            <input type="radio" name="applyType" value="0" title="退货" checked="">
+            <input type="radio" name="applyType" value="1" title="换货">
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="star-cls">*</span>原因</label>
+        <div class="layui-input-block" >
+            <select name="reasonType" id="reasonTypeSel"  lay-verify="required">
+               <option value=""></option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="star-cls">*</span>来源</label>
+        <div class="layui-input-block" >
+            <select name="fromType" id="fromTypeSel"  lay-verify="required">
+                <option value=""></option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="star-cls">*</span>商品</label>
+        <div class="layui-input-block" >
+            <table id="orderItem" lay-filter="test"></table>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block" >
+            <textarea name="memo" class="layui-textarea"></textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button type="button" onclick="closeEditForm()" class="layui-btn layui-btn-primary">取消</button>
+            <button class="layui-btn" type="button"   lay-submit lay-filter="submitApply">确定</button>
+        </div>
+    </div>
+</div>
+<br>
+
+
+
+<script>
+    layui.use(['table','form'], function(){
+        var table = layui.table;
+        var form = layui.form;
+
+
+        $.ajax({
+            type: 'GET',
+            url: "/orders/common/enumList",
+            dataType: 'json',
+            success: function (res) {
+                state_response(res);
+                var data = res.item;
+                for(var i=0;i<data.changeFromEnum.length;i++){
+                    $("#fromTypeSel").append($("<option/>").text(data.changeFromEnum[i].getDisplay).attr("value",data.changeFromEnum[i].ordinal));
+                }
+
+                for(var j=0;j<data.changeReasonEnum.length;j++){
+                    $("#reasonTypeSel").append($("<option/>").text(data.changeReasonEnum[j].getDisplay).attr("value",data.changeReasonEnum[j].ordinal));
+                }
+                form.render(); //更新全部
+
+            }
+
+        });
+        
+
+        table.render({
+            elem: '#orderItem'
+            ,id: 'orderItem'
+            ,url: '/orders/aftersale/order_item'//数据接口
+            ,where: {orderId: afterSaleOrderId}
+            ,done: function(res, curr, count){
+                layui.use('element', function(){
+                    var element = layui.element;
+                    element.init();
+                });
+            }
+            ,response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                ,statusCode: 'OK' //成功的状态码，默认：0
+                ,msgName: 'desc' //状态信息的字段名称，默认：msg
+                ,countName: 'total' //数据总数的字段名称，默认：count
+                ,dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            ,page: false //开启分页
+            ,cols: [[ //表头
+                {type: 'checkbox', fixed: 'left'}
+                ,{field: 'productId', title: '产品ID'}
+                ,{field: 'sku', title: 'SKU'}
+                ,{field: 'productTitle', title: '产品名称'}
+                ,{field: 'attrTitleArray', title: '产品属性'}
+                ,{field: 'qty', title: '数量',edit: 'text '}
+                ,{field: 'singleAmount', title: '单价'}
+                ,{field: 'totalAmount', title: '总价'}
+            ]]
+        });
+
+
+        form.on('submit(submitApply)', function(data){
+
+            var filed = data.field;
+            var checkStatus = table.checkStatus('orderItem'); //test即为基础参数id对应的值
+            if(checkStatus.data.length == 0){
+                layer.msg("请选择商品");
+                return;
+            }
+
+            var postData = {};
+            postData.applyType = filed.applyType;
+            postData.orderId = orderId;
+            postData.reasonType = filed.reasonType;
+            postData.fromType =  filed.fromType;
+            postData.memo =  filed.memo;
+
+            var oiList = [];
+            $.each(checkStatus.data, function (i, n) {
+                var oi = new Object();
+                oi.orderItemId = n.id;
+                oi.qty = n.qty;
+                oiList.push(oi);
+            });
+            postData.orderItemQtyList = oiList;
+            console.log(postData);
+
+            $.ajax({
+                type: 'POST',
+                url : "/orders/aftersale/apply",
+                data: JSON.stringify(postData),
+                dataType: 'json',
+                contentType : 'application/json',
+                success: function(data){
+
+                    if(data.code == "FAIL"){
+                        layer.msg(data.desc);
+                        return ;
+                    }
+                    layer.close(applyIndex);
+                },
+                error: function(data){
+                    layer.msg(data.desc);
+                }
+            })
+            return false;
+        });
+
+
+
+    });
+
+    function closeEditForm(){
+        layer.close(applyIndex)
+    }
+    
+
+</script>
+
+
+

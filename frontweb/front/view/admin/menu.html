@@ -1,0 +1,235 @@
+<br>
+<div class="layui-fluid">
+    <div class="layui-row">
+        <div class="layui-col-md2">
+          <div id="tree_wrap">
+                              
+          </div>
+        </div>
+        <div id="detail-wrap" class="layui-form border1ccc layui-col-md6 padding30">
+              <div id="detailinner-top"></div>
+              <div id="detailinner-bottom"></div>
+        </div>
+    </div>
+</div>
+<script type="text/html" id="detail-tpl">
+        <input id="hidden-idval" class="layui-hide" value="{{item.id}}" type="text" name="id">
+        <div class="layui-form-item">
+            <label class="layui-form-label">名称</label>
+            <div class="layui-input-inline">
+              <input value="{{item.name}}" type="text" name="name" required  lay-verify="required" placeholder="" autocomplete="off" class="layui-input">
+            </div>
+            <label class="layui-form-label">父节点</label>
+            <div class="layui-input-inline">
+              <select id="parentnodeselect" name="parentId" lay-verify="required">
+                <option value="">请选择</option>
+                <option value="0">根</option>
+              </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">关键词</label>
+              <div class="layui-input-inline">
+                <input type="text" name="keyword" required  lay-verify="required" placeholder="" autocomplete="off" class="layui-input" value="{{item.keyword}}">
+              </div>
+            <!--<label class="layui-form-label">排序</label>-->
+            <!--<div class="layui-input-inline">-->
+              <input type="hidden" name="sort" placeholder="" autocomplete="off" class="layui-input" value="{{item.sort}}">
+              <input type="hidden" name="no"  placeholder="" autocomplete="off" class="layui-input" value="{{item.no}}">
+              <input type="hidden" name="icon"  placeholder="" autocomplete="off" class="layui-input" value="{{item.icon}}">
+            <!--</div>-->
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">地址</label>
+            <div class="layui-input-block">
+                <input type="" name="url" required lay-verify="required" placeholder="" autocomplete="off" class="layui-input" value="{{item.url}}">
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">备注</label>
+            <div class="layui-input-block">
+              <textarea name="remark" placeholder="请输入内容" class="layui-textarea" value="{{item.remark}}"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+          <div class="layui-input-block">
+              <button class="layui-btn layui-btn-normal" id="add-btn" onclick="menu_addmenu();">新增</button>
+            <button class="layui-btn layui-btn-danger" id="del-btn" onclick="menu_delete(menu_form);">删除</button>
+            <button class="layui-btn" lay-submit lay-filter="formDemo">保存</button>
+          </div>
+        </div>
+</script>
+<script type="text/html" id="operation-tpl">
+        <div class="layui-form-item">
+          <label class="layui-form-label">操作权限</label>
+          <div class="layui-input-block">
+            {{each item value index}}
+                {{if value.checked}}
+                  <input lay-filter="operation-checkbox" type="checkbox" name="" title="{{value.name}}" checked value="{{value.id}}">
+                {{else}}
+                  <input lay-filter="operation-checkbox" type="checkbox" name="" title="{{value.name}}" value="{{value.id}}">
+                {{/if}}
+            {{/each}}
+          </div>
+        </div>  
+</script>
+<script id="parentnode_tpl" type="text/html">
+    {{each children value index}}
+          <option value="{{value.id}}">&nbsp;&nbsp;&nbsp;&nbsp;{{value.name}}</option>
+          {{if value.leaf == false}}
+                <optgroup label="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{value.name}}">
+                    {{each value.children val idx}}
+                          <option value="{{val.id}}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{val.name}}</option> 
+                    {{/each}}
+                </optgroup>
+          {{/if}}
+    {{/each}}
+</script>
+<script type="text/javascript">
+var parentnode_list,index,menu_form;
+
+function menu_delete(menu_form){
+      $.ajax({
+              type : 'POST',
+              url : "/admin/menu/delete",
+              data: {
+                  id:$("#hidden-idval").val()
+              },
+              dataType : 'json',
+              success : function(res){
+                      console.log("删除菜单返回值",res);
+                      state_response(res);
+                      update_menutree(menu_form);
+                      layer.msg('删除成功', {icon: 3}); 
+                      $("#detailinner-top").empty();
+                      $("#detailinner-bottom").empty();
+
+              }
+      });
+}  
+
+function update_menutree(menu_form){
+        $("#tree_wrap").html("<ul id='demo'></ul>");
+        $.ajax({
+                type : 'GET',
+                url : "/admin/menu/query",
+                dataType : 'json',
+                success : function(res){
+                        console.log("请求菜单树",res);   
+                        state_response(res);             
+                        global_tree = layui.tree({
+                            elem: '#demo' //传入元素选择器
+                            ,nodes: res.item.children
+                            ,click: function(node){
+                                console.log('节点数据',node) //node即为当前点击的节点数据
+                                $.ajax({
+                                        type : 'GET',
+                                        url : "/admin/menu/get?id="+node.id,
+                                        dataType : 'json',
+                                        success : function(res){
+                                                console.log("根据id获取菜单详情",res);
+                                                state_response(res);
+                                                $("#detailinner-top").html(template('detail-tpl', res));
+                                                $("#detailinner-bottom").empty();
+                                                $("#parentnodeselect").append(template('parentnode_tpl', parentnode_list));
+                                                $("#parentnodeselect").val(node.parentId);
+                                                menu_form.render('select'); //刷新select选择框渲染
+                                                if (node.leaf == true) {
+                                                        $.ajax({
+                                                                type : 'POST',
+                                                                url : "/admin/element/findElementsByMenuKey",
+                                                                data: {menuKeyword:node.keyword},
+                                                                dataType : 'json',
+                                                                success : function(res){
+                                                                        console.log("根据id获取操作权限",res);
+                                                                        state_response(res);
+                                                                        if (res.item) {
+                                                                                $("#detailinner-bottom").html(template('operation-tpl', res));
+                                                                                $("#detailinner-bottom").attr("data-id",node.keyword);
+                                                                                menu_form.render('checkbox'); //刷新select选择框渲染
+                                                                        }
+                                                                }
+                                                        });
+                                                }
+                                        }
+                                });
+                            } 
+                        });
+                }
+        });
+}
+$.ajax({
+        type : 'GET',
+        url : "/admin/menu/query",
+        dataType : 'json',
+        success : function(res){
+                console.log("获取非叶子节点列表",res);
+                state_response(res);
+                parentnode_list = res.item;
+        }
+});
+layui.use(['tree','form','layer','element'], function(){
+    menu_form = layui.form;
+    var element = layui.element;
+    var global_tree;
+    
+    update_menutree(menu_form);
+    
+    //监听提交
+    menu_form.on('submit(formDemo)', function(data){
+        //layer.msg(JSON.stringify(data.field));
+        $.ajax({
+                type : 'POST',
+                url : "/admin/menu/update",
+                data: data.field,
+                dataType : 'json',
+                success : function(res){
+                        console.log("修改菜单返回值",res);
+                        state_response(res);
+                        update_menutree(menu_form);
+                }
+        });
+        return false;
+    });
+
+
+    menu_form.on('checkbox(operation-checkbox)', function(data){
+          console.log(data.elem); //得到checkbox原始DOM对象
+          console.log(data.elem.checked); //是否被选中，true或者false
+          console.log(data.value); //复选框value值，也可以通过data.elem.value得到
+          console.log(data.othis); //得到美化后的DOM对象
+          $.ajax({
+                  type : 'POST',
+                  url : "/admin/element/updateBindElement",
+                  data: {
+                      elementId : data.value,
+                      menuKeyword : $("#detailinner-bottom").attr("data-id"),
+                      checked : data.elem.checked
+                  },
+                  dataType : 'json',
+                  success : function(res){
+                          console.log("修改操作权限返回值",res);
+                          state_response(res);
+                          layer.msg('修改成功', {icon: 3}); 
+                  }
+          });
+    }); 
+
+});
+
+</script>
+
+<script type="text/javascript">
+    function menu_addmenu(){
+          $.get('view/admin/add_menu.html', function(str){
+              index = layer.open({
+                type: 1
+                ,title :'新增菜单'
+                ,content: str //注意，如果str是object，那么需要字符拼接。
+                ,maxmin: true
+                ,area: '60%'
+              });
+          });
+    }
+    
+</script>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FSM EntityName="ProductZone" EntityDao="ProductZoneMapper" ParentEntityName="">
+
+
+	<States>
+		<State Name="start" Description="开始">
+			<Event Name="create" Description="创建" DstState="archiving" After="productZoneArchivingAfter"/>
+		</State>
+		<State Name="archiving" Description="建档中">
+            <Event Name="archive" Description="建档" DstState="onsale" After="productZoneArchiveAfter"/>
+			<Event Name="cancel" Description="消档" DstState="disappeared" After="productZoneDisppearedAfter" />
+			<Event Name="offsale" Description="下架" DstState="offsale" After="productZoneOffSaleAfter"/>
+		</State>
+
+        <State Name="onsale" Description="已上架">
+			<Event Name="cancel" Description="消档" DstState="disappeared"  After="productZoneDisppearedAfter" />
+            <Event Name="waitoffsale" Description="待下架" DstState="waitoffsale"/>
+            <Event Name="offsale" Description="下架" DstState="offsale" After="productZoneOffSaleAfter"/>
+        </State>
+
+        <State Name="waitoffsale" Description="待下架">
+            <Event Name="cancel" Description="消档" DstState="disappeared" After="productZoneDisppearedAfter"/>
+            <Event Name="offsale" Description="下架" DstState="offsale" After="productZoneOffSaleAfter"/>
+            <Event Name="archive" Description="建档" DstState="onsale" After="productZoneArchiveAfter"/>
+        </State>
+
+		<State Name="disappeared" Description="已销档">
+            <Event Name="create" Description="创建" DstState="archiving" After="productZoneArchivingAfter"/>
+        </State>
+
+        <State Name="offsale" Description="已下架">
+            <Event Name="create" Description="创建" DstState="archiving" After="productZoneArchivingAfter"/>
+        </State>
+
+	</States>
+
+</FSM>

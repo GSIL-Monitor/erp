@@ -1,0 +1,174 @@
+<br>
+<div class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">月份</label>
+        <div class="layui-input-inline">
+            <select id="sto_inv_month" name="planId">
+                <option value="">请选择</option>
+            </select>
+        </div>
+
+        <label class="layui-form-label">仓库</label>
+        <div class="layui-input-inline">
+            <select name="wmsId" lay-search id="sto_inv_wmsId">
+                <option value=" ">不限</option>
+            </select>
+        </div>
+        <label class="layui-form-label">部门</label>
+        <div class="layui-input-inline">
+            <select id="treenode_dept" name="deptId">
+                <option value="">请选择</option>
+            </select>
+        </div>
+        <label class="layui-form-label">单据类型</label>
+        <div class="layui-input-inline">
+            <select name="type" id="sto_inv_invoicingType">
+                <option value=" ">不限</option>
+            </select>
+        </div>
+        <label class="layui-form-label">异动方向</label>
+        <div class="layui-input-inline">
+            <select name="state" id="sto_inv_stockState">
+                <option value=" ">不限</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">单据编号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="voucherNo" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+        <label class="layui-form-label">SPU</label>
+        <div class="layui-input-inline">
+            <input type="text" name="spu" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+        <label class="layui-form-label">SKU</label>
+        <div class="layui-input-inline">
+            <input type="text" name="sku" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn" lay-submit lay-filter="position_search">搜索</button>
+        </div>
+    </div>
+</div>
+<table id="demo" lay-filter="test"></table>
+
+<script id="sto_inv_month-option-tpl" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.planYear}}-{{value.planMonth}}</option>
+    {{/each}}
+</script>
+
+<script id="invoicingType-option-tpl" type="text/html">
+    {{each invoicingTypeEnum value index}}
+    <option value="{{value.ordinal}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<script id="stockState-option-tpl" type="text/html">
+    {{each stockStateEnum value index}}
+    <option value="{{value.ordinal}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<script type="text/html" id="invoicingTypeTpl">
+    {{d.invoicingTypeEnum.display}}
+</script>
+
+<script type="text/html" id="stockStateTpl">
+    {{d.stockStateEnum.display}}
+</script>
+
+<script>
+    //    库存进销存
+
+    layui.use(['layer', 'table', 'element', 'form'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0, {time: 5 * 1000});
+        var table = layui.table;
+        var form = layui.form;
+        form.render();
+        //部门
+        tree_formDept("treenode_dept", "id");
+        //仓库下拉框
+        store_wmsId_option('sto_inv_wmsId');
+        //月份下拉框
+        $.ajax({
+            type: 'POST',
+            url: "/store/invoicing/getPlanRecordList",
+            dataType: 'json',
+            success: function (res) {
+                console.log("获取月份下拉框数据", res);
+                $("#sto_inv_month").append(template('sto_inv_month-option-tpl', res));
+                form.render('select'); //刷新select选择框渲染
+            }
+        });
+
+        //单据类型
+        $.ajax({
+            type: 'GET',
+            url: "/store/common/enumList",
+            dataType: 'json',
+            data: '',
+            success: function (res) {
+                console.log("请求枚举-下拉框数据", res);
+                state_response(res);
+                $("#sto_inv_invoicingType").append(template('invoicingType-option-tpl', res.item));
+                $("#sto_inv_stockState").append(template('stockState-option-tpl', res.item));
+                form.render('select'); //刷新select选择框渲染
+            }
+        });
+
+        //第一个实例
+        table.render({
+            elem: '#demo'
+            , id: 'demo'
+            , url: '/store/invoicing/findList' //数据接口
+            , method: 'post'
+            , height: 940 - 200
+            , page: true //开启分页
+            , even: true  //开启隔行背景
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , done: function (res, curr, count) {
+                layer.close(index);
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , page: true //开启分页
+            , cols: [[ //表头
+                {field: 'id', title: 'id', fixed: 'left', width: 100}
+                , {field: 'planMonth', title: '月份'}
+                , {field: 'wmsName', title: '仓库'}
+                , {field: 'deptName', title: '部门'}
+                , {templet: '#invoicingTypeTpl', title: '单据类型'}
+                , {field: 'voucherNo', title: '单据编号'}
+                , {templet: '#stockStateTpl', title: '异动方向'}
+                , {field: 'spu', title: 'SPU'}
+                , {field: 'sku', title: 'SKU'}
+                , {field: 'quantity', title: '数量'}
+                , {field: 'amount', title: '金额'}
+                , {field: 'changeAt', title: '时间'}
+            ]]
+        });
+
+        //监听查询
+        form.on('submit(position_search)', function (data) {
+            //上述方法等价于
+            table.reload('demo', {
+                where: data.field    //设定异步数据接口的额外参数，任意设
+                , page: {
+                    offset: 1 //重新从第 1 页开始
+                }
+            });
+            return false;
+        });
+    });
+</script>

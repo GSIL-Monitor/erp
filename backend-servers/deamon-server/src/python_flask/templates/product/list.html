@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico">
+
+    <title>小公举</title>
+
+    <!-- Bootstrap core CSS -->
+    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Bootstrap theme -->
+
+    <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+          integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <link href="http://v3.bootcss.com/assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="http://v3.bootcss.com/examples/theme/theme.css" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+    <script src="http://v3.bootcss.com/assets/js/ie-emulation-modes-warning.js"></script>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+<style type="text/css">
+    .black_bg{
+        display: none;
+        position:fixed;
+        _position:absolute;
+        top: 0%;left: 0%;
+        width: 100%;
+        height: 100%;
+        background-color: black;
+        z-index: 1001;
+
+    }
+    .img_sq{
+        display: block;
+        position: absolute;
+        top: 10%;
+        width: 45%;
+        height: 100%;
+        z-index: 1002;
+        overflow: auto;
+        opacity: 1;
+    }
+    .sq_l{
+        left:5%;
+    }
+    .sq_r{
+        right: 5%;
+    }
+</style>
+</head>
+
+<body>
+
+<!-- Fixed navbar -->
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">产品归集小工具</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="#">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                       aria-expanded="false">Dropdown <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Another action</a></li>
+                        <li><a href="#">Something else here</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li class="dropdown-header">Nav header</li>
+                        <li><a href="#">Separated link</a></li>
+                        <li><a href="#">One more separated link</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div><!--/.nav-collapse -->
+    </div>
+</nav>
+
+<div class="container-fluid" role="main">
+
+    <form class="form-inline" id="page_form" method="post">
+        <input type="hidden" id="sort_key" name="sort_key" value="{{sort_key}}">
+        <input type="hidden" id="sort_name" name="sort_name" value="{{sort_name}}">
+        <div class="row">
+            <div class="col-md-12"><h4>产品列表</h4>
+            每页：<input name="page_row" type="number" class="form-control" placeholder="" value="{{ page_row }}">条，
+                {% if page_num > 1 %}
+                    <label class="checkbox-inline" onclick="roll_page(-1)">上一页</label>
+                {% endif %}
+                当前页: <input name="page_num" id="page_num" type="number" class="form-control" placeholder="" value="{{ page_num }}">页
+                {% if page_num < page_cnt %}
+                    <label class="checkbox-inline" onclick="roll_page(1)">下一页</label>
+                {% endif %}
+                ， 共计：{{ total }} 条, {{ page_cnt }} 页
+
+            </div>
+        </div>
+        <script type = "text/javascript" >
+            function roll_page(dir){
+                document.getElementById('page_num').value = parseInt(document.getElementById('page_num').value) + dir;
+                document.getElementById("page_form").submit();
+            }
+            function re_sort(key){
+                document.getElementById('sort_name').value = key;
+                document.getElementById('sort_key').value = parseInt(document.getElementById('sort_key').value) + 1;
+                document.getElementById("page_form").submit();
+            }
+            function show_bigimg(img1, img2){
+                document.getElementById('sq').style.display='block'
+                $("#img1").attr("src", 'http://img.pc.stosz.com/'+img1);
+                $("#img2").attr("src", 'http://img.pc.stosz.com/'+img2);
+            }
+        </script>
+
+        <div class="row">
+
+            <div class="form-group">
+                <label for="exampleInputName2">源id</label>
+                <input name="src_id" type="number" class="form-control" placeholder="" {% if request.form.get("src_id") %} value="{{ request.form.src_id }}"{% endif %} >
+            </div>
+            <div class="form-group">
+                <label for="exampleInputEmail2">目标id</label>
+                <input name="dst_id" type="number" class="form-control" placeholder="" {% if request.form.get("dst_id") %} value="{{ request.form.dst_id }}"{% endif %} >
+            </div>
+            <div class="form-group">
+                <label for="exampleInputEmail2">分类 </label>
+                <input name="category_no" type="text" class="form-control" placeholder=""  {% if request.form.get("category_no") %} value="{{ request.form.category_no }}"{% endif %} >
+            </div>
+            <div class="form-group">
+                {% for st in all_state %}
+                    <label class="checkbox-inline">
+                        <input name="state" type="checkbox" value="{{ st }}"
+                        {% if request.form.getlist("state") and st in request.form.getlist("state") %}
+                                checked
+                        {% endif %}
+                        > {{ all_state.get(st) }}
+                    </label>
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn btn-default">搜索</button>
+
+        </div>
+    </form>
+
+
+    <div class="row">
+
+        <table class="table table-striped">
+            <thead>
+            <th onclick="re_sort('src_id')" width="35%">源图</th>
+            <th onclick="re_sort('dst_id')" width="25%">目标图</th>
+            <th onclick="re_sort('cnt')" width="25%">细节</th>
+            <!--<th width="25%">名称</th>-->
+            </thead>
+            <tbody>
+
+            {% for item in products %}
+                <tr class="{{ all_state_class[item.state] }}">
+                    <td width="35%">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="col-md-6">
+                                    <br>{{ item.category_no }}<br>
+                                    {{ cat_name_dict[item.id] }}<br>
+                                    {{ item.create_at }}<br>
+                                </div>
+                                <div class="col-md-3">
+                                    {% if item.main_image_url %}
+                                    <img src="http://img.pc.stosz.com/{{ item.main_image_url }}"
+                                         style="width: 120px; height: 140px;" onclick="show_bigimg('{{ item.main_image_url }}', '{{ item.dst_main_image_url }}')">
+                                    {% else %}
+                                        无图片
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <br>{{ item.id }}
+                                    <br>{{ item.spu }}
+                                </div>
+
+
+
+                            </div>
+                        </div>
+                    </td>
+                    <td width="25%">
+                        <div class="row">
+                            <div class="col-md-8">
+                             {% if item.dst_main_image_url %}
+                                <img src="http://img.pc.stosz.com/{{ item.dst_main_image_url }}"
+                                     style="width: 120px; height: 140px;" onclick="show_bigimg('{{ item.main_image_url }}', '{{ item.dst_main_image_url }}')">
+                            {% else %}
+
+                            {% endif %}
+                            <div class="col-md-4">
+                            {% if item.p2_id %}
+                                <br>{{ item.p2_id }}
+                                <br>{{ item.p2_spu }}
+                            {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td width="25%">
+                        {{ item.title }}<br>
+                    重复数:{{item.cnt}}<br>
+                        {{ item.state }}<br>
+                        {{ item.state_time }}
+                    </td>
+                </tr>
+            {% endfor %}
+
+
+            </tbody>
+        </table>
+
+    </div>
+    <div class="row">
+        <div class="col-md-12"><h4>产品列表</h4>
+            每页：<input name="page_row" type="number" class="form-control" placeholder="" value="{{ page_row }}">条，
+            {% if page_num > 1 %}
+            <label class="checkbox-inline" onclick="roll_page(-1)">上一页</label>
+            {% endif %}
+            当前页: <input name="page_num" id="page_num" type="number" class="form-control" placeholder="" value="{{ page_num }}">页
+            {% if page_num < page_cnt %}
+            <label class="checkbox-inline" onclick="roll_page(1)">下一页</label>
+            {% endif %}
+            ， 共计：{{ total }} 条, {{ page_cnt }} 页
+
+        </div>
+    </div>
+
+    <div id="sq" class="black_bg" onclick="document.getElementById('sq').style.display='None'">
+            <div id="right_img" class="img_sq sq_r"><img id="img2" src="images/" alt="BINGOO" /></div>
+            <div id="left_img" class="img_sq sq_l"><img id="img1" src="images/" alt="BINGOO" /></div>
+        </div>
+    </div>
+    <!--
+        <div class="row">
+            <div class="col-md-2">图片</div>
+            <div class="col-md-1">id</div>
+            <div class="col-md-1">spu</div>
+            <div class="col-md-1">创建时间</div>
+            <div class="col-md-1">分类</div>
+            <div class="col-md-2">状态</div>
+            <div class="col-md-4">名称</div>
+        </div>
+
+
+        {% for item in products %}
+            <div class="row">
+                <div class="col-md-2"><img src="http://img.pc.stosz.com/{{ item.main_image_url }}" style="width: 120px; height: 140px;">  </div>
+                <div class="col-md-1">{{ item.id }}</div>
+                <div class="col-md-1">{{ item.spu }}</div>
+                <div class="col-md-1">{{ item.create_at }}</div>
+                <div class="col-md-1">{{ item.category_id }}</div>
+                <div class="col-md-2">{{ item.state }}</div>
+                <div class="col-md-4">{{ item.title }}</div>
+            </div>
+        {% endfor %}
+-->
+
+</div> <!-- /container -->
+
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
+<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="http://v3.bootcss.com/assets/js/docs.min.js"></script>
+<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+<script src="http://v3.bootcss.com/assets/js/ie10-viewport-bug-workaround.js"></script>
+</body>
+</html>

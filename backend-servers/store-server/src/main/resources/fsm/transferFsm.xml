@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FSM EntityName="Transfer" EntityDao="TransferMapper" ParentEntityName="">
+
+    <States>
+        <!--在创建的时候添加transfer,transferItem 记录-->
+
+        <State Name="start" Description="开始">
+            <Event Name="create" Description="创建" DstState="draft" After="transferCreateAfter"/>
+        </State>
+
+        <State Name="draft" Description="草稿">
+            <Event Name="submit" Description="提交" DstState="wait_approve" After="transferSubmitAfter"/>
+            <Event Name="cancel" Description="删除" DstState="cancel" />
+        </State>
+
+        <State Name="wait_approve" Description="待审核">
+            <Event Name="out_approve_pass" Description="出库部门审核通过" DstState="wait_in_dept_approve" After="outStoreApproveAfter"/>
+            <Event Name="approve_pass" Description="运营审核通过" DstState="wait_out_store" After="approvePassAfter"/>
+            <Event Name="approve_fail" Description="审核不通过" DstState="approve_fail" After="approveFailAfter"/>
+        </State>
+
+        <State Name="wait_in_dept_approve" Description="待调入部门审核">
+            <Event Name="in_approve_pass" Description="审核通过" DstState="in_stored" After="inStoreApproveAfter"/>
+            <Event Name="approve_fail" Description="审核不通过" DstState="approve_fail" After="approveFailAfter"/>
+        </State>
+
+
+        <State Name="wait_out_store" Description="待出库">
+            <Event Name="out_store" Description="wms回调成功" DstState="out_stored" After="outStoreAfter"/>
+            <Event Name="out_transit" Description="转寄仓出库" DstState="out_stored" After="outTransitAfter"/>
+        </State>
+
+        <State Name="out_stored" Description="已出库">
+            <Event Name="in_store" Description="入库" DstState="in_stored" After="inStoreAfter"/><!--普通仓-->
+            <Event Name="in_transit" Description="入转寄仓" DstState="in_stored" After="transferInTransitAfter"/>
+        </State>
+
+        <State Name="in_stored" Description="已入库">
+        </State>
+
+        <State Name="cancel" Description="已取消">
+        </State>
+
+        <State Name="approve_fail" Description="审核不通过">
+        </State>
+    </States>
+</FSM>

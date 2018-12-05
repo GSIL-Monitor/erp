@@ -1,0 +1,227 @@
+<br>
+<div class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">创建时间:</label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" id="createDate" name="createDate" >
+        </div>
+        <label class="layui-form-label">物流线路:</label>
+        <div class="layui-input-inline">
+            <select name="shippingWayId" id="shippingWayIdSelect">
+                <option value="">请选择</option>
+            </select>
+        </div>
+        <label class="layui-form-label" >选择仓库:</label>
+        <div class="layui-input-inline">
+            <select name="wmsId" lay-search id="wmsIdSelect">
+                <option value=" ">不限</option>
+            </select>
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn" lay-submit lay-filter="position_search">搜索</button>
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn layui-btn-warm" onclick="addAllcationTemplate()">
+                <i class="layui-icon">&#xe608;</i> 新增
+            </button>
+        </div>
+    </div>
+</div>
+<table id="demo" lay-filter="test"></table>
+
+
+
+<script>
+    var add_allcation_index,allcation_data,edit_allcation_index,window_index = false;
+    layui.use(['layer', 'table', 'element', 'form','laydate'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0,{time:5*1000});
+        var table = layui.table;
+        var form = layui.form;
+        var laydate = layui.laydate;
+
+        store_wmsId_option('wmsIdSelect');
+
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#createDate'//指定元素
+        });
+
+        table.render({
+            elem: '#demo'
+            , id: 'demo'
+            , url: '/tms/allocationTemplate/query' //数据接口
+            , method: 'post'
+            ,height: 'full-150' //高度最大化减去差值
+            , done: function (res, curr, count) {
+                var element = layui.element;
+                element.init();
+                layer.close(index);
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , page: true //开启分页
+            , cols: [[ //表头
+                  {field: 'wmsName', title: '仓库',width:120}
+                , {field: 'shippingWayName', title: '物流线路名称',width:150}
+                , {field: 'generalCargoNum', title: '普货数量',width:120}
+                , {field: 'specialCargoNum', title: '特货数量',width:120}
+                , {field: 'cargoNum', title: '所有数量',width:120}
+                , {field: 'sorted', title: '优先顺序',width:120}
+                , {field: 'eachSpecialNum', title: '每次分配特货数量',width:170}
+                , {field: 'eachGeneralNum', title: '每次分配普货数量',width:170}
+                , {field: 'eachCargoNum', title: '每次分配数量',width:170}
+                , {field: 'enable', title: '状态',templet:'#enableRender',width:120}
+                , {field: 'creator', title: '创建人',width:120}
+                , {field: 'createAt', title: '创建时间',width:170}
+                , {field: 'modifier', title: '修改人',width:120}
+                , {field: 'updateAt', title: '修改时间',width:170}
+                , {field: '', title: '操作', templet: '#operationDemo', align: 'center',fixed: 'right',width:220}
+            ]]
+        });
+
+
+        $.ajax({
+            type: 'POST',
+            url: "/tms/base/shippingway/query",
+            data: {
+                limit:100000,
+                shippingWayName:null
+            },
+            dataType: 'json',
+            success: function (res) {
+                console.log("获取物流公司列表数据", res);
+                state_response(res);
+                $("#shippingWayIdSelect").append(template('option-shippingWayId', res));
+                form.render();
+            }
+        });
+
+
+        table.on("tool(test)",function (obj){
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值  ）
+            allcation_data = data;
+            if (layEvent === 'position-enabled') { //启用
+                layer.confirm('你确定要启用该物流配额吗?', {icon: 3, title:'提示'}, function(index){
+                    //do something
+                    window_index = index;
+                    enditallocationTemplateEnable(1);
+                },function(index){
+                    layer.close(index);
+                });
+            }else if (layEvent === 'position-disable') { //启用
+                layer.confirm('你确定要禁用该物流配额吗?', {icon: 3, title:'提示'}, function(index){
+                    window_index = index;
+                    enditallocationTemplateEnable(2);
+                },function(index){
+                    layer.close(index);
+                });
+            } else if (layEvent === 'position-edit') { //启用
+                $.get('view/tms/allocation/edit_allocationTemplate.html', function(str){
+                    edit_allcation_index = layer.open({
+                        type: 1
+                        ,title :'编辑'
+                        ,content: str //注意，如果str是object，那么需要字符拼接。
+                        ,maxmin: true
+                        ,area: ['50%','80%']
+                    });
+                });
+            }
+        });
+
+         form.on('submit(position_search)', function(data){
+            var minCreateAt = null;
+            var maxCreateAt = null;
+            var createDate =  data.field.createDate;
+            if(createDate != ""){
+                minCreateAt = createDate + " 00:00:00";
+                maxCreateAt = createDate + " 23:59:59";
+            }
+            table.reload('demo', {
+                where: {
+                    minCreateAt:minCreateAt ,
+                    shippingWayId:data.field.shippingWayId,
+                    maxCreateAt:maxCreateAt,
+                    wmsId:data.field.wmsId,
+                }    //设定异步数据接口的额外参数，任意设
+                , page: {
+                    page: 1 //重新从第 1 页开始
+                }
+            });
+            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+        });
+    });
+
+    function enditallocationTemplateEnable(enable){
+        var table = layui.table;
+        $.ajax({
+            type: 'PUT',
+            url: "/tms/allocationTemplate/updateEnable",
+            data:{
+                id:allcation_data.id,
+                enable:enable
+            },
+            dataType: 'json',
+            success: function (res) {
+                console.log("更新元素返回值", res);
+                if(res.code==='NOTICE') {
+                    table.reload('demo');
+                    layer.msg('更新物配额状态成功', {icon: 1});
+                }else{
+                    layer.msg(res.desc,{icon:2});
+                }
+                layer.close(window_index);
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+            }
+        });
+
+    }
+</script>
+
+
+<script type="text/javascript">
+    function addAllcationTemplate(){
+        $.get('view/tms/allocation/add_allocationTemplate.html', function(str){
+            add_allcation_index = layer.open({
+                type: 1
+                ,title :'新增'
+                ,content: str //注意，如果str是object，那么需要字符拼接。
+                ,maxmin: true
+                ,area: ['50%','80%']
+            });
+        });
+    }
+</script>
+
+
+
+<script type="text/html" id="enableRender">
+    {{#  if(d.enable==1){ }}
+    <a>启用</a>
+    {{#  } else if(d.enable==2) { }}
+    <a>禁用</a>
+    {{#  } }}
+</script>
+
+
+<script type="text/html" id="operationDemo">
+    {{#  if(d.enable==1){ }}
+    <a class="layui-btn layui-btn-xs" lay-event="position-disable">禁用</a>
+    {{#  } else if(d.enable==2) { }}
+    <a class="layui-btn layui-btn-xs" lay-event="position-enabled">启用</a>
+    {{#  }  }}
+    <a class="layui-btn layui-btn-xs" lay-event="position-edit">编辑</a>
+</script>
+
+<script id="option-shippingWayId" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.shippingWayName}}</option>
+    {{/each}}
+</script>

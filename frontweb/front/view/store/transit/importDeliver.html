@@ -1,0 +1,106 @@
+<br><br>
+<div class="layui-row">
+    <div class="layui-col-md7">
+        <form class="layui-form ">
+            <div class="layui-form-item">
+                <label class="layui-form-label">*物流公司</label>
+                <div class="layui-input-inline">
+                    <select name="logisticsId" id="sto_tran_logist" lay-verify="required">
+                        <option value="">不限</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item layui-form-text">
+                <div class="layui-input-block">
+                    <textarea name="track" lay-verify="required" placeholder="请复制订单号、运单号" class="layui-textarea"
+                              style="height: 300px;width:350px"></textarea>
+
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-submit lay-filter="sto_tra_importDeliver">导入</button>
+                    <button class="layui-btn" lay-submit lay-filter="sto_tra_duplicate">复制错误信息</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="layui-col-md5">
+        <p class="imp_deliver_resMeg">结果：</p>
+        <br>
+        <br>
+        <textarea class="imp_deliver_resDetail" name="imp_deliver_resDetail"
+                  style="height: 300px;width:250px"></textarea>
+    </div>
+</div>
+
+<script type="text/javascript">
+    layui.use(['form', 'layer'], function () {
+        var layer = layui.layer;
+        var formImpDel = layui.form;
+        formImpDel.render();
+
+        //物流公司下拉
+        tms_shippingWayId_option('sto_tran_logist');
+
+        //导入
+        formImpDel.on('submit(sto_tra_importDeliver)', function (data) {
+
+            console.log("入参:", JSON.stringify(data.field));
+            var logisticsId = data.field.logisticsId;
+            if (logisticsId != null && logisticsId != '') {
+                data.field.logisticsName = $.trim($("select[name = 'logisticsId']").find("option:selected").text());
+            }
+
+            data.field.track = $.trim(data.field.track).replace(/\n/g, "|").replace(/\t/g, ",");
+            console.log("入参替代后:", JSON.stringify(data.field));
+
+            $.ajax({
+                type: 'POST',
+                url: "/store/transitStock/importDeliver",
+                data: data.field,
+                dataType: 'json',
+                success: function (res) {
+                    console.log("返回值:", JSON.stringify(res));
+                    if (res.code === 'OK') {
+                        var obj = res.item;
+
+                        var resMsg = '共导入：' + obj.total + '  成功：' + obj.success + '  失败：' + obj.error;
+                        $(".imp_deliver_resMeg").html(resMsg);
+                        var resObj = '';
+
+                        var err = obj.errDetail;
+
+                        for (var key in err) {
+                            resObj += key;
+                            resObj += '\t';
+                            resObj += err[key];
+                            resObj += '\n';
+                        }
+                        console.log("item:" + resObj);
+                        $(".imp_deliver_resDetail").val(resObj);
+
+                    } else {
+                        layer.msg(res.desc, {icon: 2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                }
+            });
+            return false;
+        });
+
+        formImpDel.on('submit(sto_tra_duplicate)', function (data) {
+
+            var copyObj = $("textarea[name='imp_deliver_resDetail']");
+            copyObj.select(); // 选择对象
+            document.execCommand("Copy"); // 执行浏览器复制命令
+
+            layer.msg('错误信息已复制到粘贴板。');
+            return false;
+        });
+    });
+
+</script>

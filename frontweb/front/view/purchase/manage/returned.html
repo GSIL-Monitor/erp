@@ -1,0 +1,336 @@
+<div class="layui-fluid">
+<br>
+<div class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">部门</label>
+        <div class="layui-input-inline" width="20">
+            <select id="treenode_dept" name="buDeptId">
+                <option value="">请选择</option>
+            </select>
+        </div>
+
+        <label class="layui-form-label">状态</label>
+        <div class="layui-input-inline">
+            <select name="state" id="state">
+                <option value="">不限</option>
+            </select>
+        </div>
+
+        <label class="layui-form-label">采购单号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="purchaseNo"  placeholder="请输入采购单号" autocomplete="off"
+                   class="layui-input">
+        </div>
+
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">渠道订单号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="platOrdersNo"  placeholder="请输入渠道订单号" autocomplete="off"
+                   class="layui-input" >
+        </div>
+
+        <label class="layui-form-label">SKU</label>
+        <div class="layui-input-inline">
+            <input type="text" name="sku"  placeholder="请输入SKU" autocomplete="off"
+                   class="layui-input">
+        </div>
+
+        <label class="layui-form-label">创建时间</label>
+        <div class="layui-input-inline">
+            <input name="createTime" type="text" class="layui-input" id="createTime">
+        </div>
+        <div class="layui-input-block">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="btnSearch">搜索</button>
+        </div>
+    </div>
+
+
+</div>
+
+<br>
+<table id="demo" lay-filter="test"></table>
+</div>
+
+<script type="text/html" id="barOption">
+    <form class="layui-form">
+        <!-- 登录用户与创建人同一个 -->
+        <button type="button" class="layui-btn layui-btn-xs layui-btn-danger" lay-event="submit">已退款</button>
+        <button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="cancel">取消</button>
+        <button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="detail">采退详情</button>
+    </form>
+</script>
+
+
+<script id="transferType-option-tpl" type="text/html">
+    {{each transferTypeEnum value index}}
+    <option value="{{value.ordinal}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<script id="purchaseReturnedState-option-tpl" type="text/html">
+    {{each purchaseReturnedState value index}}
+    <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<script type="text/html" id="purchaseReStateTpl">
+    <a href="javascript:void(0);" style="cursor: pointer; color: #c2c2c2;" lay-event="showHistory">{{d.purchaseReturnedState.display}}</a>
+</script>
+
+<script type="text/html" id="purchaseReTypeTpl">
+    {{d.purchaseReturnedType.display}}
+</script>
+
+<script type="text/html" id="purchaseReturned_showHistory_tpl">
+    <table id="purchaseReturned_fsm_history_tpl" lay-filter="purchaseReturned_fsm_history_demo"></table>
+
+    </table>
+</script>
+<script type="text/html" id="typeTpl">
+    {{#if(d.type == 0){ }}
+        在库采退
+    {{# } }}
+    {{#if(d.type == 1){ }}
+        在途采退
+    {{# } }}
+    {{#if(d.type == 2){ }}
+        错货采退
+    {{# } }}
+</script>
+
+<script>
+
+    //添加调拨单参数
+    var storeAddTransferReq = {};
+
+    //添加调拨单弹出索引
+    var selectWmsIndex = "", impTrackIndex;
+
+    //将采退单id传到详情页
+    var purchaseReturnReq = {};
+
+    layui.use(['layer', 'table', 'element', 'form', 'laydate'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0, {time: 5 * 1000});
+        var table = layui.table;
+        var laydate = layui.laydate;
+        var form = layui.form;
+
+
+        //仓库下拉框
+        store_wmsId_option('outWmsId');
+        store_wmsId_option('inWmsId');
+
+        tree_formDept("treenode_dept","id");
+
+        $.ajax({
+            type: 'GET',
+            url: "/purchase/common/enumList",
+            dataType: 'json',
+            data: '',
+            success: function (res) {
+                console.log("请求-下拉框数据", res);
+                state_response(res);
+                $("#state").append(template('purchaseReturnedState-option-tpl', res.item));
+                form.render('select'); //刷新select选择框渲染
+            }
+        });
+        form.render();
+        table.render({
+            elem: '#demo'
+            , url: '/purchase/returned/queryList' //数据接口
+            , method: 'post'
+            ,even: true    //开启隔行背景
+            , page: true //开启分页
+            , height: 'full-200'
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+             ,done: function (res, curr, count) {
+                    var element = layui.element;
+                    element.init();
+                    layer.close(index);
+                }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+
+            }
+            , cols: [[ //表头
+                {field: 'id', title: '采购退货单号', width: 120}
+                , {field: 'purchaseNo', title: '采购单号', width: 120}
+                , {field: 'platId', title: '采购渠道', width: 80}
+                , {field: 'platOrdersNo', title: '渠道订单号', width: 80}
+                , {field: 'createAt', title: '采购日期', width: 120}
+                , {field: 'buyer', title: '采购员', width: 120}
+                , {field: 'supplierCode', title: '供应商', width: 150}
+                , {field: 'amount', title: '退款金额', width: 100}
+                , {field: 'type', title: '采退类型', width: 120,templet: '#typeTpl'}
+                , {field: 'state', title: '状态', width: 80}
+                , {field: 'refundUser', title: '退款人', width: 100}
+                , {field: 'refundTime', title: '退款日期', width: 100}
+                , {field: 'senderUser', title: '发货人', width: 120}
+                , {field: 'senderTime', title: '发货时间', width: 80}
+                , {field: 'memo', title: '备注', width: 100}
+                , {field: '', title: '操作', templet: '#barOption', fixed: 'right', width: 220, align: 'center'}
+            ]]
+
+        });
+        layer.close(index);
+
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#createTime' //指定元素
+            , type: 'date'
+            , range: '~' //或 range: '~' 来自定义分割字符
+            , max: 'new Date()'
+            , theme: 'molv'
+        });
+
+        //搜索
+        form.on('submit(btnSearch)', function (data) {
+//            index = layer.load(0,{time:5*1000});
+            var param = setReqParam(data);
+            //上述方法等价于
+            table.reload('demo', {
+                method: 'post',
+                where: param,    //设定异步数据接口的额外参数，任意设
+                page: {
+                    page: 1 //重新从第 1 页开始
+                }
+            });
+            return false;
+        });
+
+        //监听工具条
+        table.on('tool(test)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+            if (layEvent === 'submit') { //
+                postAjax('purchase/returned/confirmFinanceRefund', data.id);
+            } else if (layEvent === 'cancel') { //
+                layer.msg('取消中。。。。');
+                postAjax('purchase/returned/cancelReturned', data.id);
+            } else if (layEvent === 'detail') {
+                console.log('into detail...');
+                purchaseReturnReq = data;
+                purchaseReturnReq.returnId = data.id;
+                $.get('view/purchase/manage/returnItem.html',function (str) {
+                    debugger;
+                    var transferItemIndex = layer.open({
+                        type: 1
+                        , title: '采退明细'
+                        , content: str //注意，如果str是object，那么需要字符拼接。
+                        , maxmin: true
+                        , area: ['1600px','800px']
+                        ,success: function () {
+                            $.ajax({
+                                type: 'POST',
+                                url: "/purchase/returned/getPurchaseDtoById?purchaseId=" + data.purchaseNo,
+                                dataType: 'json',
+                                success: function (res) {
+                                    $("#purchase_return_item_wrap").html(template("purchase_return_tpl", res));
+                                    $("#return_detail_wrap").html(template("return_detail_tpl", purchaseReturnReq));
+                                }
+                            });
+                        }
+                    });
+                });
+            } else if(layEvent === 'showHistory'){
+                showHistory(obj,table);
+            }
+        });
+
+        function setReqParam(data) {
+            var new_obj = data.field;
+
+            var createTime = data.field.createTime.split("~");
+            new_obj.minCreateAt = $.trim(createTime[0]);//创建时间开始时间
+
+            if (createTime[1] != undefined && createTime[1] != '') {
+                new_obj.maxCreateAt = $.trim(createTime[1]) + ' 23:59:59';  //创建时间结束时间
+            } else {
+                new_obj.maxCreateAt = '';
+            }
+
+            console.log("search入参：", JSON.stringify(new_obj));
+            return new_obj;
+
+        }
+
+    });
+
+    function postAjax(url, data) {
+        $.ajax({
+            type: 'POST',
+            url: url,
+            dataType: 'json',
+            data: {transferId: data},
+            success: function (res) {
+                state_response(res);
+                layer.msg('操作成功');
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                layer.msg('操作失败，请重试');
+            }
+        });
+    }
+
+    function showHistory(obj,purchase_table) {
+        debugger;
+        purchase_index = layer.open({
+            type: 1,
+            title: '采购明细历史状态',
+            content: template('purchaseReturned_fsm_history_tpl', obj.data),
+            maxmin: true,
+            area: '50%',
+            offset:'10%',
+            success: function () {
+                purchase_table.render({
+                    elem: '#purchase_item_fsm_history_tpl'
+                    , url: "/purchase/manage/purchaseReturned/queryFsmHistory?purchaseReturnedId="+obj.data.id
+                    , even: true //开启隔行背景
+                    , method: 'POST'
+                    , height: 'full-260'
+                    ,limit: 10
+                    , request: {
+                        pageName: 'page' //页码的参数名称，默认：page
+                        ,limitName: 'limit' //每页数据量的参数名，默认：limit
+                    }
+                    , page: true //关闭分页
+                    , done: function (res, curr, count) {
+                        var element = layui.element;
+                        element.init();
+                    }
+                    , cols: [[ //表头
+                        {field: 'srcStateDisplay', title: '原始状态',width:"15%"}
+                        ,{field: 'eventNameDisplay', title: '事件',width:"15%"}
+                        ,{field: 'dstStateDisplay', title: '目标状态',width:"15%"}
+                        ,{field: 'optUid', title: '用户',width:"15%"}
+                        ,{field: 'createAt', title: '时间',width:"20%"}
+                        ,{field: 'memo', title: '备注',width:"20%"}
+                    ]]
+                    , response: {
+                        statusName: 'code' //数据状态的字段名称，默认：code
+                        , statusCode: 'OK' //成功的状态码，默认：0
+                        , msgName: 'desc' //状态信息的字段名称，默认：msg
+                        , countName: 'total' //数据总数的字段名称，默认：count
+                        , dataName: 'item' //数据列表的字段名称，默认：data
+                    }
+                })
+            }
+        });
+    }
+</script>
+
+
+
+

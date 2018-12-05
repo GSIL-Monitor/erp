@@ -1,0 +1,52 @@
+<style type="text/css">
+    .auto_matchinput{
+        width: 150px;
+        line-height: 28px;
+    }
+    .auto_matchwrap{
+        width: 150px;
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 2px;
+        line-height: 32px;
+        font-size: 14px;
+    }
+    .auto_matchwrap > p:hover{
+        background: #009688;
+        color: #fff;
+    }
+</style>
+<script type="text/JavaScript">
+function input_match(that,url){
+    console.log($(that).val());
+    $(".auto_matchwrap").show();
+    $.ajax({
+            type: 'GET',
+            url: url+"?search="+$(that).val(),
+            dataType: 'json',
+            success: function (res) {
+                console.log("职位模糊查询", res);
+                state_response(res);
+                $(".auto_matchwrap").html(template('position-nametpl', res));
+            }
+    });
+}
+function insert_val(that,event){
+        $(".auto_matchinput").val($(that).text());
+        $(".auto_matchwrap").hide();
+        event.stopPropagation();
+}
+
+$("body").click(function(){
+    $(".auto_matchwrap").hide();
+})
+</script>
+<script type="text/html" id="position-nametpl">
+        {{each item value index}}
+                <p onclick="insert_val(this,event);">{{value.name}}</p>
+        {{/each}}
+</script>
+
+<input type="text" class="auto_matchinput" oninput="input_match(this,url)" />
+<div class="auto_matchwrap" style="display: none;"></div>

@@ -1,0 +1,480 @@
+<!-- RMA 申请模板 -->
+<div class="layui-container detail-row-space" id="rma_apply_container">
+
+</div>
+
+<script type="text/html" id="rma_apply_tpl">
+    <div>
+    <br>
+
+    <div class="layui-row layui-col-space15">
+            <div class="layui-col-md4">
+                <div class="layui-row">
+                    <div class="layui-col-md3">
+                        <div class="">订单流水号:</div>
+                    </div>
+                    <div class="layui-col-md9">
+                        <div class="">{{item.orderInfo.orderId}}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-md4">
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md3">
+                        <div class="">下单时间:</div>
+                    </div>
+                    <div class="layui-col-md9">
+                        <div class="">{{item.orderInfo.purchaserAt}}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-md4">
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md3">
+                            <div class="">订单金额:</div>
+                        </div>
+                        <div class="layui-col-md9">
+                            <div class="" >{{item.orderInfo.amountShow}}</div>
+                        </div>
+                        <input type='input' hidden='true' id="confirmAmount" value="{{item.orderInfo.confirmAmount}}">
+                    </div>
+                </div>
+        </div>
+
+
+        <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="layui-row">
+                        <div class="layui-col-md3">
+                            <div class="">付款类型:</div>
+                        </div>
+                        <div class="layui-col-md9">
+                            <div class="">{{item.orderInfo.paymentMethod}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md4">
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md3">
+                            <div class="">发货运单号:</div>
+                        </div>
+                        <div class="layui-col-md9">
+                            <div class="">{{item.orderInfo.trackingNo}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md4">
+                        <div class="layui-row layui-col-space15">
+                            <div class="layui-col-md3">
+                                <div class="">订单来源:</div>
+                            </div>
+                            <div class="layui-col-md9">
+                                <div class="">{{item.orderInfo.orderFrom}}</div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+    <br>
+   
+    <form  class="layui-form">
+
+    <input type='input' hidden='true' name='orderId' value="{{item.orderInfo.orderId}}">
+
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <table class="layui-table" id="orderItem" lay-filter="itemTb">
+                <thead>
+                    <tr>
+                        <th>商品项次ID</th>
+                        <th>SKU</th>
+                        <th>产品名称</th>
+                        <th>订单数量</th>
+                        <th>可退数量</th>
+                        <th>单价</th>
+                        <th>币种</th>
+                        <th>申请数量</th>
+                    </tr>
+                </thead>
+                <tbody id="orderItem_list">
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <br>
+
+   
+    <div>
+            <div class="layui-form-item">
+                    <label class="layui-form-label">退换货类型</label>
+                    <div class="layui-input-inline">
+                        <select name="changeType" id="changeType" disabled="disabled">
+                            <option value="">请选择</option>
+                        </select>
+                    </div>
+                    <label class="layui-form-label">售后来源</label>
+                    <div class="layui-input-inline">
+                        <select name="rmaSource" id="rmaSource" lay-verify="required">
+                            <option value="">请选择</option>
+                        </select>
+                    </div>
+                    <label class="layui-form-label">是否回收</label>
+                    <div class="layui-input-inline">
+                        <select name="recycleGoods" id="recycleGoods" lay-verify="required">
+                            <option value="">请选择</option>
+                        </select>
+                    </div>
+            </div>
+
+            <div class="layui-form-item">
+                    <label class="layui-form-label">退换货原因</label>
+                    <div class="layui-input-inline">
+                        <select name="changeReason" id="changeReason" lay-verify="required">
+                            <option value="">请选择</option>
+                        </select>
+                    </div>
+            </div>
+
+            <div class="layui-form-item">
+                    <label class="layui-form-label">问题描述</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="questionMemo"  class="layui-input" lay-verify="required">
+                    </div>
+            </div>
+            <!-- {{item.orderInfo.logisticsName}} -->
+            <div class="layui-form-item">
+                    <label class="layui-form-label">退款方式</label>
+                    <div class="layui-input-inline">
+                        <input style="border:none" type="text" name="billWay" value="物流自退/paypal(TODO)" disabled="disabled" class="layui-input">
+                    </div>
+                    <label class="layui-form-label">退款物流</label>
+                    <div class="layui-input-inline">
+                        <input style="border:none"  type="text" name="logisticsName" value="{{item.orderInfo.logisticsName}}" disabled="disabled"  class="layui-input">
+                    </div>
+                    <label class="layui-form-label">退款运单号</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="trackingNo" value="{{item.orderInfo.trackingNo}}" lay-verify="required" class="layui-input">
+                    </div>
+            </div>
+
+            <div class="layui-form-item">
+                {{ if $imports.$window.rmaType == 'returned' }}           
+                    <label class="layui-form-label">退款金额</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="amount" lay-verify="amount|required|number" class="layui-input">
+                    </div>
+                    <label class="layui-form-label">顾客收款账号</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="account" value="TODO" class="layui-input">
+                    </div>
+                {{ /if }}
+            </div>
+              
+
+
+                   
+            <div class="layui-upload">
+                <button type="button" class="layui-btn" id="uploadImgBtn">多图片上传</button> 
+                    <blockquote class="layui-elem-quote layui-quote-nm" style="margin-top: 10px;">
+                      预览图：
+                    <div class="layui-upload-list" id="uploadImgPreview"></div>
+                </blockquote>
+            </div>
+
+
+            <div class="layui-form-item">      
+                    <label class="layui-form-label">备注</label>
+                        <div class="layui-input-block">
+                            <textarea name="applyMemo" lay-verify="required" rows="2" placeholder=""  class="layui-textarea"></textarea>
+                        </div>
+                </div>
+
+
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button lay-submit lay-filter="submitDraft" class="layui-btn layui-btn-primary">保存草稿</button>
+                    <button class="layui-btn" lay-submit lay-filter="submitAudit">提交</button>
+                    <button class="layui-btn"  type="reset">重置</button>
+                </div>
+            </div>
+
+        </div>
+    </form>
+
+    </div>
+</script>
+
+
+<script>
+
+
+    layui.use(['element', 'table', 'form', 'upload','layer'], function () {
+
+        var table = layui.table;
+        var form = layui.form;
+        var element = layui.element;
+        var upload = layui.upload;
+        var layer = layui.layer;
+
+        initOrderData(table, form,element,upload);
+
+        form.verify({
+            amount: function(value, item){ //value：表单的值、item：表单的DOM对象
+                if(rmaType == 'returned'){
+                    var comfirmAmount = Number($("#confirmAmount").val());
+                    if(Number(value) > comfirmAmount){
+                        return '确定退款金额不能大于订单未退金额';
+                    }
+                }    
+            },
+            qty: function(value, item){
+                var r = /^[0-9]*[1-9][0-9]*$/;
+                if(r.test(value) == false){
+                    return '只能输入正整数';      
+                }
+                var qty =  Number(value);
+                var maxQty = Number(item.getAttribute("maxQty"));
+
+                if(qty > maxQty){
+                    return '确定取消退换货数量不能大于订单未退数量';          
+                }
+            }
+  
+        });   
+
+        form.on('submit(submitDraft)', function (data) {
+            var postData = getPostData(data,'draft',layer);
+            console.log(postData);
+            preventRepeat(data);   
+            $.ajax({
+                type: 'POST',
+                url: "/orders/aftersale/apply",
+                contentType:"application/json",
+                data:  JSON.stringify(postData),
+                dataType: 'json',
+                success: function (res) {
+                    state_response(res, data);
+                    if(res.code==='FAIL') {
+                      layer.msg(res.desc);
+                      return false;
+                    }
+                    layer.msg(res.desc);
+                    layer.close(rmaIndex);
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    state_response(res, data);
+                    layer.msg(res.desc);
+                    return false;
+                }
+            });
+            return false;
+        });
+
+
+        form.on('submit(submitAudit)', function (data) {
+            var postData = getPostData(data,'waitAudit');
+            console.log(postData);
+            preventRepeat(data);   
+            $.ajax({
+                type: 'POST',
+                url: "/orders/aftersale/apply",
+                contentType:"application/json",
+                data:  JSON.stringify(postData),
+                dataType: 'json',
+                success: function (res) {
+                    state_response(res, data);
+                    if(res.code==='FAIL') {
+                      layer.msg(res.desc);
+                      return false;
+                    }
+                    layer.msg(res.desc);
+                    layer.close(rmaIndex);
+                },
+                error: function (res) {
+                    layer.msg(res.desc);
+                    return false;
+                }
+            });
+            return false;
+        });
+
+
+    });
+
+    function getOrderItemQty(layer){  
+        var itemArray = [];
+        var tableTr = $("#orderItem_list").find("tr");
+        for(var i = 0 ;i < tableTr.length ; i++){
+            var orderItemId = $(tableTr[i]).find("td").eq(0).text();
+            var qty = $(tableTr[i]).find("td").eq(7).find("input").val();
+            var itemObj = {};
+            itemObj.orderItemId =  orderItemId;
+            itemObj.qty = qty;
+            itemArray.push(itemObj);
+        }
+        return itemArray;
+    }
+
+    function getImageList(){
+        var imgList = [];
+        $("input[name='mainImageUrl']").each(function(index,item){
+            imgList.push($(this).val());
+            }
+        );
+        return imgList;
+    }
+
+        function getPostData(data, state,layer) {
+            var itemArray = getOrderItemQty(layer);
+            var imgList = getImageList();
+            var field = data.field;
+            // var confirmAmount = $("#confirmAmount").val();
+
+            // if(rmaType == 'returned' && field.amount > confirmAmount){
+            //     layer.open({
+            //         content: '确定退款金额不能大于订单未退金额',
+            //         yes: function(index, layero){
+            //           layer.close(index); //如果设定了yes回调，需进行手工关闭
+            //         }
+            //       });
+            //     return false;        
+            // }
+
+            var postData = {};
+
+            postData.applyType = field.changeType;
+            postData.orderId = field.orderId;
+            postData.changeReason = field.changeReason;
+            postData.rmaSource = field.rmaSource;
+            postData.recycleGoods = field.recycleGoods;
+            postData.questionMemo = field.questionMemo;
+            postData.applyMemo = field.applyMemo;
+            postData.trackingNo = field.trackingNo;
+            postData.amount = field.amount;
+            postData.orderItemQtyList = itemArray;
+            postData.imgs = imgList;
+
+
+            postData.rmaState = state;
+
+            return postData;
+        }
+
+
+
+    function initOrderData(table, form,element,upload) {
+
+        $.ajax({
+            type: 'GET',
+            url: "/orders/orders/order_abstract?orderId=" + rmaOrderId,
+            dataType: 'json',
+            success: function (res) {
+                state_response(res);
+                $("#rma_apply_container").html(template('rma_apply_tpl', res));
+                var obj = {
+                    item: res.item.orderItems
+                };
+                for(var i = 0 ; i < obj.item.length; i++){
+                    obj.item[i].singleAmountShow = res.item.orderInfo.symbolLeft + obj.item[i].singleAmount + res.item.orderInfo.symbolRight;
+                    obj.item[i].currencyName = res.item.orderInfo.currencyName;
+                }
+                $("#orderItem_list").append(template("product_unit_tr",obj));               
+                initUpload(upload);
+                initSelect(form);
+                element.init();
+            
+            }
+        });
+
+       
+    }
+
+
+    function initSelect(form){
+        $.ajax({
+            type: 'GET',
+            url: "/orders/common/enumList",
+            dataType: 'json',
+            success: function (res) {
+                state_response(res);
+                var obj = new Object;
+                obj.item = res.item.changeTypeEnum;
+                $("#changeType").append(template('option-enum-tpl', obj));
+                obj.item = res.item.rmaSourceEnum;
+                $("#rmaSource").append(template('option-enum-tpl', obj));
+                obj.item = res.item.recycleGoodsEnum;
+                $("#recycleGoods").append(template('option-enum-tpl', obj));
+                obj.item = res.item.changeReasonEnum;
+                $("#changeReason").append(template('option-enum-tpl', obj));
+
+                // $("#changeType").val(rmaType);
+                $('#changeType option[value="' + rmaType + '"]').attr('selected','selected');
+
+                form.render('select'); //刷新select选择框渲染
+
+                
+            }
+        });
+    }
+
+
+    function initUpload(upload){
+        upload.render({
+            elem: '#uploadImgBtn'
+            ,url: '/admin/commons/upload'
+            ,multiple: true
+            ,size: 5000
+            ,field: 'file'
+            ,method: 'post'
+            ,data : {
+                type:'productNew'
+            }
+            ,before: function(obj){
+            //预读本地文件示例，不支持ie8
+                // obj.preview(function(index, file, result){
+                //     $('#uploadImgPreview').append('<img src="'+ result +'" alt="'+ file.name +'" class="layui-upload-img">')
+                // });
+            }
+            ,done: function(res){
+                if(res.code === "OK"){
+                    res.mainImageUrl = res.item;
+                    res.productImgPrefix = window.product_img_host;
+                    $('#uploadImgPreview').append(template('newAdd_imageUpLoadTpl', res));
+                }
+            }
+        });
+    }
+
+</script>
+
+
+<!--图片模板-->
+<script type="text/html" id="newAdd_imageUpLoadTpl">
+    <img style=" width: 150px; height: 150px;" src="{{productImgPrefix}}/{{mainImageUrl}}" />
+    <input value="{{mainImageUrl}}" type="hidden" name="mainImageUrl" class="layui-input" required>
+</script>
+
+
+<script type="text/html" id="product_unit_tr">
+    {{ each item val index}}
+    <tr>
+        <td>{{val.id}}</td>
+        <td>{{val.sku}}</td>
+        <td>{{val.productTitle}}</td>
+        <td>{{val.qty}}</td>
+        <td>{{val.qty}}</td>
+        <td>{{val.singleAmountShow}}</td>
+        <td>{{val.currencyName}}</td>
+        <td><input type="text" maxQty="{{val.qty}}" value="{{val.qty}}" class="layui-input" autocomplete="off" lay-verify="qty|required|number"   name="qty" /></td>
+    </tr>
+    {{/each}}
+</script>
+
+
+<!--枚举下拉框 -->
+<script id="option-enum-tpl" type="text/html">
+    {{each item value index}}
+        <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>

@@ -1,0 +1,149 @@
+<br>
+<form class="layui-form ">
+
+    <div class="productList parentPanel">
+
+
+    <div class="layui-form-item">
+            <label class="layui-form-label">地区</label>
+            <div class="layui-input-inline">
+                <select name="zoneId" lay-search>
+                    <option value="">不限</option>
+                </select>
+            </div>
+
+            <label class="layui-form-label">部门</label>
+            <div class="layui-input-inline">
+                <div class="layui-input-inline">
+                    <select id="department_treenode_dept" name="deptId">
+                        <option value=""></option>
+                    </select>
+                </div>
+            </div>
+            
+            <button class="layui-btn addpro" >添加</button>
+    </div>
+
+
+            
+    </div>
+
+
+    <div class="layui-form-item" style="margin:50px">
+            <button class="layui-btn" lay-submit lay-filter="submit_order">提交</button>
+    </div> 
+ 
+    
+</form>
+
+
+<br>
+
+
+<script>
+    layui.use(['table','form','layer'], function(){
+        var table = layui.table;
+        var form = layui.form;
+        var layer = layui.layer;
+        form.render(); //更新全部
+
+
+        $.ajax({
+            type: 'GET',
+            url: "/product/base/zone/findAll",
+            dataType: 'json',
+            success: function (res) {
+                state_response(res);
+                $("select[name='zoneId']").append(template('zone_option_tpl3', res));
+                form.render(); //更新全部
+            }
+        });
+        tree_formDept('department_treenode_dept','id');
+
+
+        $('.addpro').on('click',function(){            
+            // var item='<div class="proitem"  style="margin-top: 30px; "> <span class="itemid">  产品id：<input type="text" name="productids[]" style="width:250px;height: 30px;">  </span> <span class="itemattr"> 属性组合id（多属性使用逗号隔开）：<input type="text" name="attrids[]" style="width:360px;height: 30px;">  </span><span class="itemid">  购买数量：<input type="text" name="nums[]" value="1"  style="width:100px;height: 30px;">  </span></div>';
+            var html = template('product_tpl');
+            $('.parentPanel').append(html);
+            form.render(); //更新全部
+            return false;
+        });
+
+
+        //监听提交
+        form.on('submit(submit_order)', function(data){
+            var field = data.field;
+
+            var products = $(".product");
+
+            var productList = [];
+           
+            for(var i=0; i<products.length; i++){
+                var product = {};
+                product.productId = products[i].getElementsByTagName("input")[0].value;
+                product.attrIds = products[i].getElementsByTagName("input")[1].value;
+                product.count = products[i].getElementsByTagName("input")[2].value;
+                productList.push(product);
+            }
+            var postData = {};
+            postData.deptId = field.deptId;
+            postData.zoneId = field.zoneId;
+            postData.productList = productList;
+
+            $.ajax({
+                type: 'POST',
+                url : "/orders/test/quickOrder",
+                data: JSON.stringify(postData),
+                dataType: 'json',
+                contentType: "application/json",
+                success: function(data){
+
+                    if(data.code == "FAIL"){
+                        layer.msg(data.desc);
+                        return false;
+                    }
+
+                    layer.msg(data.desc);
+
+                    return false;
+
+                },
+                error: function(data){
+                   
+                }
+            })
+          return false;
+        });
+   
+
+    });
+        
+</script>
+
+<script id="zone_option_tpl3" type="text/html">
+    {{each item value index}}
+        <option value="{{value.id}}">{{value.title}}</option>
+    {{/each}}
+</script>
+
+
+<script id="product_tpl" type="text/html">
+    <div class="layui-form-item product">
+            <label class="layui-form-label">产品ID</label>
+            <div class="layui-input-inline">
+                <input type="text" name="productId" class="layui-input"></input>
+            </div>
+
+            <label class="layui-form-label">属性组合ID（多个以逗号隔开）</label>
+            <div class="layui-input-inline">
+                <input type="text" name="attrIds" class="layui-input"></input>
+            </div>
+
+            <label class="layui-form-label">购买数量</label>
+            <div class="layui-input-inline">
+                <input type="text" name="count" class="layui-input"></input>
+            </div>
+    </div>  
+</script>
+
+

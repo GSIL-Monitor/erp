@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FSM EntityName="Invalid" EntityDao="InvalidMapper" ParentEntityName="">
+
+	<States>
+		<State Name="start" Description="开始">
+			<Event Name="create" Description="创建" DstState="draft" After="invalidCreateAfter"/>
+		</State>
+
+		<State Name="draft" Description="草稿">
+			<Event Name="submit" Description="提交" DstState="waitAudit" After="invalidSubmitAfter"/>
+			<Event Name="delete" Description="删除" DstState="auditPass"/>
+		</State>
+
+		<State Name="waitAudit" Description="待审核">
+			<Event Name="auditPass" Description="审核通过" DstState="auditPass" After="invalidAuditPassAfter"/>
+			<Event Name="reject" Description="审核不通过" DstState="reject" After="invalidRejectAfter"/>
+		</State>
+
+
+		<State Name="reject" Description="审核不通过">
+		</State>
+
+		<State Name="auditPass" Description="已完成">
+		</State>
+
+	</States>
+
+</FSM>

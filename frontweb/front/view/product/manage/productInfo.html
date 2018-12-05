@@ -1,0 +1,34 @@
+<div>
+    产品详情敬请期待
+
+</div>
+<script type="text/javascript">
+    console.log(productSpuInfo);
+    layui.use(['layer', 'form'], function () {
+        var productInfo_layer = layui.layer;
+        var productInfo_form = layui.form;
+        initBySpu(productInfo_layer);
+    });
+
+//    初始化函数
+    function initBySpu(layer) {
+        $.ajax({
+            type: "GET",
+            url: "/product/manage/getBySpu",
+            dataType: "json",
+            data: {
+                spu: productSpuInfo
+            },
+            success: function (res) {
+                state_response(res);
+                if (res.code === "OK"){
+                    openInfoPage(layer);
+                }
+            }
+        });
+    }
+//    页面函数
+    function openInfoPage() {
+        
+    }
+</script>

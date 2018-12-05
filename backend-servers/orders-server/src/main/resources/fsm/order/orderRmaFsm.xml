@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FSM EntityName="OrdersRmaBill" EntityDao="OrdersRmaBillMapper" ParentEntityName="">
+
+	<States>
+		<State Name="start" Description="开始">
+			<Event Name="create" Description="新增退货申请单" DstState="draft"  />
+			<Event Name="createReject" Description="新增拒收申请单" DstState="waitDelivery" After="rmaRejectAfter"/>
+			<Event Name="submitAudit" Description="提交审核" DstState="waitAudit"/>
+		</State>
+
+		<State Name="draft" Description="草稿">
+			<Event Name="update" Description="修改退货申请单" DstState="draft"  />
+			<Event Name="submitAudit" Description="提交审核" DstState="waitAudit"/>
+			<Event Name="changeCancel" Description="取消" DstState="cancel" />
+			<Event Name="sign" Description="客户签收(拒收流程)" DstState="cancel" />
+			<!--<Event Name="updateTrackingNo" Description="填写运单号(拒收流程)" DstState="waitDelivery"/>-->
+		</State>
+
+		<State Name="waitAudit" Description="待审核">
+			<Event Name="changeAuditPass" Description="审核通过(需要寄回)" DstState="waitDelivery" After="rmaApprovedAfter"/>/>
+			<Event Name="changeAuditPassBut" Description="审核通过(不需要寄回)" DstState="finished"  After="rmaApprovedAfter"/>
+			<Event Name="changeReject" Description="审核不通过" DstState="reject"/>
+		</State>
+
+		<!--<State Name="waitBack" Description="待寄回">
+			<Event Name="updateTrackingNo" Description="填写运单号" DstState="waitDelivery"/>
+			<Event Name="changeCancel" Description="取消" DstState="cancel" />
+		</State>-->
+
+		<State Name="waitDelivery" Description="执行中">
+			<Event Name="warehousing" Description="退货/拒收入库" DstState="finished"  After="goodsFinishAfter"/>
+            <Event Name="updateTrackingNo" Description="修改运单号" DstState="waitDelivery" After="updateTrackingNoAfter"/>
+			<Event Name="changeCancel" Description="取消" DstState="cancel" Before="notifyStockCancelBefore"/>
+		</State>
+
+		<State Name="reject" Description="审核不通过">
+			<Event Name="update" Description="保存草稿" DstState="draft"/>
+			<Event Name="submitAudit" Description="提交审核" DstState="waitAudit"/>
+			<Event Name="changeCancel" Description="取消" DstState="cancel"/>
+		</State>
+
+		<State Name="cancel" Description="已取消">
+		</State>
+
+		<State Name="finished" Description="已收货">
+		</State>
+
+	</States>
+
+</FSM>

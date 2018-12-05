@@ -1,0 +1,32 @@
+<div class="padding30" id="treeselectcontent_wrap">
+          <ul id="treeselectcontent"></ul>  
+</div>
+<script type="text/html" id="treeselectcontent_tpl">
+        
+</script>
+
+<script type="text/javascript">
+    function treeselect_modalrender(url,that,display_item,val_item){
+              $.ajax({
+                      url: url,
+                      dataType: 'json',
+                      type: 'GET',
+                      success: function (res) {
+                          console.log("品类树", res);
+                          state_response(res);
+                          layui.use(['tree','layer'], function(){
+                              layui.tree({
+                                    elem: '#treeselectcontent'
+                                    ,nodes: res.item.children
+                                    ,click: function(node){
+                                          console.log(node) //node即为当前点击的节点数据
+                                          $(that).siblings(".component_input").val(node[display_item]).attr("data-id",node[val_item]);
+                                          layer.close(treeselectmodal_index);
+                                    }  
+                              });
+                          });            
+                      }
+              }); 
+    }
+    
+</script>

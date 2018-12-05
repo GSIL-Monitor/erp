@@ -1,0 +1,175 @@
+<style type="text/css">
+    .form-item-model {
+        width: 95%;
+    }
+
+    .form-item-model td > .layui-table-cell {
+        height: auto;
+    }
+
+    .star-cls {
+        color: #FF0000;
+    }
+</style>
+</br>
+<div class="layui-form form-item-model">
+
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="star-cls">*</span>补发原因</label>
+        <div class="layui-input-block">
+            <select name="supplementReasonEnumName" lay-filter="reason" lay-verify="required">
+                <option value=""></option>
+            </select>
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="star-cls">*</span>补发商品</label>
+        <div class="layui-input-block">
+            <table id="orderItem" lay-filter="orderItem"></table>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button type="button" class="layui-btn layui-btn-primary">添加商品</button>
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+        <div class="layui-inline" style="width: 70%;">
+            <label class="layui-form-label"><span class="star-cls">*</span>收取费用</label>
+            <div class="layui-input-block">
+                <input type="text" name="addAmount" id="addAmount" class="layui-input" lay-verify="required">
+            </div>
+        </div>
+        <div class="layui-inline">
+            订单总价：<span class="star-cls" id="orderAmount"></span>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            <textarea name="memo" class="layui-textarea"></textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item" style="text-align: center;">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="supplement">确定</button>
+            <button type="button" class="layui-btn layui-btn-primary" onclick="layui.layer.close(layui.layer.index)">取消
+            </button>
+        </div>
+    </div>
+
+</div>
+<br>
+
+<script>
+
+
+    layui.use(['table', 'form'], function () {
+        var table = layui.table;
+        var form = layui.form;
+        form.render('select');
+
+
+        $.ajax({
+            type: 'GET',
+            url: 'orders/supplement/items?orderId=' + orderId,
+            dataType: 'json',
+            success: function (res) {
+                state_response(res);
+                items = res.item.itemList;
+                dftAddAmount = res.item.orderAmount;
+
+                //方法渲染：
+                table.render({
+                    elem: '#orderItem',
+                    id: 'orderItem',
+                    data: items,
+                    cols: [[ //表头
+                        {type: 'checkbox', field: 'productId'}
+                        , {field: 'productId', title: '产品ID', width: 100}
+                        , {field: 'sku', title: 'SKU', width: 140}
+                        , {field: 'productTitle', title: '产品名称'}
+                        , {field: 'attrTitleArray', title: '产品属性', width: 100}
+                        , {field: 'qty', title: '数量', edit: 'text ', width: 80}
+                        , {field: 'singleAmount', title: '单价', width: 100}
+                        , {field: 'totalAmount', title: '总价', width: 100}
+                    ]]
+                });
+
+                $('#orderAmount').text("￥" + dftAddAmount);
+            }
+        });
+
+        form.on('submit(supplement)', function (data) {
+
+            var checkStatus = table.checkStatus('orderItem'); //test即为基础参数id对应的值
+
+            if (checkStatus.data.length <= 0)
+                layer.msg("请勾选补发商品");
+            else {
+                // 订单项数组
+                var itemIds = [];
+                for (var i in  checkStatus.data) {
+                    itemIds.push(checkStatus.data[i].productId);
+                }
+
+                var new_data = {};
+                new_data.supplementReasonEnumName = $.trim(data.field.supplementReasonEnumName);
+                new_data.addAmount = $.trim(data.field.addAmount);
+                new_data.memo = $.trim(data.field.memo);
+                new_data.itemIdArray = itemIds;
+
+                console.log(new_data);
+
+                // 问题件状态
+                $.ajax({
+                    type: 'POST',
+                    url: "/orders/supplement/add",
+                    data: new_data,
+                    dataType: 'json',
+                    success: function (res) {
+                        state_response(res);
+                        console.log(res);
+                    }
+                });
+            }
+        });
+
+        form.on('select(reason)', function (data) {
+            if (data.value == 'miss' || data.value == 'faulty') {
+                $('#addAmount').val(0);
+            } else if (data.value == 'lose') {
+                $('#addAmount').val(dftAddAmount);
+            }
+        });
+
+        // 问题件状态
+        $.ajax({
+            type: 'GET',
+            url: "/orders/common/enumList",
+            dataType: 'json',
+            success: function (res) {
+                state_response(res);
+                $("select[name='supplementReasonEnumName']").append(template('supplementReasonEnumNameModule', res.item));
+                form.render('select');
+            }
+        });
+
+    });
+
+
+</script>
+
+<!--枚举下拉框 -->
+<script id="supplementReasonEnumNameModule" type="text/html">
+    {{each ordersSupplementReasonEnum value index}}
+    <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>
+

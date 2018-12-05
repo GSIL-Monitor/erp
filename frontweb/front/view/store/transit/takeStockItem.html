@@ -1,0 +1,96 @@
+<style type="text/css">
+    td > .layui-table-cell {
+        height: 100px;
+        line-height: 28px;
+        padding: 0 15px;
+        position: relative;
+        overflow-y: auto;
+    }
+</style>
+<script id="takeStockItemTpl" type="text/html">
+    <form class="layui-form ">
+        <div class="layui-form-item">
+            <label class="layui-form-label">盘点单号</label>
+            <label class="layui-form-label">{{ id }}</label>
+
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">仓库</label>
+            <label class="layui-form-label">{{ stockName }}</label>
+        </div>
+
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">创建人</label>
+            <label class="layui-form-label">{{ creator }}</label>
+
+            <label class="layui-form-label">创建时间</label>
+            <label class="layui-form-label">{{ createAt }}</label>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">备注</label>
+            <label class="layui-form-label">{{ memo }}</label>
+        </div>
+        <label class="layui-form-label">明细</label>
+
+        <table id="takeStockItemTplTable" lay-filter="takeStockItemTplTable"></table>
+
+    </form>
+</script>
+<form class="layui-form " id="takeStockItemTplFrom"></form>
+
+<script type="text/html" id="tra-ts-attr-tpl">
+    {{#  layui.each(d.spuList, function(index, item){ }}
+    <div><a href="javascript:;" class="layui-table-link">{{item.innerTitle}}</a></div>
+    {{#  layui.each(item.skuList, function(index, item){ }}
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;{{item.sku}}&nbsp;&nbsp;{{item.attr}}&nbsp;<span class="text-red">x</span>&nbsp;{{item.qty}}
+    </div>
+    {{#  }); }}
+    {{#  }); }}
+</script>
+
+<script type="text/javascript">
+    layui.use(['form', 'layer', 'table'], function () {
+        var layer = layui.layer;
+        var formSel = layui.form;
+        var table = layui.table;
+
+        formSel.render();
+
+        console.log('sto_takeStock_itemReq:' + JSON.stringify(sto_takeStock_itemReq));
+        $("#takeStockItemTplFrom").html(template('takeStockItemTpl', sto_takeStock_itemReq));
+        table.render({
+            elem: '#takeStockItemTplTable'
+            , url: '/store/takeStock/getDetail' //数据接口
+            , method: 'post'
+            , where: sto_takeStock_itemReq
+            , page: true //开启分页
+            , even: true  //开启隔行背景
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , cols: [[ //表头
+                {field: 'id', title: '序号', width: 80}
+                , {field: 'id', title: '盘点单号', width: 120}
+//                , {field: '', title: '类型', width: 80}
+                , {field: 'trackingNoOld', title: '运单号', width: 80}
+                , {field: 'deptName', title: '部门', width: 80}
+                , {field: 'spu', title: 'SPU', width: 80}
+                , {templet: '#tra-ts-attr-tpl', title: '属性值', width: 200, height: 200}
+                , {field: 'sku', title: 'SKU', width: 80}
+                , {field: 'storageLocal', title: '库位', width: 80}
+                , {field: 'storageAge', title: '库龄（天）', width: 120}
+            ]]
+        });
+
+    });
+
+</script>

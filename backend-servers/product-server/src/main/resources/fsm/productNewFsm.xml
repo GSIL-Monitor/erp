@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FSM EntityName="ProductNew" EntityDao="ProductNewMapper" ParentEntityName="">
+
+	<States>
+		<!-- 正常流 -->
+
+		<State Name="start" Description="开始">
+			<Event Name="create" Description="创建" DstState="draft" />
+		</State>
+		<State Name="draft" Description="草稿">
+			<Event Name="submit" Description="提交" DstState="waitAssign" Before="productNewDraftSubmitBefore"/>
+			<Event Name="verify" Description="审核" DstState="waitCheck"/>
+		</State>
+		<State Name="waitAssign" Description="待细化分类">
+			<Event Name="assign" Description="细化分类" DstState="waitImageMatch" After="productNewWaitAssignAfter"/>
+            <!--排重人员、广告专员 -->
+			<Event Name="backToCreated" Description="驳回" DstState="draft"/>
+		</State>
+
+		<State Name="waitImageMatch" Description="待图片对比">
+            <Event Name="match" Description="匹配" DstState="waitCheck"/>
+		</State>
+
+		<!--排重人员 -->
+		<State Name="waitCheck" Description="待排查">
+			<Event Name="checkOk" Description="排查通过" DstState="checkOk" After="productNewCheckOkAfter" Before="productNewWaitCheckEventBefore"/>
+			<Event Name="warn" Description="预警" DstState="checkWarn" After="dealImageMatch"/>
+			<Event Name="duplicate" Description="重复" DstState="duplication" After="dealImageMatch"/>
+			<Event Name="decline" Description="拒绝" DstState="cancel" After="dealImageMatch"/>
+			<Event Name="goback" Description="返回细化分类" DstState="waitAssign"/>
+		</State>
+
+		<State Name="checkOk" Description="通过">
+			<!--排重人员、广告专员 -->
+            <Event Name="cancel" Description="销档" DstState="disappeared" />
+            <Event Name="archive" Description="建档" DstState="archived" />
+		</State>
+
+		<State Name="checkWarn" Description="有风险">
+			<!--主管 -->
+			<!--<Event Name="checkOk" Description="排查通过" DstState="checkOk" After="productNewCheckOkAfter"/>-->
+			<Event Name="verify" Description="待排查" DstState="waitCheck"/>
+			<!--主管、广告专员 -->
+			<Event Name="giveUp" Description="放弃" DstState="cancel" />
+		</State>
+		<!--广告专员 -->
+		<State Name="duplication" Description="重复产品">
+			<Event Name="giveUp" Description="放弃" DstState="cancel" />
+			<Event Name="verify" Description="待排查" DstState="waitCheck"/>
+		</State>
+
+		<!--排重人员 -->
+		<State Name="waitApprove" Description="待审批">
+			<!--<Event Name="checkOk" Description="排查通过" DstState="checkOk" After="productNewCheckOkAfter"/>-->
+			<Event Name="verify" Description="待排查" DstState="waitCheck"/>
+			<Event Name="decline" Description="拒绝" DstState="cancel" />
+		</State>
+
+        <State Name="archived" Description="已建档">
+        </State>
+        <State Name="disappeared" Description="已销档">
+        </State>
+		<State Name="cancel" Description="取消">
+		</State>
+
+	</States>
+
+</FSM>

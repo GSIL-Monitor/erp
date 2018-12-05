@@ -1,0 +1,304 @@
+<style type="text/css">
+
+</style>
+<br>
+<form class="layui-form">
+    <div class="layui-form-item">
+
+        <label class="layui-form-label select-label">退款单号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="id" placeholder="退款单号" autocomplete="off" class="layui-input">
+        </div>
+
+        <label class="layui-form-label select-label">订单流水号 </label>
+        <div class="layui-input-inline">
+            <input type="text" name="ordersId" placeholder="订单流水号" autocomplete="off" class="layui-input">
+        </div>
+
+
+        <label class="layui-form-label">站点来源</label>
+        <div class="layui-input-inline">
+            <input type="text" name="siteFrom" placeholder="站点来源" autocomplete="off" class="layui-input">
+        </div>
+
+        <label class="layui-form-label">状态</label>
+        <div class="layui-input-inline">
+            <select name="refundStatusEnum">
+                <option value="">不限</option>
+            </select>
+        </div>
+        <label class="layui-form-label">退款类型</label>
+        <div class="layui-input-inline">
+            <select name="refundTypeEnum">
+                <option value="">不限</option>
+            </select>
+        </div>
+
+
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">申请时间</label>
+        <div class="layui-input-inline">
+            <input type="hidden" name="createAtBegin" id="createAtBegin">
+            <input type="hidden" name="createAtEnd" id="createAtEnd">
+            <input type="text" name="createAt" placeholder="申请时间" autocomplete="off" class="layui-input"
+                   id="createAt">
+        </div>
+        <label class="layui-form-label">审核时间</label>
+        <div class="layui-input-inline">
+            <input type="hidden" name="auditTimeBegin" id="auditTimeBegin">
+            <input type="hidden" name="auditTimeEnd" id="auditTimeEnd">
+            <input type="text" name="auditTime" placeholder="审核时间" autocomplete="off" class="layui-input"
+                   id="auditTime">
+        </div>
+
+        <!--用于按钮显示-->
+        <div id="button_area">
+            <button lay-submit class="layui-btn" lay-filter="search">搜索</button>
+            <button type="reset" class="layui-btn layui-btn-primary" lay-filter="reset">重置</button>
+        </div>
+    </div>
+</form>
+<br>
+<table id="order_refund" lay-filter="order_refund"></table>
+
+
+<script>
+    var new_obj;
+
+    layui.use(['layer', 'table', 'element', 'form', 'laytpl', 'laydate'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0, {time: 5 * 1000});
+        var table = layui.table;
+        var form = layui.form;
+        var laytpl = layui.laytpl;
+        var laydate = layui.laydate;
+
+        //table渲染
+        table.render({
+            elem: '#order_refund'
+            , id: 'order_refund'
+            , url: '/orders/refund/find' //数据接口
+            , method: 'post'
+            , cellMinWidth: 110
+            , height: 'full-240'
+            , page: true //开启分页
+            , limit: 20
+            , done: function (res, curr, count) {
+                var element = layui.element;
+                element.init();
+                layer.close(index);
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , cols: [[
+                {field: 'id', title: '退款单编号'}
+                , {field: 'ordersId', title: '订单流水号'}
+                , {field: 'ordersRamBillId', title: '退货单号'}
+                , {field: 'siteFrom', title: '站点来源'}
+                , {field: '', templet: '#refundStatusEnum', title: '状态'}
+                , {field: '', templet: '#refundTypeEnum', title: '类型'}
+                , {field: 'refundAmount', title: '金额'}
+                , {field: 'createAt', title: '申请时间', width: 170}
+                , {field: 'auditTime', title: '审核时间', width: 170}
+                , {field: 'auditUserName', title: '审核人'}
+                , {field: 'auditMemo', title: '备注'}
+                , {field: '', title: '操作', templet: '#actionColumn', fixed: 'right', width: 164, align: 'left'}
+            ]]
+        });
+
+        //导入、导出按钮模板渲染
+        laytpl(button_module.innerHTML).render({}, function (html) {
+            document.getElementById('button_area').innerHTML += html;
+        });
+
+        //监听工具
+        table.on('tool(order_refund)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            rowData = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+            id = rowData.id;
+            if (layEvent === 'view') { //详情
+                module = 'view';
+                $.get('view/orders/manage/order_refund_detail.html', function (html) {
+                    refundDetailPage = layer.open({
+                        type: 1,
+                        title: '退款单详情',
+                        content: html,
+                        // maxmin: true,
+                        shadeClose: true,
+                        area: ['60%', '80%']
+                    });
+                });
+            }
+
+            if (layEvent === 'edit') { //修改
+                console.log("edit", id);
+                module = 'edit';
+                $.get('view/orders/manage/order_refund_detail.html', function (html) {
+                    refundDetailPage = layer.open({
+                        type: 1,
+                        title: '编辑退款单',
+                        content: html,
+                        // maxmin: true,
+                        shadeClose: true,
+                        area: ['60%', '80%']
+                    });
+                });
+            }
+
+            if (layEvent === 'approve') { //审核
+                console.log("approve", id);
+                module = 'approve';
+                $.get('view/orders/manage/order_refund_detail.html', function (html) {
+                    refundDetailPage = layer.open({
+                        type: 1,
+                        title: '退款单审批',
+                        content: html,
+                        // maxmin: true,
+                        shadeClose: true,
+                        area: ['60%', '80%']
+                    });
+                });
+            }
+
+            if (layEvent === 'refund') { //退款
+                console.log("refund", id);
+                module = 'refund';
+                $.get('view/orders/manage/order_refund_detail.html', function (html) {
+                    refundDetailPage = layer.open({
+                        type: 1,
+                        title: '退款单退款操作',
+                        content: html,
+                        // maxmin: true,
+                        shadeClose: true,
+                        area: ['60%', '80%']
+                    });
+                });
+            }
+
+        });
+
+        //监听查询
+        form.on('submit(search)', function (data) {
+            //重构数据
+            new_obj = rft(data);
+            //重载表格
+            table.reload('order_refund', {
+                where: new_obj,
+                page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+            });
+            return false;
+        });
+
+        //导出
+        form.on('submit(export)', function (data) {
+            new_obj = rft(data);
+            // 指定form提交地址
+            var form = document.forms[0];
+            form.method = 'POST';
+            form.action = '/orders/refund/export';
+            return true;
+        });
+
+
+        //时间控件
+        laydate.render({
+            elem: '#auditTime' //指定元素
+            , type: 'datetime'
+            , range: '~' //或 range: '~' 来自定义分割字符
+        });
+        laydate.render({
+            elem: '#createAt' //指定元素
+            , type: 'datetime'
+            , range: '~' //或 range: '~' 来自定义分割字符
+        });
+
+        // 状态下拉
+        $.ajax({
+            type: 'GET',
+            url: "/orders/common/enumList",
+            dataType: 'json',
+            success: function (res) {
+                state_response(res);
+                enumList = res.item;
+                $("select[name='refundStatusEnum']").append(template('select_refundStatusEnum', enumList));
+                $("select[name='refundTypeEnum']").append(template('select_refundTypeEnum', enumList));
+                form.render();
+            }
+        });
+
+    });
+
+    //重构数据
+    function rft(data) {
+        var new_data = {};
+
+        new_data.id = $.trim(data.field.id);
+        new_data.ordersId = $.trim(data.field.ordersId);
+        new_data.siteFrom = $.trim(data.field.siteFrom);
+        new_data.refundStatusEnum = $.trim(data.field.refundStatusEnum);
+        new_data.refundTypeEnum = $.trim(data.field.refundTypeEnum);
+
+        var inputTime = data.field.createAt.split("~");
+        var handleTime = data.field.auditTime.split("~");
+        new_data.createAtBegin = $.trim(inputTime[0]);
+        new_data.createAtEnd = $.trim(inputTime[1]);
+        new_data.auditTimeBegin = $.trim(handleTime[0]);
+        new_data.auditTimeEnd = $.trim(handleTime[1]);
+
+        document.getElementById("createAtBegin").value = new_data.createAtBegin;
+        document.getElementById("createAtEnd").value = new_data.createAtEnd;
+        document.getElementById("auditTimeBegin").value = new_data.auditTimeBegin;
+        document.getElementById("auditTimeEnd").value = new_data.auditTimeEnd;
+
+        return new_data;
+    }
+</script>
+
+
+<!--template-->
+<script type="text/html" id="refundStatusEnum">
+    {{d.refundStatusEnum.display}}
+</script>
+<script type="text/html" id="refundTypeEnum">
+    {{d.refundTypeEnum.display}}
+</script>
+
+<script type="text/html" id="button_module">
+    {{#  if(window.refund_export == true){ }}
+    <button lay-submit class="layui-btn layui-btn-normal" lay-filter="export">导出</button>
+    {{#  } }}
+</script>
+
+<script type="text/html" id="actionColumn">
+    <button class="layui-btn layui-btn-primary layui-btn-xs" lay-event="view">查看</button>
+    {{# if(window.refund_write == true && d.refundStatusEnum.name == 'notApproved'){ }}
+    <button class="layui-btn layui-btn-xs" lay-event="edit">修改</button>
+    {{# } }}
+    {{# if(window.refund_approve == true && d.refundStatusEnum.name == 'toBeAudited' ){ }}
+    <button class="layui-btn layui-btn-normal layui-btn-xs" lay-event="approve">审核</button>
+    {{# } }}
+    {{# if(window.refund_refund == true && d.refundStatusEnum.name == 'toBeRefunded'){ }}
+    <button class="layui-btn layui-btn-danger layui-btn-xs" lay-event="refund">退款</button>
+    {{# } }}
+</script>
+
+<script id="select_refundStatusEnum" type="text/html">
+    {{each refundStatusEnum value index}}
+    <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>
+<script id="select_refundTypeEnum" type="text/html">
+    {{each refundTypeEnum value index}}
+    <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>

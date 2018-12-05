@@ -1,0 +1,219 @@
+
+
+<div class="layui-fluid">
+    </br>
+    <div class="layui-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户</label>
+            <div class="layui-input-inline">
+                <input type="text" name="" class="auto_matchinput layui-input" style="width: 196px"
+                       oninput="input_match(this)"  onblur="blur_event(this)" />
+                <input type="hidden" name="userId" class="auto_complateval" >
+                <div class="auto_matchwrap layui-anim layui-anim-upbit layui-select-group" style="display: none; position: absolute;background-color: #fff;z-index: 999; ">
+                </div>
+            </div>
+            <label class="layui-form-label">一级品类</label>
+            <div class="layui-input-inline">
+                <select lay-search name="topCategory" id="cateUserRel_topCategory">
+                    <option value="">不限</option>
+                </select>
+            </div>
+            <label class="layui-form-label">是否有效</label>
+            <div class="layui-input-inline">
+                <select name="usable" >
+                    <option value="">不限</option>
+                    <option value="true">有效</option>
+                    <option value="false">无效</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">部门</label>
+            <div class="layui-input-inline">
+                <select lay-search name="departmentNo" id="cateUserRel_department">
+                    <option value="">不限</option>
+                </select>
+            </div>
+            <label class="layui-form-label">用户分类</label>
+            <div class="layui-input-inline">
+                <select name="userType" >
+                    <option value="">不限</option>
+                    <option value="checker">排重专员</option>
+                    <option value="advertis">广告专员</option>
+                </select>
+            </div>
+
+            <button class="layui-btn" lay-submit lay-filter="searchCategoryUserRel"><i class="layui-icon">&#xe615;</i>搜索</button>
+            <button class="layui-btn layui-btn-normal" onclick="addbtn()" id="categoryUaser_addId"><i class="layui-icon">&#xe654;</i>新增</button>
+        </div>
+    </div>
+    <table id="categoryUserRelId" lay-filter="categoryUserRel"></table>
+
+    <script>
+        layui.use(['layer', 'table', 'element', 'form'], function () {
+            var product_cateUserRel_layer = layui.layer;
+            var product_cateUserRel_index = layer.load(0,{time:5*1000});
+            var product_cateUserRel_form = layui.form;
+            var product_cateUserRel_table = layui.table;
+
+            if (!window.product_write_power){
+                $('#categoryUaser_addId').css('display', 'none');
+            }
+            product_cateUserRel_form.render();
+            //部门
+            $.ajax({
+                type: 'GET',
+                url: "/admin/department/query",
+                dataType: 'json',
+                success: function (res) {
+                    $("#cateUserRel_department").append(template('userCateRel_option_tpl2', res));
+                    product_cateUserRel_form.render();
+                }
+            });
+            //一级品类
+            $.ajax({
+                type: 'GET',
+                url: "/product/base/category/findAllFirstLevel",
+                dataType: 'json',
+                success: function (res) {
+                    $("#cateUserRel_topCategory").append(template('userCateRel_option_tpl3', res));
+                    product_cateUserRel_form.render(); //刷新select选择框渲染
+                }
+            });
+
+            product_cateUserRel_table.render({
+                elem: '#categoryUserRelId',
+                url: "/product/base/categoryUserRel/find",
+                even: true,     //开启隔行背景
+                page: true,    //关闭分页
+                height: 'full-200',
+                limit : 20,
+                done: function (res, curr, count) {
+                    var element = layui.element;
+                    element.init();
+                    product_cateUserRel_layer.close(product_cateUserRel_index);
+                },
+                cols: [[ //表头
+                    {field: 'userName', title: '用户', },
+                    {field: 'userType', title: '用户类型', templet: '#userTypeTpl'  },
+                    {field: 'departmentName', title: '部门' },
+                    {field: 'categoryName', title: '品类名称' },
+                    {field: 'usable', title: '是否有效', width:110, templet: '#switchTpl', unresize: true},
+                    {field:'',fixed: 'right', width:150, title:'操作', align:'center', toolbar: '#barcateUserRel'}
+                ]],
+                response: {
+                    statusName: 'code', //数据状态的字段名称，默认：code
+                    statusCode: 'OK', //成功的状态码，默认：0
+                    msgName: 'desc', //状态信息的字段名称，默认：msg
+                    countName: 'total', //数据总数的字段名称，默认：count
+                    dataName: 'item' //数据列表的字段名称，默认：data
+                }
+            });
+            //监听是否有效
+            product_cateUserRel_form.on('switch(usableFilter)', function(obj){
+                $.ajax({
+                    type : 'POST',
+                    url : "/product/base/categoryUserRel/update",
+                    data: {
+                        id : this.value,
+                        usable : obj.elem.checked,
+                    },
+                    dataType : 'json',
+                    success : function(res){
+                        if(res.code === 'NOTICE'){
+                            product_cateUserRel_layer.msg('状态修改成功', {icon: 1});
+                        }else{
+                            product_cateUserRel_layer.msg(res.desc, {icon: 2});
+                            product_cateUserRel_table.reload('categoryUserRelId');
+                        }
+                    }
+                });
+            });
+
+            //搜索条件
+            product_cateUserRel_form.on('submit(searchCategoryUserRel)', function(data){
+                product_cateUserRel_table.reload('categoryUserRelId', {
+                    where: {
+                        userId : data.field.userId,
+                        usable : data.field.usable,
+                        userType : data.field.userType,
+                        categoryId : data.field.topCategory,
+                        departmentNo : data.field.departmentNo
+                    } ,    //设定异步数据接口的额外参数，任意设
+                    page: {
+                        curr: 1 //重新从第 1 页开始
+                    }
+                });
+                return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+            });
+
+            //监听工具条
+            product_cateUserRel_table.on('tool(categoryUserRel)', function(obj){ //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+                var data = obj.data;                //获得当前行数据
+                var layEvent = obj.event;           //获得 lay-event 对应的值
+                if(layEvent === 'del'){
+                    product_cateUserRel_layer.confirm('确认删除该元素么?', function(product_cateUserRel_index){
+                        obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
+                        product_cateUserRel_layer.close(product_cateUserRel_index);
+                        //向服务端发送删除指令
+                        $.ajax({
+                            type : 'POST',
+                            url : "/product/base/categoryUserRel/delete",
+                            data: {
+                                id : data.id,
+                                usable : data.usable
+                            },
+                            dataType : 'json',
+                            success : function(res){
+                                if(res.code === 'NOTICE') {
+                                    product_cateUserRel_layer.msg('删除成功', {icon: 3});
+                                }else{
+                                    product_cateUserRel_layer.msg(res.desc, {icon: 2});
+                                    product_cateUserRel_table.reload('categoryUserRelId');
+                                }
+                            }
+                        });
+                    });
+                }
+            });
+        });
+
+        function addbtn(){
+            $.get('view/product/base/add_categoryUserRel.html', function(str){
+                index = layer.open({
+                    type: 1 ,
+                    title :'新增用户与一级品类信息' ,
+                    content: str ,//注意，如果str是object，那么需要字符拼接。
+                    maxmin: true ,
+                    area: '60%'
+                });
+            });
+        }
+    </script>
+</div>
+<script type="text/html" id="switchTpl">
+    <input type="checkbox" name="usable" value="{{d.id}}" lay-skin="switch" lay-text="有效|无效" lay-filter="usableFilter" {{ d.usable == true ? 'checked' : '' }}>
+</script>
+<script type="text/html" id="barcateUserRel">
+    {{# if(window.product_write_power){ }}
+        <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del" style="text-align: center;"><i class="layui-icon"></i>删除</button>
+    {{#  } }}
+</script>
+<script id="userCateRel_option_tpl2" type="text/html">
+    {{each item value index}}
+    <option value="{{value.departmentNo}}">{{value.departmentName}}</option>
+    {{/each}}
+</script>
+<script id="userCateRel_option_tpl3" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.name}}</option>
+    {{/each}}
+</script>
+
+<script type="text/html" id="userTypeTpl">
+    {{#  if(d.userType === 'checker'){ }}
+    <span style="color: #F581B1;">{{ '排重专员' }}</span>
+    {{#  } else { }}
+    {{ '广告专员' }}
+    {{#  } }}
+</script>

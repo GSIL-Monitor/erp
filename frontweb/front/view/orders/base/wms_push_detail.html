@@ -1,0 +1,143 @@
+<br>
+<table class="layui-table" lay-filter="wmsPushDetailTable" id="wmsPushDetailTableId"></table>
+<script>
+
+    var recordIdValue = recordId;
+
+    layui.use(['table','layer','jquery','laydate'],function () {
+        var table = layui.table;
+        var layer = layui.layer;
+        var $ = layui.$;
+        var date = layui.laydate;
+
+        date.render({
+            elem : '#createAt',
+            range : '~'
+        });
+
+        table.render({
+            elem:'#wmsPushDetailTableId',
+            url:'/orders/base/wmsPushList/'+recordIdValue+'/detail',
+            method:'POST',
+            data:{createAtStart:'',createAtEnd:''},
+            page:true,
+            limit:20,
+            limits:[20,50,100],
+            response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                ,statusCode: 'OK' //成功的状态码，默认：0
+                ,msgName: 'desc' //状态信息的字段名称，默认：msg
+                ,countName: 'total' //数据总数的字段名称，默认：count
+                ,dataName: 'item' //数据列表的字段名称，默认：data
+            },
+            cols:[[
+                {field:'id',title:'推送详情ID',templet:"#recordDetailShow"},
+                {field:'interfaceNameEnum',title:'接口名称',width:200,templet:'<div>{{=d.interfaceNameEnum.display}}({{=d.interfaceNameEnum.type}})</div>'},
+                {field:'objectId',title:'业务id',width:80},
+                {field:'requestUrl',title:'请求URL',width:80},
+                {field:'requestParam',title:'请求参数',width:80},
+                {field:'requestTime',title:'推送时间',width:180},
+                {field:'responseResultEnum',title:'推送结果',width:200,templet:'<div>{{=d.responseResultEnum.display}}</div>'},
+                {field:'responseDesc',title:'响应内容',width:300},
+                {field:'responseTime',title:'响应时间',width:180}
+            ]]
+        });
+
+
+        table.on('tool(wmsPushDetailTable)',function (obj) {
+            var data =obj.data;
+            var layEvent = obj.event;
+
+            console.log("当前数据："+JSON.stringify(data));
+
+            if(layEvent === 'recordDetailShow')
+            {
+                layer.open({
+                    type: 1
+                    , title: '查看详情'
+                    , content: template('wmsPushShow', data)
+                    , maxmin: true
+                    , area: '60%'
+                });
+            }
+
+
+        });
+
+
+
+    });
+
+
+
+
+</script>
+
+<script type="text/html" id="recordDetailShow">
+<a href="#" lay-event="recordDetailShow" >{{d.id}}</a>
+ </script>
+
+<script type="text/html" id="wmsPushShow">
+    <div class="layui-form layui-form-pane" >
+        <div class="layui-form-item">
+            <label class="layui-form-label">id</label>
+            <div class="layui-input-block">
+                <span class="layui-show">{{id}}</span>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">接口名称</label>
+            <div class="layui-input-block">
+                <span class="layui-input">{{interfaceNameEnum.display}}</span>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">请求URL</label>
+            <div class="layui-input-block">
+                <span class="layui-input">{{requestUrl}}</span>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">请求参数</label>
+            <div class="layui-input-block">
+                <span class="layui-input">{{requestParam}}</span>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">推送时间</label>
+            <div class="layui-input-block">
+                <span class="layui-input">{{requestTime}}</span>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">推送结果</label>
+            <div class="layui-input-block">
+                <span class="layui-input">{{responseResultEnum.display}}</span>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">响应内容</label>
+            <div class="layui-input-block">
+                <span class="layui-input">{{responseDesc}}</span>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">响应时间</label>
+            <div class="layui-input-block">
+                <span class="layui-input">{{responseTime}}</span>
+            </div>
+        </div>
+
+    </div>
+
+</script>
+
+
+

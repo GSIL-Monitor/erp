@@ -1,0 +1,58 @@
+<div class="layui-form  padding30" >
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <a href="/tms/shippingZoneBackStore/exportTemplate" class="layui-btn">下载模板</a>
+            <a href="/tms/shippingZoneBackStore/exportWmsInfo" class="layui-btn">仓库ID下载</a>
+            <a href="/tms/shippingZoneBackStore/exportShippingWayInfo" class="layui-btn">物流线路代码下载</a>
+            <a href="/tms/shippingZoneBackStore/exportZoneInfo" class="layui-btn">覆盖区域ID下载</a>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button type="button" class="layui-btn" id="upload">
+                <i class="layui-icon">&#xe67c;</i>导入
+            </button>
+        </div>
+    </div>
+</div>
+
+<form method="post" action="/tms/shippingZoneBackStore/exportFailExecl"  hidden id="exportFailExcelForm">
+    <input name="key" type="hidden" value="">
+</form>
+
+
+<script>
+    layui.use('upload', function(){
+        var upload = layui.upload;
+        var import_back_store_table = layui.table;
+        //执行实例
+        var uploadInst = upload.render({
+            elem: '#upload' //绑定元素
+            ,url: '/tms/shippingZoneBackStore/upload' //上传接口
+            ,accept:"files"
+            ,exts:"xls|xlsx"
+            ,before: function(obj){ //obj参数包含的信息，跟 choose回调完全一致，可参见上文。
+                layer.load(); //上传loading
+            }
+            ,done: function(res){
+                console.log("导入execl返回值", res);
+                if(res.code==='NOTICE') {
+                    if(res.item != null && res.item != ''){
+                        $("input[name=\'key\']").val(res.item);
+                        $("#exportFailExcelForm").submit();
+                    }
+                    import_back_store_table.reload("demo");
+                    layer.closeAll('loading'); //关闭loading
+                    layer.close(import_zone_back_store_index);
+                }else{
+                    layer.closeAll('loading'); //关闭loading
+                    layer.msg(res.desc,{icon:2});
+                }
+            }
+            ,error: function(res){
+                layer.closeAll('loading'); //关闭loading
+                console.log(res.desc);
+            }
+        });
+    });
+</script>

@@ -1,0 +1,182 @@
+<br>
+<div class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">省份:</label>
+        <div class="layui-input-inline">
+            <input type="text" name="province" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+        <label class="layui-form-label">状态:</label>
+        <div class="layui-input-inline">
+            <select name="enable"  >
+                <option value=" ">请选择</option>
+                <option value="0">禁用</option>
+                <option value="1">启用</option>
+            </select>
+        </div>
+
+        <div class="layui-input-inline">
+            <button class="layui-btn" lay-submit lay-filter="position_search">搜索</button>
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn layui-btn-normal" onclick="addDistrictCode()">导入</button>
+        </div>
+    </div>
+</div>
+<table id="demo" lay-filter="test"></table>
+
+
+<script>
+    var add_districtCode,districtCode_data,edit_districtCode,window_index;
+    layui.use(['layer', 'table', 'element', 'form'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0, {time: 5 * 1000});
+        var table = layui.table;
+        var form = layui.form;
+
+        form.render();
+
+        table.render({
+            elem: '#demo'
+            , id: 'demo'
+            , url: '/tms/districtCode/query' //数据接口
+            , method: 'post'
+            ,height: 'full-150' //高度最大化减去差值
+            , done: function (res, curr, count) {
+                var element = layui.element;
+                element.init();
+                layer.close(index);
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , page: true //开启分页
+            , cols: [[ //表头
+                {field: 'id', title: 'id',fixed: 'left',width:50}
+                , {field: 'zoneName', title: '国家'}
+                , {field: 'province', title: '省'}
+                , {field: 'city', title: '城市'}
+                , {field: 'code', title: '代码'}
+                , {field: 'enable', title: '状态',templet:'#enableRender'}
+                , {field: '', title: '操作', templet: '#operationDemo', align: 'center',fixed: 'right',width:220}
+            ]]
+        });
+
+        form.on('submit(position_search)', function(data){
+            table.reload('demo', {
+                where: {
+                    province:data.field.province,
+                    enable:data.field.enable,
+                }    //设定异步数据接口的额外参数，任意设
+                , page: {
+                    page: 1
+                }
+            });
+            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+        });
+
+
+        table.on('tool(test)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+            districtCode_data = data;
+           if (layEvent === 'position-enabled') { //启用
+                layer.confirm('你确定要启用该地区代码吗?', {icon: 3, title:'提示'}, function(index){
+                    //do something
+                    window_index = index;
+                    enditDistrictCodeEnable(1);
+                },function(index){
+                    layer.close(index);
+                });
+            } else if (layEvent === 'position-disable') { //禁用
+                layer.confirm('你确定要失效该地区代码吗?', {icon: 3, title:'提示'}, function(index){
+                    //do something
+                    window_index = index;
+                    enditDistrictCodeEnable(0);
+                },function(index){
+                    layer.close(index);
+                });
+            } else if (layEvent === 'position-edit') { //编辑
+                $.get('view/tms/base/edit_districtCode.html', function (str) {
+                    edit_districtCode = layer.open({
+                        type: 1
+                        ,title: '编辑'
+                        , content: str //注意，如果str是object，那么需要字符拼接。
+                        , maxmin: true
+                        , area: '50%',
+                    });
+                });
+            }
+
+        });
+
+    });
+
+    function enditDistrictCodeEnable(enable){
+        var table = layui.table;
+        $.ajax({
+            type: 'PUT',
+            url: "/tms/districtCode/updateEnable",
+            data:{
+                id:districtCode_data.id,
+                enable:enable
+            },
+            dataType: 'json',
+            success: function (res) {
+                console.log("更新元素返回值", res);
+                if(res.code==='NOTICE') {
+                    table.reload('demo');
+                    layer.msg('更改地区代码状态成功', {icon: 1});
+                }else{
+                    layer.msg(res.desc,{icon:2});
+                }
+                layer.close(window_index);
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+            }
+        });
+
+
+    }
+
+
+</script>
+
+
+
+<script type="text/javascript">
+    function addDistrictCode(){
+        $.get('view/tms/base/add_districtCode.html', function(str){
+            add_districtCode = layer.open({
+                type: 1
+                ,title :'新增'
+                ,content: str //注意，如果str是object，那么需要字符拼接。
+                ,maxmin: true
+                ,area: '20%'
+            });
+        });
+    }
+</script>
+
+<script type="text/html" id="enableRender">
+    {{#  if(d.enable==0){ }}
+    <a>禁用</a>
+    {{#  } else if(d.enable==1) { }}
+    <a>启用</a>
+    {{#  } }}
+</script>
+
+
+<script type="text/html" id="operationDemo">
+    {{#  if(d.enable==0){ }}
+    <a class="layui-btn layui-btn-xs" lay-event="position-enabled">启用</a>
+    {{#  } else { }}
+    <a class="layui-btn layui-btn-xs" lay-event="position-disable">禁用</a>
+    {{#  } }}
+    <a class="layui-btn layui-btn-xs" lay-event="position-edit">编辑</a>
+</script>

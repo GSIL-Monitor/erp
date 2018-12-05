@@ -1,0 +1,749 @@
+<link rel="stylesheet" href="../style/product.css">
+<!--开始排重页面-->
+<div class="layui-row" style="margin-top: 15px" >
+    <div class="layui-col-md3 margin-l-30 border1ccc " id="productNewDetailId">
+    </div>
+    <div class="layui-col-md8 border1ccc" style="margin-left: 60px;" >
+        <div class="layui-form" style="padding: 20px;" >
+            <div class="layui-form-item">
+                <label class="layui-form-label">详细分类</label>
+                <div class="layui-input-inline">
+                    <input readonly="readonly" type="text" class="layui-input component_input" id="stateCheckCategoryId"/>
+                    <i class="layui-icon empty_inputbtn" onclick="empty_inputfunc(this);">&#x1006;</i>
+                    <span class="layui-btn layui-btn-xs componentchoose_btn check_cateId_val" onclick="start_treeselect('/product/base/category/tree',this,'name','id');">选择</span>
+                </div>
+                <label class="layui-form-label">产品标题</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="title" placeholder="" autocomplete="off"
+                           class="layui-input" value="">
+                </div>
+                <label class="layui-form-label">SPU</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="spu" placeholder="" class="layui-input" id="start_check_spu">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-inline">
+                    <input readonly="readonly" type="text" class="layui-input component_input" id="startCheck_productStateId"/>
+                    <span class="layui-btn layui-btn-xs componentchoose_btn check_state_val" onclick="start_multiselect('/product/commons/productStateEnum',this,'display','name');">选择</span>
+            </div>
+                <label class="layui-form-label">产品ID</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="id" placeholder="" autocomplete="off"
+                           class="layui-input" value="">
+                </div>
+                <label class="layui-form-label">系统比对:</label>
+                <div class="layui-input-inline">
+                    <input type="checkbox" name="isSystemMatch" lay-skin="switch" lay-filter="stateChehckswitch" lay-text="ON|OFF">
+                </div>
+                <button class="layui-btn" lay-submit lay-filter="check_product_search"><i class="layui-icon">&#xe615;</i>搜索</button>
+                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="new_startCheck_refineFilter"><i class="layui-icon">&#xe642;</i>细化分类</button>
+            </div>
+        </div>
+
+        <!--产品数据-->
+        <div>
+            <div id="startCheckProductInfo" style="height: 600px; overflow: auto"></div>
+            <div id="startCheckProductPaging" style="padding: 20px;" ></div>
+        </div>
+    </div>
+</div>
+<!--开始查重模板-->
+<script type="text/html" id="startCheckProductInfoTpl">
+    {{each item value index}}
+    <div class="float-l text-center border1ccc" style="padding: 10px;margin: 20px;" >
+        <div>
+            <img src="{{$imports.$window.product_img_host}}/{{value.mainImageUrl}}" class="clickamplify_img" width="160" height="155" class="padding10" />
+        </div>
+        <div class="layui-form" style="margin-top: 10px;">
+            <input value="{{value.title}}" type="hidden" name="title" lay-verify="required" class="layui-input">
+            <input value="{{value.spu}}" type="hidden" name="spu" lay-verify="required" class="layui-input">
+            <button class="layui-btn layui-btn-xs layui-btn-normal" lay-submit lay-filter="correlationCheckOk"><i class="layui-icon">&#xe618;</i>通过</button>
+            {{if (disableMarkup === null || disableMarkup.indexOf("checkWarn") == -1) }}
+            <button class="layui-btn layui-btn-xs layui-btn-danger" lay-submit lay-filter="correlationcheckWarn"><i class="layui-icon">&#x1006;</i>有风险</button>
+            {{/if}}
+            <input type="checkbox" value="{{value.id}}" name="productBatchIdName" title="" lay-skin="primary">
+            <!--<input type="checkbox" value="{{value.title}}" name="productBatchName_Name">-->
+        </div>
+        <div class="layui-form" style="margin-top: 10px;margin-bottom: 10px;">
+            <input value="{{value.id}}" type="hidden" name="productId" lay-verify="required" class="layui-input" />
+            <input value="{{value.spu}}" type="hidden" name="spu" lay-verify="required" class="layui-input">
+            <button class="layui-btn layui-btn-xs " lay-submit lay-filter="check_product_details_filter"><i class="layui-icon">&#xe60a;</i>产品信息</button>
+            <button class="layui-btn layui-btn-xs layui-btn-normal " lay-submit lay-filter="check_product_zone_filter"><i class="layui-icon">&#xe60a;</i>区域信息</button>
+        </div>
+    </div>
+    {{/each}}
+</script>
+<!--开始查重产品详情模板-->
+<script type="text/html" id="check_productDetailTpl">
+    <div class="layui-text margin-l-30">ID:{{ item.id }}</div>
+    <div class="layui-text margin-l-30">SPU:{{ item.spu }}</div>
+    <div class="layui-text margin-l-30">标题:{{ item.title }}</div>
+    <div class="layui-text margin-l-30">来源链接:<a href="{{item.sourceUrl}}" style="color: #88f518" target="_Blank">链接地址</a></div>
+    <div class="layui-text margin-l-30">分类:{{ item.name }}</div>
+    <div class="layui-text margin-l-30">属性:
+    {{each item.attributeList value index}}
+    <span style="color: #f54744">{{value.title}}</span> &nbsp;
+    {{/each}}
+    </div>
+    <div class="layui-text margin-l-30">相似度:</div>
+    <div class="layui-text margin-l-30">库存:{{ item.totalStock }}</div>
+    <div class="layui-text margin-l-30">审核人:{{ item.checker }}</div>
+</script>
+<!--开始查重产品区域模板-->
+<script type="text/html" id="check_productZoneTpl">
+    <div class="layui-form padding10">
+        {{ if (disableMarkup === null || disableMarkup.indexOf("duplication") == -1) }}
+        <button class="layui-btn layui-btn-warm" lay-submit lay-filter="duplicationCheckboxEvent" style="text-align: center;"><i class="layui-icon">&#x1006;</i>重复</button>
+        {{ else }}
+        <button class="layui-btn layui-btn-danger" lay-submit lay-filter="duplicationCheckboxEvent" style="text-align: center;"><i class="layui-icon">&#x1006;</i>重复</button>
+        {{/if}}
+        <button class="layui-btn" lay-submit lay-filter="similarCheckboxEvent" style="text-align: center;"><i class="layui-icon">&#xe6b2;</i>相似</button>
+    </div>
+    <div>
+        <table id="check_productZoneId" lay-filter="check_productZone"></table>
+    </div>
+</script>
+<!--开始查重数据的模板-->
+<script type="text/html" id="startCheckPageTpl">
+    <div style="width: 100%;height:100%; text-align: center;">
+        <img src="{{$imports.$window.product_img_host}}/{{mainImageUrl}}" class="clickamplify_img" style="width: 100%; height: 450px;" />
+    </div>
+    <div class="layui-form" style="margin-top: 10px;text-align: center;">
+        {{if (disableMarkup === null || disableMarkup.indexOf("checkWarn") == -1)}}
+        <bottom class="layui-btn layui-btn-danger " lay-submit lay-filter="checkWarnSubmit"><i class="layui-icon">&#xe6c5;</i>有风险</bottom>
+        {{/if}}
+        <bottom class="layui-btn layui-btn-normal " lay-submit lay-filter="checkOkSubmit"><i class="layui-icon">&#xe6c6;</i>通过</bottom>
+        <bottom class="layui-btn layui-btn-danger " lay-submit lay-filter="cancelSubmit"><i class="layui-icon">&#xe6c5;</i>拒绝</bottom>
+    </div>
+    <div class="layui-form-item element divoverflow-check ">
+        <div class="layui-text margin-l-30">新品ID:{{ id }}</div>
+        <div class="layui-text margin-l-30">SPU:{{ spu }}</div>
+        <div class="layui-text margin-l-30">标题:{{ title }}</div>
+        <div class="layui-text margin-l-30">创建人:{{ creator }}
+            {{ if userLabel == true }}
+                <button class="layui-btn layui-btn-danger layui-btn-xs">可跑黑五类</button>
+            {{/if}}
+        </div>
+        <div class="layui-text margin-l-30">部门:{{ departmentName }}</div>
+        <div class="layui-text margin-l-30">一级分类:{{ topCategoryName }}</div>
+        <div class="layui-text margin-l-30">细化分类:{{ categoryName }}</div>
+        <div class="layui-text margin-l-30">来源链接:
+            <a href="{{sourceUrl}}" style="color: #12f54b" target="_Blank">链接地址</a>
+        </div>
+        <div class="layui-text margin-l-30">业务区域:
+            {{each productNewZones value index}}
+                <span style="color: #1c16f7">{{ value.zoneName }}</span> &nbsp;
+            {{/each}}
+        </div>
+        <div class="layui-text margin-l-30">属性描述:
+            {{if attributeDesc === null}}
+                <span style="color: #f5334a">广告专员未设置属性描述</span>
+            {{else}}
+                <span>{{attributeDesc}}</span>
+            {{/if}}
+        </div>
+        <div class="layui-text margin-l-30">备注:{{ memo }}</div>
+    </div>
+</script>
+<!--备注模板(必填)-->
+<script type="text/html" id="stateCheck_memoRequiredTpl">
+    <div class="layui-form padding30">
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>备注</label>
+            <div class="layui-input-block">
+                <input value="" type="text" name="memo" required lay-verify="required" placeholder="请输入备注" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block right-confirm">
+                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="stateCheck_reqMemoSubmit"><i class="layui-icon">&#xe618;</i>确认</button>
+            </div>
+        </div>
+    </div>
+</script>
+<!--备注模板(非必填)-->
+<script type="text/html" id="stateCheck_memoNoRequiredTpl">
+    <div class="layui-form padding30">
+        <div class="layui-form-item">
+            <label class="layui-form-label">备注</label>
+            <div class="layui-input-block">
+                <input value="" type="text" name="memo" placeholder="" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block right-confirm">
+                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="stateCheck_memoSubmit"><i class="layui-icon">&#xe618;</i>确认</button>
+            </div>
+        </div>
+    </div>
+</script>
+<!--产品重复备注模板-->
+<script type="text/html" id="stateCheck_duplicateTpl">
+    <div class="layui-form padding30">
+        <div class="layui-form-item">
+            <label class="layui-form-label">备注</label>
+            <div class="layui-input-block">
+                <input value="" type="text" name="memo" placeholder="" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block right-confirm">
+                <input value="{{id}}" type="hidden" name="productZoneId" lay-verify="required" class="layui-input">
+                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="stateCheck_duplicateSubmit"><i class="layui-icon">&#xe618;</i>确认</button>
+            </div>
+        </div>
+    </div>
+</script>
+<!--产品重复备注模板-->
+<script type="text/html" id="stateCheck_duplicateCheckboxTpl">
+    <div class="layui-form padding30">
+        <div class="layui-form-item">
+            <label class="layui-form-label">重复部门:</label>
+            <div class="layui-input-block">
+                <textarea disabled class="layui-textarea layui-disabled">{{productZoneInfo}}</textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">备注</label>
+            <div class="layui-input-block">
+                <input value="" type="text" name="memo" placeholder="" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block right-confirm">
+                <input value="{{productZoneIds}}" type="hidden" name="productZoneIds" lay-verify="required" class="layui-input">
+                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="stateCheck_duplicateCheckboxSubmit"><i class="layui-icon">&#xe618;</i>确认</button>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/javascript">
+    var new_state_index;
+    layui.use(['layer', 'form', 'table'], function () {
+        var productNew_stateCheck_layer = layui.layer;
+        var productNew_stateCheck_form = layui.form;
+        var productNew_stateCheck_table = layui.table;
+        startCheckPage(checkProductNewId, productNew_stateCheck_layer, productNew_stateCheck_form);
+        //查重页面产品区域
+        productNew_stateCheck_form.on('submit(check_product_zone_filter)', function (obj) {
+            productNewCheckEntity.productSpu = obj.field.spu;
+            obj.disableMarkup = productNewCheckEntity.disableMarkup;
+            check_product_zone(productNew_stateCheck_layer, productNew_stateCheck_table, productNew_stateCheck_form, obj)
+        });
+        //查重页面产品详情
+        productNew_stateCheck_form.on('submit(check_product_details_filter)', function (obj) {
+            check_product_details(obj.field.productId);
+        });
+        //查重搜索条件
+        productNew_stateCheck_form.on('submit(check_product_search)', function (obj) {
+            var category_id = $(".check_cateId_val").siblings(".component_input").attr("data-id");
+            var states_name = $(".check_state_val").siblings(".component_input").attr("data-id");
+            obj.field.categoryId = category_id;
+            obj.field.productStates = states_name;
+            startCheckProductPagingFun(obj.field, productNew_stateCheck_form);
+        });
+        //系统匹配监控
+        productNew_stateCheck_form.on('switch(stateChehckswitch)', function(data){
+            if (this.checked) imgIsSystemMatch(productNew_stateCheck_form);
+        });
+
+        //新品状态处理
+        productNew_stateCheck_form.on('submit(checkWarnSubmit)', function () {
+            productNewCheckEntity.event = "warn";
+            new_state_index = productNew_stateCheck_layer.open({
+                type: 1,
+                title: '新品有风险',
+                content: template('stateCheck_memoRequiredTpl', productNewCheckEntity),
+                area: ['30%', '26%'],
+                success: function () {
+                }
+            });
+        })
+        productNew_stateCheck_form.on('submit(checkOkSubmit)', function () {
+            productNewCheckEntity.event = "checkOk";
+//            productNewCheckEntity.productSpu = "";
+            productNewCheckEntity.leftCheckOk = true;
+            new_state_index = productNew_stateCheck_layer.open({
+                type: 1,
+                title: '新品通过',
+                content: template('stateCheck_memoNoRequiredTpl', productNewCheckEntity),
+                area: ['30%', '25%'],
+                success: function () {
+                }
+            });
+        })
+        productNew_stateCheck_form.on('submit(cancelSubmit)', function () {
+            productNewCheckEntity.event = "decline";
+            new_state_index = productNew_stateCheck_layer.open({
+                type: 1,
+                title: '新品拒绝',
+                content: template('stateCheck_memoRequiredTpl', productNewCheckEntity),
+                area: ['30%', '26%'],
+                success: function () {
+                }
+            });
+        })
+        productNew_stateCheck_form.on('submit(correlationCheckOk)', function (obj) {
+            productNewCheckEntity.event = "checkOk";
+            productNewCheckEntity.productSpu = obj.field.spu;
+            new_state_index = productNew_stateCheck_layer.open({
+                type: 1,
+                title: '和产品[' + obj.field.title + ']关联通过',
+                content: template('stateCheck_memoNoRequiredTpl', productNewCheckEntity),
+                area: ['30%', '25%'],
+                success: function () {
+                }
+            });
+        })
+        productNew_stateCheck_form.on('submit(correlationcheckWarn)', function (obj) {
+            productNewCheckEntity.event = "warn";
+            productNewCheckEntity.productSpu = obj.field.spu;
+            new_state_index = productNew_stateCheck_layer.open({
+                type: 1,
+                title: '和产品[' + obj.field.title + ']对比有风险',
+                content: template('stateCheck_memoRequiredTpl', productNewCheckEntity),
+                area: ['30%', '25%'],
+                success: function () {
+                }
+            });
+        })
+        //产品批量细化分类
+        productNew_stateCheck_form.on('submit(new_startCheck_refineFilter)', function (obj) {
+            var productBatchIdArr = new Array();
+            var productBatchName = null;
+            $("input:checkbox[name='productBatchIdName']:checked").each(function() { // 遍历name=test的多选框
+                productBatchIdArr.push($(this).val());
+            });
+            obj.productIds = productBatchIdArr.join(",");
+            productBatchRefineFun(productNew_stateCheck_layer, productNew_stateCheck_form, obj);
+        })
+        productNew_stateCheck_table.on('tool(check_productZone)', function (obj) {
+            var event = obj.event;
+            if (event === 'duplicationEvent'){
+                productNewCheckEntity.event = "duplicate";
+                new_state_index = productNew_stateCheck_layer.open({
+                    type: 1,
+                    title: '和产品重复',
+                    content: template('stateCheck_duplicateTpl', obj.data),
+                    area: ['30%', '25%'],
+                    success: function () {
+                    }
+                });
+            }
+        });
+
+//        区域重复
+        productNew_stateCheck_form.on('submit(duplicationCheckboxEvent)', function (obj) {
+            duplicationCheckboxEvent(productNew_stateCheck_layer, productNew_stateCheck_table);
+        });
+//        区域相似
+        productNew_stateCheck_form.on('submit(similarCheckboxEvent)', function (obj) {
+            similarCheckboxEvent(productNew_stateCheck_layer);
+        });
+        productNew_stateCheck_form.on('submit(stateCheck_reqMemoSubmit)', function (obj) {
+            productNewCheckEntity.currentMemo = obj.field.memo;
+            productNewStateHandle(productNew_stateCheck_layer, productNew_stateCheck_table, obj);
+        });
+        productNew_stateCheck_form.on('submit(stateCheck_memoSubmit)', function (obj) {
+            productNewCheckEntity.currentMemo = obj.field.memo;
+            productNewStateHandle(productNew_stateCheck_layer, productNew_stateCheck_table, obj);
+        });
+        productNew_stateCheck_form.on('submit(stateCheck_duplicateSubmit)', function (obj) {
+            productNewCheckEntity.productZoneId = obj.field.productZoneId;
+            productNewCheckEntity.currentMemo = obj.field.memo;
+            productNewDuplicateState(productNew_stateCheck_layer, productNew_stateCheck_table);
+        });
+        productNew_stateCheck_form.on('submit(stateCheck_duplicateCheckboxSubmit)',function (obj) {
+            productNewCheckEntity.productZoneIds = obj.field.productZoneIds;
+            productNewCheckEntity.currentMemo = obj.field.memo;
+            productNewDuplicateState(productNew_stateCheck_layer, productNew_stateCheck_table);
+
+        });
+        productNew_stateCheck_form.on('submit(productBatchRefineSubmit)', function (obj) {
+            product_batch_refine(productNew_stateCheck_layer, productNew_stateCheck_form, obj);
+        });
+    });
+    //区域相似
+    function similarCheckboxEvent(layer) {
+        layer.msg("玩儿命开发中.....",{
+            icon: 2
+        });
+        return false;
+    }
+    //重复区域
+    function duplicationCheckboxEvent(layer, table) {
+        var checkStatus = table.checkStatus('check_productZoneId'),
+            checkData = checkStatus.data;
+        if (checkData.length === 0){
+            layer.msg("请先勾选重复的区域",{
+                icon: 2
+            });
+            return false;
+        }
+        var productZoneIds = new Array();
+        var productZoneInfo = new Array();
+        for (var i = 0; i<checkData.length; i++ ) {
+            productZoneIds.push(checkData[i].id);
+            productZoneInfo.push(checkData[i].departmentName + "--" + checkData[i].zoneName);
+        }
+        var data = new Object();
+        data.productZoneIds = productZoneIds.join(",");
+        data.productZoneInfo = productZoneInfo.join(",");
+        console.log(productZoneIds);
+        productNewCheckEntity.event = "duplicate";
+        new_state_index = layer.open({
+            type: 1,
+            title: '和产品重复',
+            content: template('stateCheck_duplicateCheckboxTpl', data),
+            area: ['30%', '37%'],
+            success: function () {
+            }
+        });
+
+    }
+
+    //产品批量细化
+    function product_batch_refine(productNew_stateCheck_layer, productNew_stateCheck_form, obj) {
+        preventRepeat(obj);
+        $.ajax({
+            type: 'POST',
+            url: "product/manage/updateCategoryBatch",
+            dataType: 'json',
+            data: {
+                ids: obj.field.ids,
+                categoryId: obj.field.categoryId
+            },
+            success: function (res) {
+                state_response(res, obj);
+                if (res.code === 'NOTICE'){
+                    productNew_stateCheck_layer.close(productBatchRefineIndex);
+                    startCheckProductPagingFun(undefined, productNew_stateCheck_form);
+                }
+            }
+        });
+    }
+
+//    新品查重图片比对
+    function imgIsSystemMatch(productNew_stateCheck_form){
+        var data = new Object();
+        data.productNewId = productNewCheckEntity.id;
+        data.isSystemMatch = "true";
+        startCheckProductPagingFun(data, productNew_stateCheck_form);
+    }
+
+    //产品批量细化分类
+    function productBatchRefineFun(productNew_stateCheck_layer, productNew_stateCheck_form, data){
+        console.log("产品批量细化",data);
+        productBatchRefineIndex = productNew_stateCheck_layer.open({
+            type: 1,
+            title: '产品批量重新分类',
+            content: template('productBatchRefine_tpl', data),
+            area: ['50%','40%'],
+            success: function (res) {
+                //末级品类
+                $.ajax({
+                    type: 'GET',
+                    url: "/product/base/category/leafSearch?name=",
+                    dataType: 'json',
+                    success: function (res) {
+                        $("#productBatchRefineCate_id").append(template('productBatchRefineCate_tpl', res));
+                        productNew_stateCheck_form.render(); //刷新select选择框渲染
+                    }
+                });
+            }
+        });
+    }
+
+    //开始排重页面
+    function startCheckPage(checkProductNewId, productNew_stateCheck_layer, productNew_stateCheck_form){
+        $.ajax({
+            type: 'GET',
+            url: "product/productNewManage/get",
+            dataType: 'json',
+            data: {
+                id: checkProductNewId
+            },
+            success: function (result) {
+                state_response(result);
+                if (result.code === 'OK'){
+                    productNewCheckEntity = result.item;
+                    productNewCheckEntity.leftCheckOk = false;
+                    $("#productNewDetailId").html(template('startCheckPageTpl', result.item));
+                    productNew_stateCheck_form.render();
+                    var initparam = new Object();
+                    initparam.page = 1;
+                    initparam.limit = 100;
+                    $("#stateCheckCategoryId").val(productNewCheckEntity.categoryName);
+                    $("#stateCheckCategoryId").attr("data-id", productNewCheckEntity.categoryId);
+                    if (productNewCheckEntity.spu != null) {
+                        $('#start_check_spu').val(productNewCheckEntity.spu);
+                        initparam.spu = productNewCheckEntity.spu;
+                    }else {
+                        $("#startCheck_productStateId").val("待填充,建档中,已上架,已下架");
+                        $("#startCheck_productStateId").attr("data-id", "waitFill,archiving,onsale,offsale");
+                        initparam.categoryId = productNewCheckEntity.categoryId;
+                        initparam.productStates = "waitFill,archiving,onsale,offsale";
+                    }
+                    startCheckProductPagingFun(initparam, productNew_stateCheck_form);
+                }else{
+                    //提示请求失败
+                    layer.msg("欧呦,网络跑丢了!", {
+                        icon: 2
+                    });
+                    productNew_stateCheck_layer.close(state_checkEvent_index);
+                    return false;
+                }
+            }
+        });
+    }
+
+    //产品数据
+    function check_product_info_function(data, productNew_stateCheck_form){
+        $.ajax({
+            type: 'POST',
+            url: "/product/manage/findImage",
+            dataType: 'json',
+            data: data,
+            success: function (res) {
+                res.disableMarkup = productNewCheckEntity.disableMarkup;
+                $("#startCheckProductInfo").html(template("startCheckProductInfoTpl",res));
+                productNew_stateCheck_form.render();
+            }
+        });
+    }
+    //产品数据分页(获取总条数)
+    function startCheckProductPagingFun(data, productNew_stateCheck_form) {
+        if (data === undefined) {
+            data = {
+                page: 1,
+                limit: 100
+            };
+        }
+        if (data.isSystemMatch === 'on') {
+            data.isSystemMatch = "true";
+        }
+        $.ajax({
+            type: 'POST',
+            url: "/product/manage/countImage",
+            dataType: 'json',
+            data: data,
+            success: function (res) {
+                state_response(res);
+                if (res.code === 'FAIL'){
+                    res.total = 0;
+                }
+                layui.use('laypage', function(){
+                    var product_productNewCheck_laypage = layui.laypage;
+                    //执行一个laypage实例
+                    product_productNewCheck_laypage.render({
+                        elem: 'startCheckProductPaging' ,
+                        count: res.total ,
+                        limit: 100 ,
+                        jump: function(obj, first){
+                            //obj包含了当前分页的所有参数，比如：
+                            data.page = obj.curr;
+                            data.limit = obj.limit;
+                            check_product_info_function(data, productNew_stateCheck_form);
+                            //首次不执行
+                            if(!first){
+                            }
+                        }
+                    });
+                });
+            }
+        });
+    }
+    //开始排重页面产品详情
+    function check_product_details(productId){
+        $.ajax({
+            type: 'GET',
+            url: "/product/manage/getInfo",
+            dataType: 'json',
+            data: {
+                id: productId
+            },
+            success: function (res) {
+                check_product_details_index = layer.open({
+                    type: 1,
+                    title: '产品信息',
+                    content: template('check_productDetailTpl', res),
+                    area: ['30%', '30%'],
+                    success: function () {
+                    }
+                });
+            }
+        });
+    }
+    //开始排重页面产品区域
+    function check_product_zone(productNew_stateCheck_layer, productNew_stateCheck_table, form, obj){
+        obj.field.disableMarkup = productNewCheckEntity.disableMarkup;
+        console.log("区域模板",obj.field);
+        var zoneData = new Object();
+        layui.use('table',function () {
+            check_product_zone_index = productNew_stateCheck_layer.open({
+                type: 1,
+                title: '产品区域信息',
+                content: template('check_productZoneTpl', obj.field),
+                area: ['70%', '70%'],
+                success: function () {
+                    $.ajax({
+                        type: "GET",
+                        url: "/product/productZone/findByProId",
+                        dataType: "json",
+                        data:{
+                            productId: obj.field.productId,
+                            productNewId: checkProductNewId
+                        },
+                        success: function (res) {
+                            state_response(res);
+                            if (res.code === 'OK'){
+                                $.each(res.item, function (i, data) {
+                                    if (data.checked == true){
+                                        data.LAY_CHECKED = true;
+                                    }
+                                });
+                                productNew_stateCheck_table.render({
+                                    elem: '#check_productZoneId',
+                                    data: res.item,
+                                    even: true,     //开启隔行背景
+                                    page: false,    //关闭分页
+                                    cols: [[ //表头
+                                        {type:'checkbox'} ,
+                                        {field: 'zoneName', title: '区域' },
+                                        {field: 'stateName', title: '状态' },
+                                        {field: 'stateTime', title: '状态时间' },
+                                        {field: 'departmentName', title: '部门' },
+                                        {field: 'creator', title: '创建人' }
+                                    ]],
+                                    response: {
+                                        statusName: 'code', //数据状态的字段名称，默认：code
+                                        statusCode: 'OK', //成功的状态码，默认：0
+                                        msgName: 'desc', //状态信息的字段名称，默认：msg
+                                        countName: 'total', //数据总数的字段名称，默认：count
+                                        dataName: 'item' //数据列表的字段名称，默认：data
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+        })
+    }
+    /*新品状态处理*/
+    function productNewStateHandle(currLayer, currTable, obj) {
+//        preventRepeat(obj);
+        var index = currLayer.load();
+        $.ajax({
+            type: 'POST',
+            url: "product/productNewManage/processEvent",
+            dataType: 'json',
+            data: {
+                id: productNewCheckEntity.id,
+                state: productNewCheckEntity.state,
+                event: productNewCheckEntity.event,
+                fsmName: "ProductNew",
+                spu: productNewCheckEntity.productSpu,
+                leftCheckOk: productNewCheckEntity.leftCheckOk,
+                memo: productNewCheckEntity.currentMemo
+            },
+            success: function (result) {
+                state_response(result);
+                if (result.code === 'NOTICE' || result.code === 'FAIL'){
+                    currLayer.close(index);
+                }
+                if (result.code === 'NOTICE'){
+                    currLayer.close(new_state_index);
+                    layer.close(state_checkEvent_index);
+                    currTable.reload('productNewCheckId', {
+                        where: {
+                            state : 'waitCheck'
+                        }
+                    });
+                }
+            }
+        });
+    }
+    /*新品重复状态处理*/
+    function productNewDuplicateState(currLayer, currTable) {
+        var index = currLayer.load();
+        $.ajax({
+            type: 'POST',
+            url: "product/productNewManage/processEvent",
+            dataType: 'json',
+            data: {
+                id: productNewCheckEntity.id,
+                state: productNewCheckEntity.state,
+                event: productNewCheckEntity.event,
+                fsmName: productNewCheckEntity.fsmName,
+                spu: productNewCheckEntity.productSpu,
+                productZoneIds: productNewCheckEntity.productZoneIds,
+                memo: productNewCheckEntity.currentMemo
+            },
+            success: function (result) {
+                state_response(result);
+                if (result.code === 'NOTICE' || result.code === 'FAIL'){
+                    currLayer.close(index);
+                }
+                if (result.code === 'NOTICE') {
+                    currLayer.close(new_state_index);
+                    layer.close(check_product_zone_index);
+                    layer.close(state_checkEvent_index);
+                    currTable.reload('productNewCheckId', {
+                        where: {
+                            state: 'waitCheck'
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+</script>
+<script type="text/html" id="check_proZoneBar">
+    {{# if (productNewCheckEntity.disableMarkup === null || productNewCheckEntity.disableMarkup.indexOf("duplication") == -1){ }}
+        <button class="layui-btn layui-btn-xs layui-btn-warm" lay-event="duplicationEvent" style="text-align: center;"><i class="layui-icon">&#x1006;</i>重复</button>
+    {{# }else{ }}
+        <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="duplicationEvent" style="text-align: center;"><i class="layui-icon">&#x1006;</i>重复</button>
+    {{# } }}
+</script>
+<!--品类叶子节点-->
+<script id="productBatchRefineCate_tpl" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.name}}</option>
+    {{/each}}
+</script>
+<!--产品重新细化分类模板-->
+<script type="text/html" id="productBatchRefine_tpl">
+    <div class="layui-form padding30">
+        <div class="layui-form-item">
+            <label class="layui-form-label">产品ID</label>
+            <div class="layui-input-block">
+                <input value="{{productIds}}" type="text" name="ids" disabled placeholder="" autocomplete="off" class="layui-input layui-disabled">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">产品名称</label>
+            <div class="layui-input-block">
+                <input value="" type="text" disabled autocomplete="off" class="layui-input layui-disabled">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>设置分类</label>
+            <div class="layui-input-block">
+                <select lay-search name="categoryId" lay-verify="required" id="productBatchRefineCate_id">
+                    <option value="">不限</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block right-confirm">
+                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="productBatchRefineSubmit"><i class="layui-icon">&#xe618;</i>确认</button>
+            </div>
+        </div>
+    </div>
+</script>

@@ -1,0 +1,292 @@
+<style>
+    #container {
+        padding: 25px;
+    }
+
+    .label {
+        text-align: right;
+    }
+
+    #container img {
+        width: 120px;
+        height: 120px;
+        margin-bottom: 5px;
+    }
+
+    #container h3 {
+        padding: 0 30px;
+    }
+
+    #historyList {
+        float: right;
+    }
+
+    #cancelInfo {
+        text-align: center;
+        margin: 50px 0;
+    }
+
+</style>
+
+<div id="container">
+</div>
+
+
+<script>
+
+    layui.use(['layer', 'table', 'form'], function () {
+        var layer = layui.layer;
+        var table = layui.table;
+        var form = layui.form;
+
+        if(customerId == null){//新建
+            var res = {
+                'item': {
+                    // "state": 0,
+                    // "levelEnum":0
+                }
+            }; 
+            $("#container").html(template('customerEditTpl', res));
+            initSelect(form,res);
+            
+        }else{//修改
+            $.ajax({
+                type: 'GET',
+                url: "orders/crm/customers/detail",
+                dataType: 'json',
+                data: {
+                    'id': customerId
+                },
+                success: function (res) {
+                    $("#container").html(template('customerEditTpl', res));
+                    initSelect(form,res);
+                }, error: function (data) {
+                    layer.msg("获取详情失败");
+                }
+            });
+        }
+
+
+
+        form.on('submit(save)', function (data) {
+            var field = data.field;
+
+            var postData = field;
+
+            preventRepeat(data); 
+
+            if(!field.id){
+                //修改
+                $.ajax({
+                    type: 'POST',
+                    url: "/orders/crm/customers/add",
+                    data:  postData,
+                    dataType: 'json',
+                    success: function (res) {
+                        state_response(res, data);
+                        if(res.code==='FAIL') {
+                            layer.msg(res.desc);
+                            return false;
+                        }
+                        layer.msg(res.desc);
+                        layer.close(applyModelIndex);
+                        table.reload('demo', {
+                            where: searchParam    //设定异步数据接口的额外参数，任意设
+                            ,height: 'full-230'
+                            ,page: {
+                                curr: 1 
+                            }
+                        });
+                        return false;
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        state_response(res, data);
+                        layer.msg(res.desc);
+                        return false;
+                    }
+                });
+                return false;
+
+            } else{
+                //新建
+                $.ajax({
+                    type: 'POST',
+                    url: "/orders/crm/customers/update",
+                    data:  postData,
+                    dataType: 'json',
+                    success: function (res) {
+                        state_response(res, data);
+                        if(res.code==='FAIL') {
+                            layer.msg(res.desc);
+                            return false;
+                        }
+                        layer.msg(res.desc);
+                        layer.close(applyModelIndex);
+                        table.reload('demo', {
+                            where: searchParam    //设定异步数据接口的额外参数，任意设
+                            ,height: 'full-230'
+                            ,page: {
+                                curr: 1 
+                            }
+                        });
+                        return false;
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        state_response(res, data);
+                        layer.msg(res.desc);
+                        return false;
+                    }
+                });
+
+            } 
+            
+            return false;
+
+        });
+
+
+
+
+
+        
+
+    });
+
+    function initSelect(form,data){
+        $.ajax({
+            type: 'GET',
+            url: "orders/crm/customers/enumList",
+            dataType: 'json',
+            success: function (res) {
+                var obj = new Object;
+
+                obj.item = res.item.state;
+                $("#stateEdit").append(template('option-enum-ordinal-tpl', obj));
+
+                obj.item = res.item.customerCredit;
+                $("#levelEnumEdit").append(template('option-enum-ordinal-tpl', obj));
+
+                // $("#levelEnumEdit").val(data.item.levelEnum + "");
+                // $("#stateEdit").val(data.item.state + "");
+                // alert(data.item.levelEnum);
+                $('#levelEnumEdit option[value="' + data.item.levelEnum + '"]').attr('selected','selected');
+                $('#stateEdit option[value="' + data.item.state + '"]').attr('selected','selected');
+                form.render('select');
+            }
+        });
+    }
+
+
+    function closeModel(){
+        layer.close(applyModelIndex);
+    }
+
+         
+    
+
+</script>
+
+
+
+
+
+
+
+<script type="text/html" id="customerEditTpl">
+    <form class="layui-form">
+              <input type="hidden" name="id" value="{{item.id}}" >
+            
+              <div class="layui-form-item ">
+                <label class="layui-form-label">客户姓:</label>
+                <div class="layui-input-block">
+                    <input type="text"  name="lastName" value="{{item.lastName}}"  autocomplete="off"  placeholder="请输入客户姓" class="layui-input">
+                </div>
+              </div>
+
+              <div class="layui-form-item ">
+                    <label class="layui-form-label"><span class="required_mark">*</span>客户名:</label>
+                    <div class="layui-input-block">
+                        <input type="text"  name="firstName"  value="{{item.firstName}}"   autocomplete="off" lay-verify="required"  placeholder="请输入客户名" class="layui-input">
+                    </div>
+             </div>
+
+
+
+              <div class="layui-form-item ">
+                <label class="layui-form-label"><span class="required_mark">*</span>客户手机号:</label>
+                <div class="layui-input-block">
+                    <input type="text"  name="telphone" value="{{item.telphone}}" lay-verify="required"  placeholder="请输入客户手机号"  autocomplete="off" class="layui-input">
+                </div>
+            </div>  
+
+            <div class="layui-form-item ">
+                <label class="layui-form-label"><span class="required_mark">*</span>客户邮箱:</label>
+                <div class="layui-input-block">
+                    <input type="text"  name="email" value="{{item.email}}" lay-verify="required" placeholder="请输入客户邮箱"  autocomplete="off" class="layui-input">
+                </div>
+            </div>  
+
+            <div class="layui-form-item ">
+                <label class="layui-form-label"><span class="required_mark">*</span>地址:</label>
+                <div class="layui-input-block">
+                    <input type="text" name="address" value="{{item.address}}" lay-verify="required"   autocomplete="off" class="layui-input">
+                </div>
+            </div>
+
+             <div class="layui-form-item ">
+                <label class="layui-form-label"><span class="required_mark">*</span>客户等级:</label>
+                <div class="layui-input-block">
+                        <select name="levelEnum" id="levelEnumEdit" lay-verify="required" >
+                        </select>
+                </div>                
+            </div>
+
+
+            <div class="layui-form-item ">
+                    <label class="layui-form-label"><span class="required_mark">*</span>状态:</label>
+                    <div class="layui-input-block">
+                        <select name="state" id="stateEdit" lay-verify="required" >
+                        </select>
+                        <!-- <input type="text" name="state"  value="{{item.state}}" lay-verify="required"   autocomplete="off" class="layui-input"> -->
+                    </div>
+                </div>
+
+            <div class="layui-form-item ">
+                <label class="layui-form-label">备注:</label>
+                <div class="layui-input-block">
+                    <input type="text"  name="memo" value="{{item.memo}}"  autocomplete="off" class="layui-input">
+                </div> 
+            </div>
+            
+            
+            <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button type="button" onclick="closeModel()"  class="layui-btn layui-btn-primary">取消</button>
+                        <button class="layui-btn" type="button" lay-submit lay-filter="save">保存</button>
+                    </div>
+             </div>
+    <form>
+</script>
+
+
+
+
+<!--枚举下拉框 -->
+<script id="option-enum-ordinal-tpl" type="text/html">
+    {{each item value index}}
+        <option value="{{value.ordinal}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+
+<script type="text/html" id="customerLogTpl">
+    <div>
+        <table id="orderLog" lay-filter="orderLogFilter"></table>
+    </div>
+</script>
+
+<script type="text/html" id="customerNameTpl">
+    {{d.firstName}}{{d.lastName}}
+</script>
+
+

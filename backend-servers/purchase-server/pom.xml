@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.stosz.erp</groupId>
+		<artifactId>backend-servers</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>purchase-server</artifactId>
+	<packaging>war</packaging>
+	<name>purchase-server【采购子系统】</name>
+	<url>http://maven.apache.org</url>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.stosz.erp</groupId>
+			<artifactId>purchase-ext</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.stosz.erp</groupId>
+			<artifactId>orders-ext</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.stosz.erp</groupId>
+			<artifactId>store-ext</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.stosz.erp</groupId>
+			<artifactId>product-ext</artifactId>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<finalName>purchase-server</finalName>
+	</build>
+</project>

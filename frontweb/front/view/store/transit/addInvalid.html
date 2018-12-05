@@ -1,0 +1,117 @@
+<form class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">*仓库</label>
+        <div class="layui-input-inline">
+            <select name="wmsId" lay-verify="required" id="addInvalidWmsId">
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*报废类型</label>
+        <div class="layui-input-inline">
+            <select name="invalidType" lay-verify="required">
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*费用计算</label>
+        <div class="layui-input-inline">
+            <select name="calculateType" lay-verify="required">
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*报废总价</label>
+        <div class="layui-input-inline">
+            <input type="text" name="invalidTotal" lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input">
+        </div>
+
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+                    <textarea name="memo" lay-verify="" placeholder="" class="layui-textarea"
+                              style="height: 100px;width:300px"></textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="next">下一步</button>
+        </div>
+    </div>
+</form>
+
+<script id="calculateType-option-tpl" type="text/html">
+    {{each calculateTypeEnum value index}}
+    <option value="{{value.ordinal}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<script id="invalidType-option-tpl" type="text/html">
+    {{each invalidTypeEnum value index}}
+    <option value="{{value.ordinal}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<script type="text/javascript">
+    layui.use(['form', 'layer'], function () {
+        var layer = layui.layer;
+        var formSel = layui.form;
+
+        //转寄仓下拉
+        store_wmsId_option('addInvalidWmsId', {type: 1});
+
+        $.ajax({
+            type: 'GET',
+            url: "/store/common/enumList",
+            dataType: 'json',
+            data: '',
+            success: function (res) {
+                console.log("请求-下拉框数据", res);
+                state_response(res);
+                $("select[name='calculateType']").append(template('calculateType-option-tpl', res.item));
+                $("select[name='invalidType']").append(template('invalidType-option-tpl', res.item));
+                formSel.render('select'); //刷新select选择框渲染
+            }
+        });
+        formSel.render();
+
+        formSel.on('submit(next)', function (data) {
+            var indexTemp = layer.load();
+            data.field.stockName = $("#addInvalidWmsId").find("option:selected").text();
+            console.log('next data:' + JSON.stringify(data.field));
+
+            $.ajax({
+                type: 'POST',
+                url: "/store/invalid/create",
+                dataType: 'json',
+                data: data.field,
+                success: function (res) {
+                    layer.close(indexTemp);
+                    console.log('...res:' + JSON.stringify(res));
+
+                    if (res.code === 'OK') {
+                        sto_invalid_itemReq = res.item;
+                        layer.close(sto_invalid_add_index);
+                        invalidAddTrack();
+                    } else {
+                        layer.msg(res.desc, {icon: 2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    layer.close(indexTemp);
+                    layer.msg('操作失败，请重试');
+                }
+            });
+
+            return false;
+        });
+
+    });
+
+</script>

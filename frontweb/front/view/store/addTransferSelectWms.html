@@ -1,0 +1,95 @@
+<form class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">调出仓</label>
+        <div class="layui-input-inline">
+            <select name="outWmsId" lay-verify="required" id="addTranOutWmsId">
+                <option value="">不限</option>
+            </select>
+        </div>
+
+        <label class="layui-form-label">调入仓</label>
+        <div class="layui-input-inline">
+            <select name="inWmsId" lay-verify="required" id="addTranInWmsId">
+                <option value="">不限</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+                    <textarea name="description" lay-verify="" placeholder="" class="layui-textarea"
+                              style="height: 200px;width:500px"></textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="next">下一步</button>
+        </div>
+    </div>
+</form>
+
+<script id="addWmsId-option-tpl" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}~{{value.type}}">{{ value.name}}</option>
+    {{/each}}
+</script>
+
+<script type="text/javascript">
+    layui.use(['form', 'layer'], function () {
+        var layer = layui.layer;
+        var formSel = layui.form;
+        formSel.render();
+
+        $.ajax({
+            type: 'POST',
+            url: "/store/findList",
+            dataType: 'json',
+            date: '', //转寄
+            success: function (res) {
+                console.log("请求-下拉框数据add:", res);
+                state_response(res);
+                $("#addTranOutWmsId").append(template('addWmsId-option-tpl', res));
+                $("#addTranInWmsId").append(template('addWmsId-option-tpl', res));
+                formSel.render('select'); //刷新select选择框渲染
+            }
+        });
+
+        formSel.on('submit(next)', function (data) {
+            layer.close(selectWmsIndex);
+
+            var outWms = data.field.outWmsId.split("~");
+            var inWms = data.field.inWmsId.split("~");
+
+            storeAddTransferReq.outWmsId = outWms[0];
+            storeAddTransferReq.inWmsId = inWms[0];
+            storeAddTransferReq.outType = outWms[1];
+            storeAddTransferReq.inType = inWms[1];
+            storeAddTransferReq.description = data.field.description;
+
+            storeAddTransferReq.outWmsName= $.trim($("#addTranOutWmsId").find("option:selected").text());
+            storeAddTransferReq.inWmsName= $.trim($("#addTranInWmsId").find("option:selected").text());
+
+
+            if(storeAddTransferReq.outType==0 && storeAddTransferReq.inType ==1){ //0-普通仓
+                layer.msg('不能从自建仓调到转寄仓', {icon: 3});
+                return false;
+            }
+
+            console.log('next storeAddTransferReq:' + JSON.stringify(storeAddTransferReq));
+            $.get('view/store/addTransferImportTrack.html', function (str) {
+                 impTrackIndex = layer.open({
+                    type: 1
+                    , title: '导入操作'
+                    , content: str //注意，如果str是object，那么需要字符拼接。
+                    , maxmin: true
+                    , area: ['500px', '500px']
+                });
+
+            });
+            return false;
+        });
+
+    });
+
+</script>

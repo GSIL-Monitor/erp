@@ -1,0 +1,153 @@
+<form class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">*原运单号</label>
+        <div class="layui-input-inline">
+            <input type="text" lay-verify="required" name="trackingNo" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn" lay-submit lay-filter="tran_query_track">查询</button>
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">订单详情信息</label>
+        <div class="layui-input-block">
+                    <textarea name="" lay-verify="" placeholder="" class="layui-textarea"
+                              style="height: 200px;width:500px" id="tran_order_info"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">调入部门</label>
+        <div class="layui-input-inline">
+            <select name="inDeptId"  id="tran_inDept">
+                <option value="">不限</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+                    <textarea name="description" lay-verify="" placeholder="" class="layui-textarea"
+                              style="height: 200px;width:500px"></textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="next">下一步</button>
+        </div>
+    </div>
+</form>
+
+<script id="addWmsId-option-tpl" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}~{{value.type}}">{{ value.name}}</option>
+    {{/each}}
+</script>
+
+<script type="text/javascript">
+    var tran_pack_data_req;
+    layui.use(['form', 'layer'], function () {
+        var layer = layui.layer;
+        var formSel = layui.form;
+        formSel.render();
+
+        //部门
+        tree_formDept("tran_inDept", "id");
+
+        formSel.on('submit(next)', function (data) {
+            console.log('next:' + JSON.stringify(data.field));
+            data.field.inDeptName= $.trim($("#tran_inDept").find("option:selected").text());
+            data.field.outWmsId= tran_pack_data_req.wmsId;
+            data.field.inWmsId= tran_pack_data_req.wmsId;
+            data.field.outWmsName= tran_pack_data_req.stockName;
+            data.field.inWmsName= tran_pack_data_req.stockName;
+            data.field.outDeptId=tran_pack_data_req.deptId;
+            data.field.outDeptName=tran_pack_data_req.deptName;
+
+            $.ajax({
+                type: 'POST',
+                url: 'store/transfer/addTransitTransfer',
+                dataType: 'json',
+                data:  data.field,
+                success: function (res) {
+                    switch (res.code) {
+                        case "LOGIN":
+                            location.href = res.item;
+                            break;
+                        case "NOTICE":
+                            layer.msg(res.desc, {icon: 3});
+                            break;
+                        case "FAIL":
+                            layer.msg(res.desc, {icon: 3});
+                            break;
+                        case "OK":
+                            layer.msg('操作成功');
+                            sto_transfer_tab.reload({
+                                where: sto_transfer_tab_query
+                            });
+                            layer.closeAll();
+                            break;
+                        default:
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    layer.msg('操作失败，请重试');
+                }
+            });
+            return false;
+        });
+
+        //查运单信息
+        formSel.on('submit(tran_query_track)', function (data) {
+            console.log('tran_query_track:' + JSON.stringify(data.field.trackingNo));
+            $.ajax({
+                type: 'POST',
+                url: 'store/transitStock/getTransitByTrack',
+                dataType: 'json',
+                data: {track: data.field.trackingNo},
+                success: function (res) {
+                    switch (res.code) {
+                        case "LOGIN":
+                            location.href = res.item;
+                            break;
+                        case "NOTICE":
+                            layer.msg(res.desc, {icon: 3});
+                            break;
+                        case "FAIL":
+                            layer.msg(res.desc, {icon: 3});
+                            break;
+                        case "OK":
+                            tran_pack_data_req=res.item
+                            showPackInfo(res.item);
+                            break;
+                        default:
+
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    layer.msg('未查询到结果或者操作失败！');
+                }
+            });
+            return false;
+        });
+
+        function showPackInfo(data) {
+
+            var info = '原运单号：' + data.trackingNoOld + '\n';
+            info = info + '部门：' + data.deptName + '\n';
+            info = info + '物流：' + data.logisticsNameOld + '\n';
+
+            info = info + '产品信息：' + '\n';
+            $.each(data.spuList, function (i, n) {
+                info = info + n.spu +' '+ n.title+ '\n';
+                $.each(n.skuList, function (i2, n2) {
+                    info = info + n2.attr +' X '+ n2.qty+ '\n';
+                });
+            });
+            $("#tran_order_info").html(info);
+
+        }
+
+    });
+
+</script>

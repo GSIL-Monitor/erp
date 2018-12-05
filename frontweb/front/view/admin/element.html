@@ -1,0 +1,133 @@
+<div class="layui-fluid">
+    <br>
+    <button class="layui-btn layui-btn-normal" onclick="addElementBtn()" id="add_element">新增元素</button>
+
+
+    <table id="demo" lay-filter="test"></table>
+
+    <script>
+        var add_element_index;
+        layui.use(['layer', 'table', 'element', 'form'], function () {
+            var element_layer = layui.layer;
+            var element_index = element_layer.load(0,{time:5*1000});
+            var element_table = layui.table;
+            //第一个实例
+            element_table.render({
+                elem: '#demo'
+                ,url: "/admin/element/query"
+//                , height: 700
+//                , style:'word-break: break-all;'
+                , even: true //开启隔行背景
+                , page: false //关闭分页
+                , done: function (res, curr, count) {
+                    var element = layui.element;
+                    element.init();
+                    element_layer.close(element_index);
+                }
+                , cols: [[ //表头
+                    {field: 'id', title: 'ID',  sort: true, fixed: 'left'}
+                    , {field: 'name', title: '名称',edit:'text'}
+                    , {field: 'keyword', title: '关键字',  edit: 'text'}
+                    , {field: 'remark', title: '备注',  edit:'text'}
+                    , {field:'',fixed: 'right',title:'操作', align:'center', toolbar: '#barDemo'} //这里的toolbar值是模板元素的选择器
+                ]]
+                , response: {
+                    statusName: 'code' //数据状态的字段名称，默认：code
+                    , statusCode: 'OK' //成功的状态码，默认：0
+                    , msgName: 'desc' //状态信息的字段名称，默认：msg
+                    , countName: 'total' //数据总数的字段名称，默认：count
+                    , dataName: 'item' //数据列表的字段名称，默认：data
+                }
+            });
+
+            //监听工具条
+            element_table.on('edit(test)', function(obj){ //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+                var data = obj.data; //获得当前行数据
+                $.ajax({
+                    type : 'POST',
+                    url : "/admin/element/updateElement",
+                    data: {
+                        id:data.id,
+                        keyword:data.keyword,
+                        name:data.name,
+                        remark:data.remark
+                    },
+                    dataType : 'json',
+                    success : function(res){
+                        console.log("修改元素返回结果",res);
+                        if(res.code === 'NOTICE'){
+                            element_layer.msg('修改成功', {icon: 1});
+                        }else{
+                            element_layer.msg(res.desc, {icon: 2});
+                        }
+                    }
+                });
+            });
+
+            //监听工具条
+            element_table.on('tool(test)', function(obj){ //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+                var data = obj.data; //获得当前行数据
+                var layEvent = obj.event; //获得 lay-event 对应的值
+                if(layEvent === 'del'){
+                    element_layer.confirm('确认删除该元素么?', function(element_index){
+                        obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
+                        element_layer.close(element_index);
+                        //向服务端发送删除指令
+                        $.ajax({
+                            type : 'POST',
+                            url : "/admin/element/deleteElement",
+                            data: {
+                                id:data.id
+                            },
+                            dataType : 'json',
+                            success : function(res){
+                                console.log("删除元素返回结果",res);
+                                element_layer.msg('删除成功', {icon: 3});
+                            }
+                        });
+                    });
+
+                }
+
+            });
+
+//            $("body").on('click','#add_element',function(){
+//                $.get('view/admin/add_element.html', function(str){
+//                    add_element_index = element_layer.open({
+//                        type: 1
+//                        ,title :'新增元素'
+//                        ,content: str //注意，如果str是object，那么需要字符拼接。
+//                        ,maxmin: true
+//                        ,area: '60%'
+//                    });
+//                });
+//            })
+
+
+        });
+
+        function addElementBtn(){
+            $.get('view/admin/add_element.html', function(str){
+                console.log("我执行了。。。。。。。");
+                add_element_index =layer.open({
+                    type: 1
+                    ,tipsMore:false
+                    ,title :'新增元素'
+                    ,content: str //注意，如果str是object，那么需要字符拼接。
+                    ,maxmin: true
+                    ,area: '60%'
+                });
+            });
+        }
+
+
+
+    </script>
+
+</div>
+
+
+
+<script type="text/html" id="barDemo">
+        <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del" style="text-align: center;">删除</button>
+</script>

@@ -1,0 +1,39 @@
+</br>
+<form  action="/tms/shippingParcel/matchingExport" method="post" class="layui-form border1ccc padding30">
+    <div class="layui-form-item">
+        <label class="layui-form-label">数据来源</label>
+        <div class="layui-input-inline">
+            <select name="dataType" lay-verify="required"  >
+                <option value="">请选择</option>
+                <option value="1">运单号</option>
+                <option value="2">订单号<option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label" style="width: 200px;">直接从Excel复制一列:运单号或者订单号</label>
+    </div>
+    <div class="layui-form-item">
+        <textarea name="dataList" required lay-verify="required" placeholder="请输入" class="layui-textarea"></textarea>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-inline">
+            <button class="layui-btn" lay-submit lay-filter="matchingParcel">确定</button>
+        </div>
+    </div>
+</form >
+
+<script type="text/javascript">
+    layui.use(['form','table'], function () {
+        var form = layui.form;
+        var table = layui.table;
+        //监听提交
+        form.render();
+
+        // form.on('submit(matchingParcel)', function (data) {
+        //     return true;
+        // });
+    });
+
+</script>

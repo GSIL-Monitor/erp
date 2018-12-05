@@ -1,0 +1,78 @@
+<div class="layui-form border1ccc padding30">
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户</label>
+        <div class="layui-input-inline">
+            <input type="text" name="" class="auto_matchinput layui-input" style="width: 196px"
+                   oninput="input_match(this)"  onblur="blur_event(this)" />
+            <input type="hidden" name="userId" class="auto_complateval" >
+            <div class="auto_matchwrap layui-anim layui-anim-upbit layui-select-group" style="display: none; position: absolute;background-color: #fff;z-index: 999; ">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">一级品类</label>
+        <div class="layui-input-inline">
+            <select lay-search name="categoryId" id="cateUserRel_topCategory_add">
+                <option value="">不限</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户分类</label>
+        <div class="layui-input-inline">
+            <select name="userType" >
+                <option value="advertis">广告专员</option>
+                <option value="checker">排重专员</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="addCateUserRelForm"><i class="layui-icon">&#xe618;</i>确认</button>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    layui.use(['form','table'], function () {
+        var product_addCateUserRel_form = layui.form;
+        var product_addCateUserRel_table = layui.table;
+        product_addCateUserRel_form.render();
+        //一级品类
+        $.ajax({
+            type: 'GET',
+            url: "/product/base/category/findAllFirstLevel",
+            dataType: 'json',
+            success: function (res) {
+                $("#cateUserRel_topCategory_add").append(template('userCateRel_option_tpl3', res));
+                product_addCateUserRel_form.render(); //刷新select选择框渲染
+            }
+        });
+
+        //监听提交
+        product_addCateUserRel_form.on('submit(addCateUserRelForm)', function (data) {
+            $.ajax({
+                type: 'POST',
+                url: "/product/base/categoryUserRel/add",
+                data: data.field,
+                dataType: 'json',
+                success: function (res) {
+                    if(res.code==='NOTICE') {
+                        layer.close(index);         //此时你只需要把获得的index，轻轻地赋予layer.close即可
+                        product_addCateUserRel_table.reload('categoryUserRelId');
+                        layer.msg('新增成功', {icon: 1});
+                    }else{
+                        layer.msg(res.desc,{icon:2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                }
+            });
+            return false;
+        });
+    });
+</script>
+<script id="userCateRel_option_tpl3" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.name}}</option>
+    {{/each}}
+</script>

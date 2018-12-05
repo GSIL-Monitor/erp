@@ -1,0 +1,433 @@
+<br>
+<div class="layui-fluid">
+    <div class="layui-form border1ccc">
+        <div class="layui-form-item" style="margin-top: 16px">
+            <label class="layui-form-label">部门</label>
+            <div class="layui-input-inline">
+                <select id="errorGoodsItem_dept_select" name="deptId">
+                    <option value=""></option>
+                </select>
+            </div>
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-inline">
+                <select id="errorGoodsItem_state_select" name="state">
+                    <option value=""></option>
+                </select>
+            </div>
+            <label class="layui-form-label">错货单号</label>
+            <div class="layui-input-inline">
+                <input value="" name="no" type="text"
+                       class="layui-input">
+            </div>
+            <label class="layui-form-label">SKU</label>
+            <div class="layui-input-inline">
+                <input value="" name="sku" type="text"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item" style="margin-top: 16px">
+            <label class="layui-form-label">创建日期</label>
+            <div class="layui-input-inline">
+                <input type="text" name="createAt" class="layui-input" id="errorGoodsItem_range" placeholder=" - ">
+            </div>
+
+            <label class="layui-form-label">审核人</label>
+            <div class="layui-input-inline">
+                <input type="text" name="auditor" class="auto_matchinput layui-input" style="width: 196px"
+                       oninput="input_match(this)" onblur="blur_event(this)"/>
+                <input type="hidden" name="auditorId" class="auto_complateval">
+                <div class="auto_matchwrap layui-anim layui-anim-upbit layui-select-group"
+                     style="display: none; position: absolute;background-color: #fff;z-index: 999; ">
+                </div>
+            </div>
+            <div class="layui-input-inline" style="width:20%; margin-left: 40px;">
+                <div style="float: left; margin-right: 10px;">
+                    <button class="layui-btn" lay-submit lay-filter="errorGoodsItem_search">搜索</button>
+                    <button class="layui-btn layui-btn-warm" lay-submit lay-filter="errorGoodsItem_export">导出</button>
+                </div>
+                <div id="agreeBtn">
+                    <button class="layui-btn layui-btn-normal" lay-submit lay-filter="errorGoodsItem_batchAgree">同意
+                    </button>
+                    <button class="layui-btn layui-btn-danger" lay-submit lay-filter="errorGoodsItem_batchDisAgree">
+                        不同意
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <table id="errorGoodsItem_table" lay-filter="errorGoodsItem_table_demo"></table>
+</div>
+
+<script id="errorGoodsItem_stateDemo" type="text/html">
+    {{#  if(d.state == 'draft'){  }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #5FB878;" lay-event="showHistory">草稿</a>
+    {{#  }else if(d.state == 'waitBusinessApprove'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #1E9FFF;" lay-event="showHistory">待业务审核</a>
+    {{# }else if(d.state == 'businessDisagree'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #FF5722;" lay-event="showHistory">业务不同意</a>
+    {{# }else if(d.state == 'executing'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #009688;" lay-event="showHistory">执行中</a>
+    {{# }else if(d.state == 'completed'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #13e2f5;" lay-event="showHistory">已完成</a>
+    {{# }else if(d.state == 'cancel'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #c2c2c2;" lay-event="showHistory">已取消</a>
+    {{# } }}
+
+</script>
+
+<script id="errorGoodsItem_barDemo" type="text/html">
+    {{# if(d.state == 'waitBusinessApprove' && window.purchase_errorGoodsItem_approve){ }}
+    <a class="layui-btn layui-btn layui-btn-xs" lay-event="agreeByBusiness">同意</a>
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="disagreeByBusiness">不同意</a>
+    {{# } }}
+</script>
+
+
+<!--部门下拉的tpl-->
+<script id="errorGoodsItem_dept_option" type="text/html">
+    {{each item.children value index}}
+    {{if value.leaf == false}}
+    <optgroup label="&nbsp;&nbsp;&nbsp;&nbsp;{{value.name}}">
+        {{each value.children val idx}}
+        {{if val.leaf == false}}
+        <optgroup label="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{val.name}}">
+            {{each val.children val2 idx2}}
+            <option value="{{val2.id}}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{val2.name}}</option>
+            {{/each}}
+        </optgroup>
+        {{/if}}
+        {{/each}}
+    </optgroup>
+    {{/if}}
+    {{/each}}
+</script>
+
+<!--状态下拉的tpl-->
+<script id="errorGoodsItem_state_option" type="text/html">
+    {{each errorGoodsItemState value index}}
+    <option value="{{value.name}}" {{if value.name==='waitBusinessApprove' }} selected
+            {{/if}} > {{value.display}}</option>
+    {{/each}}
+</script>
+
+<!--错货单详情-->
+<script id="errorGoodsItem_detail_tpl" type="text/html">
+    <br>
+    <div class="layui-fluid">
+        <div class="layui-form border1ccc">
+            <div class="layui-form-item" style="margin-top: 16px">
+                <label class="layui-form-label">错货单号</label>
+                <div class="layui-input-inline">
+                    <span type="text" class="layui-form-label">{{no}}</span>
+                </div>
+                <label class="layui-form-label">供应商</label>
+                <div class="layui-input-inline">
+                    <span type="text" class="layui-form-label">{{supplierName}}</span>
+                </div>
+            </div>
+            <div class="layui-form-item" style="margin-top: 16px">
+                <label class="layui-form-label">产品信息</label>
+                <div class="layui-input-inline">
+                    <span type="text" class="layui-form-label">{{productTitle}}</span>
+                </div>
+            </div>
+        </div>
+
+
+        <table id="errorGoodsItem_detail_table" lay-filter="errorGoodsItem_detail_table_demo"></table>
+    </div>
+</script>
+
+<script type="text/html" id="errorGoodsItem_showHistory_tpl">
+    <table id="errorGoodsItem_fsm_history_tpl" lay-filter="errorGoodsItem_fsm_history_demo"></table>
+
+    </table>
+</script>
+
+<!--主函数-->
+<script type="text/javascript">
+    layui.use(['layer', 'form', 'table', 'element', 'laydate'], function () {
+        if (!window.purchase_errorGoodsItem_approve) {
+            $('#agreeBtn').html('');
+        }
+        var errorGoodsItem_layer = layui.layer;
+        var errorGoodsItem_index = layer.load(0, {time: 5 * 1000});
+        var errorGoodsItem_form = layui.form;
+        var errorGoodsItem_table = layui.table;
+        var errorGoodsItem_laydate = layui.laydate;
+        //初始化部门信息
+        initDeptSelect(errorGoodsItem_form);
+        initStateSelect(errorGoodsItem_form);
+        errorGoodsItem_form.render();
+        //初始化表单
+        errorGoodsItem_table.render({
+            elem: '#errorGoodsItem_table'
+            , url: "/purchase/manage/errorGoodsItem/find"
+            , even: true //开启隔行背景
+            , method: 'GET'
+            , height: 'full-260'
+            , request: {
+                limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , page: true //关闭分页
+            , done: function (res, curr, count) {
+                var element = layui.element;
+                element.init();
+                layer.close(errorGoodsItem_index);
+            }
+            , where: {
+                state: 'waitBusinessApprove'
+            }
+            , cols: [[ //表头
+                {field: '', title: '', checkbox: true, fixed: 'left', minWidth: 90}
+                , {field: 'id', title: 'ID', minWidth: 90}
+                , {field: 'errorNo', title: '错货申请编号', minWidth: 110}
+                , {field: 'productTitle', title: '产品信息', minWidth: 110}
+                , {field: 'deptName', title: '部门', minWidth: 100}
+                , {field: 'originalSku', title: '原SKU', minWidth: 100}
+                , {field: 'realSku', title: '实际到货SKU', minWidth: 100}
+                , {field: 'quantity', title: '错货数', minWidth: 100}
+                , {field: 'amount', title: '错货总价', minWidth: 100}
+                , {field: 'supplierName', title: '供应商', minWidth: 100}
+                , {field: 'auditor', title: '审批人', minWidth: 100}
+                , {field: 'auditorTime', title: '审批时间', minWidth: 100}
+                , {field: '', title: '状态', align: 'center', toolbar: '#errorGoodsItem_stateDemo', minWidth: 160}
+                , {field: 'memo', title: '备注', minWidth: 100}
+                , {
+                    field: '',
+                    title: '操作',
+                    fixed: 'right',
+                    align: 'center',
+                    toolbar: '#errorGoodsItem_barDemo',
+                    minWidth: 200
+                }
+            ]]
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+        });
+
+
+        //日期范围
+        errorGoodsItem_laydate.render({
+            elem: '#errorGoodsItem_range'
+            , type: 'datetime'
+            , range: '～'
+        });
+
+        //搜索
+        errorGoodsItem_form.on('submit(errorGoodsItem_search)', function (data) {
+            var createAt = data.field.createAt;
+            if (createAt != null) {
+                data.field.minCreateAt = createAt.split("～")[0];
+                data.field.maxCreateAt = createAt.split("～")[1];
+                data.field.createAt = undefined;
+            }
+            errorGoodsItem_table.reload('errorGoodsItem_table', {
+                where: data.field
+            });
+        });
+        //批量同意
+        errorGoodsItem_form.on('submit(errorGoodsItem_batchAgree)', function (data) {
+            var checkStatus = errorGoodsItem_table.checkStatus('errorGoodsItem_table')
+                , data = checkStatus.data;
+            if (data.length > 0) {
+                var ids = new Array();
+                var islow = true;
+                $.each(data, function (i, n) {
+                    ids.push(n.id);
+                    if (n.state !== 'waitBusinessApprove') {
+                        islow = false;
+                        return false;
+                    }
+                });
+                if (islow === false) {
+                    layer.msg('你的选择中有非待审核状态的明细！', {icon: 3});
+                    return;
+                }
+                layer.prompt({
+                    title: '批量同意错货单，备注',
+                    formType: 0,
+                    value: '',
+                    yes: function (index, pass) {
+                        var memo = pass.find(".layui-layer-input").val();
+                        $.ajax({
+                            type: 'POST',
+                            url: '/purchase/manage/errorGoodsItem/processEventByIdStr',
+                            dataType: 'json',
+                            data: {
+                                idStr: JSON.stringify(ids),
+                                errorGoodsItemEvent: 'agreeByBusiness',
+                                memo: memo
+                            },
+                            success: function (res) {
+                                state_response(res);
+                                layer.close(index);
+                                errorGoodsItem_table.reload('errorGoodsItem_table');
+                            }
+                        })
+                    }
+                });
+            } else {
+                layer.msg('请选择要操作的明细！', {icon: 3});
+            }
+        });
+
+        //批量不同意
+        errorGoodsItem_form.on('submit(errorGoodsItem_batchDisAgree)', function (data) {
+            var checkStatus = errorGoodsItem_table.checkStatus('errorGoodsItem_table')
+                , data = checkStatus.data;
+            if (data.length > 0) {
+                var ids = new Array();
+                var islow = true;
+                $.each(data, function (i, n) {
+                    ids.push(n.id);
+                    if (n.state !== 'waitBusinessApprove') {
+                        islow = false;
+                        return false;
+                    }
+                });
+                if (islow === false) {
+                    layer.msg('你的选择中有非待审核状态的明细！', {icon: 3});
+                    return;
+                }
+                layer.prompt({
+                    title: '批量不同意错货单，备注',
+                    formType: 0,
+                    value: '',
+                    yes: function (index, pass) {
+                        var memo = pass.find(".layui-layer-input").val();
+                        $.ajax({
+                            type: 'POST',
+                            url: '/purchase/manage/errorGoodsItem/processEventByIdStr',
+                            dataType: 'json',
+                            data: {
+                                idStr: JSON.stringify(ids),
+                                errorGoodsItemEvent: 'disagreeByBusiness',
+                                memo: memo
+                            },
+                            success: function (res) {
+                                state_response(res);
+                                layer.close(index);
+                                errorGoodsItem_table.reload('errorGoodsItem_table');
+                            }
+                        })
+                    }
+                });
+            } else {
+                layer.msg('请选择要操作的明细！', {icon: 3});
+            }
+        });
+
+        errorGoodsItem_table.on('tool(errorGoodsItem_table_demo)', function (obj) {
+            if (obj.event === 'showHistory') {
+                showHistory(obj,errorGoodsItem_table,errorGoodsItem_index);
+            } else {
+                layer.prompt({
+                    title: this.text + '错货单，备注',
+                    formType: 0,
+                    value: '',
+                    yes: function (index, pass) {
+                        var memo = pass.find(".layui-layer-input").val();
+                        $.ajax({
+                            type: 'POST',
+                            url: '/purchase/manage/errorGoodsItem/processEvent',
+                            dataType: 'json',
+                            data: {
+                                id: obj.data.id,
+                                errorGoodsItemEvent: obj.event,
+                                memo: memo
+                            },
+                            success: function (res) {
+                                state_response(res);
+                                layer.close(index);
+                                errorGoodsItem_form.reload('errorGoodsItem_table');
+                            }
+                        })
+                    }
+                });
+            }
+
+        });
+    });
+
+    function showHistory(obj,errorGoodsItem_table,errorGoodsItem_index) {
+        errorGoodsItem_index = layer.open({
+            type: 1,
+            title: '错货单历史',
+            content: template('errorGoodsItem_showHistory_tpl', obj.data),
+            maxmin: false,
+            offset:'10%',
+            area: '50%',
+            success: function () {
+                errorGoodsItem_table.render({
+                    elem: '#errorGoodsItem_fsm_history_tpl'
+                    , url: "/purchase/manage/errorGoodsItem/queryFsmHistory?errorGoodsItemId="+obj.data.id
+                    , even: true //开启隔行背景
+                    , method: 'POST'
+                    , height: 'full-260'
+                    ,limit: 10
+                    , request: {
+                        pageName: 'page' //页码的参数名称，默认：page
+                        ,limitName: 'limit' //每页数据量的参数名，默认：limit
+                    }
+                    , page: true //关闭分页
+                    , done: function (res, curr, count) {
+                        var element = layui.element;
+                        element.init();
+                    }
+                    , cols: [[ //表头
+                        {field: 'srcStateDisplay', title: '原始状态',width:"15%"}
+                        ,{field: 'eventNameDisplay', title: '事件',width:"15%"}
+                        ,{field: 'dstStateDisplay', title: '目标状态',width:"15%"}
+                        ,{field: 'optUid', title: '用户',width:"15%"}
+                        ,{field: 'createAt', title: '时间',width:"20%"}
+                        ,{field: 'memo', title: '备注',width:"20%"}
+                    ]]
+                    , response: {
+                        statusName: 'code' //数据状态的字段名称，默认：code
+                        , statusCode: 'OK' //成功的状态码，默认：0
+                        , msgName: 'desc' //状态信息的字段名称，默认：msg
+                        , countName: 'total' //数据总数的字段名称，默认：count
+                        , dataName: 'item' //数据列表的字段名称，默认：data
+                    }
+                })
+            }
+        });
+    }
+
+
+    //初始化部门下拉
+    function initDeptSelect(required_form) {
+        $.ajax({
+            type: 'POST'
+            , dataType: 'json'
+            , url: '/purchase/base/userBuDeptRel/findDeptNodeByCurrentUser'
+            , success: function (res) {
+                res.returnedParam = 'id';
+                $("#errorGoodsItem_dept_select").append(template('errorGoodsItem_dept_option', res));
+                required_form.render('select');
+            }
+        })
+    }
+
+    //初始化状态下拉
+    function initStateSelect(required_form) {
+        $.ajax({
+            type: 'GET'
+            , dataType: 'json'
+            , url: '/purchase/common/enumList'
+            , success: function (res) {
+                $("#errorGoodsItem_state_select").append(template('errorGoodsItem_state_option', res.item));
+                required_form.render('select');
+            }
+        })
+    }
+</script>
+

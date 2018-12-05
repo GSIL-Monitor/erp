@@ -1,0 +1,261 @@
+<style>
+    .layui-table-cell {
+        height: 100%;
+        width: 100%;
+    }
+    .layui-table img {
+        max-width: none;
+        max-height: none;
+    }
+    .right-confirm{
+        float: right;
+        margin-top: 40px;
+    }
+    .product-span-font{
+        color: #f5334a;
+    }
+</style>
+<div class="layui-fluid">
+    </br>
+    <div class="layui-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label">产品ID</label>
+            <div class="layui-input-inline">
+                <input type="text" name="id" placeholder="" autocomplete="off" class="layui-input">
+            </div>
+            <label class="layui-form-label">SPU</label>
+            <div class="layui-input-inline">
+                <input type="text" name="spu" placeholder="" autocomplete="off" class="layui-input">
+            </div>
+            <label class="layui-form-label">产品标题</label>
+            <div class="layui-input-inline">
+                <input type="text" name="title" placeholder="" autocomplete="off" class="layui-input">
+            </div>
+            <label class="layui-form-label">内部名</label>
+            <div class="layui-input-inline">
+                <input type="text" name="innerName" placeholder="" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">创建人</label>
+            <div class="layui-input-inline">
+                <input type="text" name="" class="auto_matchinput layui-input" style="width: 196px"
+                       oninput="input_match(this)"  onblur="blur_event(this)" />
+                <input type="hidden" name="creatorId" class="auto_complateval" >
+                <div class="auto_matchwrap layui-anim layui-anim-upbit layui-select-group" style="display: none; position: absolute;background-color: #fff;z-index: 999; ">
+                </div>
+            </div>
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-inline">
+                <select name="state" >
+                    <option value="">不限</option>
+                    <option value="onsale">已上架</option>
+                    <option value="archiving">建档中</option>
+                    <option value="waitFill">待填充</option>
+                    <option value="offsale">已下架</option>
+                    <option value="disappeared">已消档</option>
+                    <option value="start">开始</option>
+                </select>
+            </div>
+            <label class="layui-form-label">区域</label>
+            <div class="layui-input-inline" >
+                <select lay-search name="zoneId" id="productApprove_zoneId">
+                    <option value="">不限</option>
+                </select>
+            </div>
+            <label class="layui-form-label">创建时间</label>
+            <div class="layui-input-inline">
+                <input type="text" class="layui-input" id="approveCreateAtId" name="approveCreateAt" placeholder="请选择时间">
+            </div>
+
+            <button class="layui-btn" lay-submit lay-filter="searchProductApprove"><i class="layui-icon">&#xe615;</i>搜索</button>
+        </div>
+    </div>
+    <table id="productApproveId" lay-filter="productApprove"></table>
+
+    <script>
+        layui.use(['layer', 'table', 'element', 'form', 'laydate'], function () {
+            var product_productApprove_layer = layui.layer;
+            var product_productApprove_index = layer.load(0,{time:5*1000});;
+            var product_productApprove_form = layui.form;
+            var product_productApprove_table = layui.table;
+            product_productApprove_form.render();
+
+            var product_productApprove_date = layui.laydate;
+            product_productApprove_date.render({
+                elem : '#approveCreateAtId',
+                range : '~'
+            });
+
+            //地区
+            $.ajax({
+                type: 'GET',
+                url: "/product/base/zone/find",
+                dataType: 'json',
+                success: function (res) {
+                    $("#productApprove_zoneId").append(template('productApprove_option_tpl3', res));
+                    product_productApprove_form.render(); //刷新select选择框渲染
+                }
+            });
+
+            product_productApprove_table.render({
+                elem: '#productApproveId',
+                url: "/product/manage/supervisor_assistant",
+                even: true,     //开启隔行背景
+                page: true,    //关闭分页
+                height: 'full-200',
+                done: function (res, curr, count) {
+                    var element = layui.element;
+                    element.init();
+                    product_productApprove_layer.close(product_productApprove_index);
+                },
+                cols: [[ //表头
+                    {field: 'id', title: '产品ID' },
+                    {field: 'mainImageUrl', title: '图片', toolbar: '#productImgTpl' },
+                    {field: '', title: '产品信息', templet: '#productInfoTpl' },
+                    {field: '', title: '状态', toolbar: '#productStateTpl' },
+                    {field: '', title: '来源', templet: '#productSourceTpl' },
+                    {field: '', title: '创建', templet: '#productCreateTpl' },
+                    {field: 'checker', title: '审核人' },
+                    {field: 'innerName', title: '内部名' },
+                    {field: 'name', title: '品类名' },
+                    {field: 'totalStock', title: '库存' },
+                    {field:'',fixed: 'right',title:'操作', align:'center', toolbar: '#productListSuperBar'}  //这里的toolbar值是模板元素的选择器
+                ]],
+                response: {
+                    statusName: 'code', //数据状态的字段名称，默认：code
+                    statusCode: 'OK', //成功的状态码，默认：0
+                    msgName: 'desc', //状态信息的字段名称，默认：msg
+                    countName: 'total', //数据总数的字段名称，默认：count
+                    dataName: 'item' //数据列表的字段名称，默认：data
+                }
+            });
+
+            //搜索条件
+            product_productApprove_form.on('submit(searchProductApprove)', function(data){
+                var createTimeArray = data.field.approveCreateAt.split("~");
+                minTime = $.trim(createTimeArray[0]);
+                maxTime = $.trim(createTimeArray[1]);
+                if (minTime != '') minTime = minTime + " 00:00:00";
+                if (maxTime != '') maxTime = maxTime + " 23:59:59";
+                product_productApprove_table.reload('productApproveId', {
+                    where: {
+                        id : data.field.id,
+                        spu : data.field.spu,
+                        title : data.field.title,
+                        innerName : data.field.innerName,
+                        creatorId : data.field.creatorId,
+                        state : data.field.state,
+                        minCreateAt: minTime,
+                        maxCreateAt: maxTime
+                    } ,
+                    page: {
+                        curr: 1 //重新从第 1 页开始
+                    }
+                });
+                return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+            });
+
+            //状态机历史查看
+            product_productApprove_form.on('submit(product_approve_lookHistory)', function (obj) {
+                approve_product_fsmHistory(product_productApprove_layer, product_productApprove_table, obj);
+            })
+
+            product_productApprove_table.on('tool(productApprove)', function (obj) {
+                var data = obj.data;
+                var layEvent = obj.event;
+                if (layEvent === 'approve_details'){
+                    approve_detailsFun(data);
+                }
+            })
+
+        });
+
+        //主管助理详情
+        function approve_detailsFun(data) {
+            adProductId = data.id;
+            adProductCategoryId = data.categoryId;
+            $.get('view/product/manage/product_details_approve.html', function(str){
+                index = layer.open({
+                    type: 1 ,
+                    title :'产品详情' ,
+                    content: str ,//注意，如果str是object，那么需要字符拼接。
+//                            maxmin: true ,
+                    area: ['100%','100%']
+                });
+            });
+        }
+
+        //状态机历史
+        function approve_product_fsmHistory(id, title){
+            productCenter_fsmHistory(id, title, "Product");
+        }
+
+    </script>
+</div>
+
+<script type="text/html" id="productListSuperBar">
+    <div>
+        <button class="layui-btn layui-btn-xs" lay-event="approve_details" style="text-align: center;"><i class="layui-icon">&#xe60a;</i>详情</button>
+    </div>
+</script>
+<script id="productApprove_option_tpl3" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.title}}</option>
+    {{/each}}
+</script>
+<script type="text/html" id="productInfoTpl">
+    <div>
+        <span style="color: #2cf522;">SPU:{{ d.spu }}</span><br/>
+        <span>产品名称:{{ d.title }}</span><br/>
+        {{# if(d.classifyEnumName !== null && d.classifyEnumName !== ''){ }}
+        <span>特性:{{ d.classifyEnumName }}</span><br/>
+        {{# } }}
+        {{# if(d.customEnumName !== null && d.customEnumName !== ''){ }}
+        <span>类别:{{ d.customEnumName }}</span><br/>
+        {{# } }}
+    </div>
+</script>
+<script type="text/html" id="productSourceTpl">
+    <div>
+        <span>{{ d.sourceEnumName }}</span>
+    </div>
+    <div>
+        <a href=" {{ d.sourceUrl }} " class="layui-table-link" target="_Blank" >来源链接</a>
+    </div>
+</script>
+<script type="text/html" id="productCreateTpl">
+    <span>{{ d.creator }}</span><br/>
+    <span>{{ d.createAt }}</span>
+</script>
+
+<script type="text/html" id="productStateTpl">
+    <div>
+        {{#  if(d.state === 'start'){ }}
+        <span>开始</span>
+        {{# } else if(d.state === 'waitFill'){ }}
+        <span>待填充</span>
+        {{# } else if(d.state === 'archiving'){ }}
+        <span style="color: #f54ee2;">建档中</span>
+        {{# } else if(d.state === 'onsale'){ }}
+        <span style="color: #12f54b;">已上架</span>
+        {{# } else if(d.state === 'offsale'){ }}
+        <span style="color: #f5334a;">已下架</span>
+        {{# } else if(d.state === 'disappeared'){ }}
+        <span style="color: rgba(27,41,59,0.53);">已消档</span>
+        {{# } else { }}
+        <span>{{d.state}}</span>
+        {{#  } }}
+    </div>
+    <div>
+        <a>{{ d.stateTime }}</a>
+    </div>
+    <div class="layui-form">
+        <a style="color: #1c16f7" onclick="approve_product_fsmHistory({{d.id}}, '{{d.title}}')">查看历史</a>
+    </div>
+</script>
+<script type="text/html" id="productImgTpl">
+    <div style="height: 100%;width: 100%;">
+        <img src="{{window.product_img_host}}/{{d.mainImageUrl}}" class="clickamplify_img" style="width: 150px" height="150px" />
+    </div>
+</script>

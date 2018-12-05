@@ -1,0 +1,92 @@
+<div class="layui-form  padding30" >
+    <input type="hidden" name="id" value="">
+    <input type="hidden" name="zoneName" value="">
+    <div class="layui-form-item">
+        <label class="layui-form-label">选择国家:</label>
+        <div class="layui-input-inline">
+            <select id="zoneIdEditSelect" name="zoneId" lay-search lay-verify="required" lay-filter="zoneIdEditSelect">
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">省份:</label>
+        <div class="layui-input-block">
+            <input type="text" name="province"  placeholder="" maxlength="30" autocomplete="off"  id="provinceEditText"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label" >城市:</label>
+        <div class="layui-input-block">
+            <input type="text" name="city"  placeholder=""  maxlength="30" autocomplete="off" id="cityEditText"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">城市代码:</label>
+        <div class="layui-input-block">
+            <input type="text" name="code"  placeholder="" maxlength="20" autocomplete="off" id="codeEditText"
+                   class="layui-input" value="">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="editElementForm">确定</button>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    layui.use(['form','table'], function () {
+        var edit_districtCode_form = layui.form;
+        var edit_districtCode_table = layui.table;
+
+
+        zone_select('zoneIdEditSelect','id',function(){
+            $('#zoneIdEditSelect option[value="'+districtCode_data.zoneId+'"]').prop("selected", "selected");
+            zoneSelectEve();
+        });
+
+
+        edit_districtCode_form.on('select(zoneIdEditSelect)',function () {
+            zoneSelectEve();
+        });
+
+        //监听提交
+        edit_districtCode_form.on('submit(editElementForm)', function (data) {
+            $.ajax({
+                type: 'PUT',
+                url: "/tms/districtCode",
+                data: data.field,
+                dataType: 'json',
+                success: function (res) {
+                    console.log("修改元素返回值", res);
+                    if(res.code==='NOTICE') {
+                        layer.close(edit_districtCode); //此时你只需要把获得的index，轻轻地赋予layer.close即可
+                        edit_districtCode_table.reload('demo');
+                        layer.msg('修改成功', {icon: 1});
+                    }else{
+                        layer.msg(res.desc,{icon:2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                }
+            });
+            return false;
+        });
+
+        $('input[name=\'id\']').val(districtCode_data.id);
+        $('#provinceEditText').val(districtCode_data.province);
+        $('#cityEditText').val(districtCode_data.city);
+        $('#codeEditText').val(districtCode_data.code);
+        edit_districtCode_form.render();
+    });
+
+    function zoneSelectEve(){
+        var zoneName=$("#zoneIdEditSelect").find("option:selected").text();
+        $('input[name=\'zoneName\']').val(zoneName);
+    }
+
+</script>

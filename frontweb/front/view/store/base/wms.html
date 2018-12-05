@@ -1,0 +1,219 @@
+<br>
+<div class="layui-form">
+    <div class="layui-form-item">
+        <div class="layui-form-item">
+            <label class="layui-form-label">区域</label>
+            <div class="layui-input-inline">
+                <select id="sto_department_select_zone" name="zoneId">
+                    <option value=""></option>
+                </select>
+            </div>
+
+            <label class="layui-form-label">仓库类型</label>
+            <div class="layui-input-inline">
+                <select name="type" id="sto_storeType" lay-verify="" lay-search>
+                    <option value="" name="">请选择</option>
+                </select>
+            </div>
+            <div class="layui-input-inline">
+                <button class="layui-btn" lay-submit lay-filter="sto_storeSearch">搜索</button>
+            </div>
+            <div class="layui-input-inline">
+                <button class="layui-btn layui-btn-normal" onclick="sto_addStore()">新增仓库</button>
+            </div>
+        </div>
+    </div>
+</div>
+<table id="demo" lay-filter="test"></table>
+
+<script id="wmsType-option-tpl" type="text/html">
+    {{each wmsTypeEnum value index}}
+    <option value="{{value.ordinal}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<script type="text/html" id="wmsTypeEnumTpl">
+    {{d.wmsTypeEnum.display}}
+</script>
+<script type="text/html" id="wmsStateEnumTpl">
+    {{d.wmsStateEnum.display}}
+</script>
+<script type="text/html" id="usesWmsEnumTpl">
+    {{d.usesWmsEnum.display}}
+</script>
+
+<script type="text/html" id="sto_wms_option">
+    <a class="layui-btn layui-btn-xs" lay-event="sto_wms_edit">编辑</a>
+
+    {{# if(d.state == 0){ }}
+    <a class="layui-btn layui-btn-xs" lay-event="sto_wms_enable">开启</a>
+    <a class="layui-btn layui-btn-xs" lay-event="sto_wms_del">删除</a>
+    {{# }else{ }}
+    <a class="layui-btn layui-btn-xs" lay-event="sto_wms_disable">关闭</a>
+    {{# } }}
+</script>
+
+<script>
+    var queryParam = "",sto_wms_table;
+    var _query_id, sto_addWms_index;
+    var sto_wms_edit_sel_data = null;
+    layui.use(['layer', 'table', 'element', 'form'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0, {time: 5 * 1000});
+        var table = layui.table;
+        var form = layui.form;
+        form.render();
+
+        $.ajax({
+            type: 'GET',
+            url: "/store/common/enumList",
+            dataType: 'json',
+            data: '',
+            success: function (res) {
+                console.log("请求枚举-下拉框数据", res);
+                state_response(res);
+                $("#sto_storeType").append(template('wmsType-option-tpl', res.item));
+                form.render('select'); //刷新select选择框渲染
+            }
+        });
+        //区域下拉框
+        zone_select('sto_department_select_zone', 'id');
+
+        //第一个实例
+        sto_wms_table=table.render({
+            elem: '#demo'
+            , id: 'demo'
+            , url: '/store/findList' //数据接口
+            , method: 'post'
+            , height: 970 - 200
+            , even: true  //开启隔行背景
+            , page: true //开启分页
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , done: function (res, curr, count) {
+                layer.close(index);
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , page: true //开启分页
+            , cols: [[ //表头
+                {field: 'id', title: 'id', fixed: 'left', width: 100}
+                , {field: 'zoneName', title: '地区'}
+                , {templet: '#wmsTypeEnumTpl', title: '仓库类型', width: 120}
+                , {field: 'name', title: '仓库名'}
+                , {field: 'address', title: '地址'}
+                , {templet: '#wmsStateEnumTpl', title: '状态', width: 120}
+                , {templet: '#usesWmsEnumTpl', title: '是否使用wms', width: 120}
+                , {field: 'wmsSysCode', title: 'wms编码'}
+                , {field: 'createAt', title: '创建时间'}
+                , {field: '', title: '操作', templet: '#sto_wms_option', align: 'center', fixed: 'right', width: 300}
+            ]]
+        });
+
+        //监听查询
+        form.on('submit(sto_storeSearch)', function (data) {
+            queryParam = data.field;
+            //上述方法等价于
+            table.reload('demo', {
+                where: queryParam    //设定异步数据接口的额外参数，任意设
+                , page: {
+                    offset: 1 //重新从第 1 页开始
+                }
+            });
+            return false;
+        });
+
+        //监听工具条
+        table.on('tool(test)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+            console.log('data:' + JSON.stringify(data))
+            _query_id = data.id;
+
+            if (layEvent === 'sto_wms_edit') { //编辑
+                sto_wms_edit_sel_data = data;
+                $.get('view/store/base/add_wms.html', function (str) {
+                    sto_addWms_index = layer.open({
+                        type: 1
+                        , title: '编辑仓库信息'
+                        , content: str //注意，如果str是object，那么需要字符拼接。
+                        , maxmin: true
+                        , area: '50%'
+                    });
+                });
+
+            } else if (layEvent === 'sto_wms_del') { //删除
+                layer.confirm('是否确定删除'+data.name+'仓库？', {icon: 3, title:'提示'}, function(index){
+                    $.ajax({
+                        type: 'GET',
+                        url: "/store/deleteStore?wmsId=" + _query_id,
+                        dataType: 'json',
+                        success: function (item) {
+                            layer.msg("删除成功");
+                            table.reload('demo', {
+                                where: queryParam    //设定异步数据接口的额外参数，任意设
+                                , page: {
+                                    start: 1 //重新从第 1 页开始
+                                }
+                            });
+                        }
+                    });
+                    layer.close(index);
+                });
+
+            } else if (layEvent === 'sto_wms_enable') { //开启
+                $.ajax({
+                    type: 'GET',
+                    url: "/store/enable?wmsId=" + _query_id,
+                    dataType: 'json',
+                    success: function (item) {
+                        layer.msg("操作成功");
+                        table.reload('demo', {
+                            where: queryParam    //设定异步数据接口的额外参数，任意设
+                            , page: {
+                                start: 1 //重新从第 1 页开始
+                            }
+                        });
+                    }
+                });
+            } else if (layEvent === 'sto_wms_disable') { //关闭
+                $.ajax({
+                    type: 'GET',
+                    url: "/store/disable?wmsId=" + _query_id,
+                    dataType: 'json',
+                    success: function (item) {
+                        layer.msg("操作成功");
+                        table.reload('demo', {
+                            where: queryParam    //设定异步数据接口的额外参数，任意设
+                            , page: {
+                                start: 1 //重新从第 1 页开始
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    });
+
+    function sto_addStore() {
+        sto_wms_edit_sel_data = null;
+        $.get('view/store/base/add_wms.html', function (str) {
+             sto_addWms_index = layer.open({
+                type: 1
+                , title: '新增仓库'
+                , content: str //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , area: '60%'
+            });
+        });
+    }
+</script>
+

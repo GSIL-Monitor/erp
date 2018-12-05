@@ -1,0 +1,1685 @@
+<style>
+    #purchase_tracking_no_table ~ .layui-table-view .layui-table-cell {
+        overflow: visible;
+        height: 60px;
+    }
+</style>
+<br>
+<div class="layui-fluid">
+    <div class="layui-form border1ccc">
+        <div class="layui-form-item" style="margin-top: 16px">
+            <label class="layui-form-label">部门</label>
+            <div class="layui-input-inline">
+                <select id="purchase_dept_select" name="buDeptId">
+                    <option value=""></option>
+                </select>
+            </div>
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-inline">
+                <select id="purchase_state_select" name="state">
+                    <option value=""></option>
+                </select>
+            </div>
+            <label class="layui-form-label">采购单号</label>
+            <div class="layui-input-inline">
+                <input value="" name="purchaseNo" type="text"
+                       class="layui-input">
+            </div>
+            <label class="layui-form-label">渠道订单号</label>
+            <div class="layui-input-inline">
+                <input value="" name="platOrdersNo" type="text"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item" style="margin-top: 16px">
+            <label class="layui-form-label">创建日期</label>
+            <div class="layui-input-inline">
+                <input type="text" name="createAt" class="layui-input" id="purchase_time_range" placeholder=" - ">
+            </div>
+
+            <label class="layui-form-label">SKU</label>
+            <div class="layui-input-inline">
+                <input value="" name="sku" type="text"
+                       class="layui-input">
+            </div>
+            <label class="layui-form-label">采购员</label>
+            <div class="layui-input-inline">
+                <input type="text" class="auto_matchinput layui-input" style="width: 196px"
+                       oninput="input_match(this)" onblur="blur_event(this)"/>
+                <input type="hidden" name="buyerId" class="auto_complateval">
+                <div class="auto_matchwrap layui-anim layui-anim-upbit layui-select-group"
+                     style="display: none; position: absolute;background-color: #fff;z-index: 999; ">
+                </div>
+            </div>
+            <label class="layui-form-label">运单号</label>
+            <div class="layui-input-inline">
+                <input value="" name="trackingNo" type="text"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item" style="margin-top: 16px">
+            <label class="layui-form-label">产品</label>
+            <div class="layui-input-inline">
+                <input value="" name="productTitle" type="text"
+                       class="layui-input">
+            </div>
+            <label class="layui-form-label"></label>
+            <div class="layui-input-inline" style="margin-left: 10px;">
+                <input type="checkbox" name="hasTracking" title="未填运单号">
+            </div>
+            <div class="layui-input-inline">
+                <button class="layui-btn" id="hasTrackingNo" lay-submit lay-filter="purchase_search">搜索</button>
+                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="purchase_export">导出</button>
+            </div>
+        </div>
+
+    </div>
+
+    <table id="purchase_table" lay-filter="purchase_table_demo"></table>
+</div>
+<!--采购单状态-->
+<script id="purchase_stateDemo" type="text/html">
+    {{#  if(d.state == 'draft'){  }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #5FB878;" lay-event="showHistory">草稿</a>
+    {{#  }else if(d.state == 'waitBusinessApprove'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #1E9FFF;" lay-event="showHistory">待业务审核</a>
+    {{# }else if(d.state == 'businessDisagree'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #FF5722;" lay-event="showHistory">业务不同意</a>
+    {{# }else if(d.state == 'waitFinanceApprove'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #01AAED;" lay-event="showHistory">待财务审核</a>
+    {{# }else if(d.state == 'financeDisagree'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #f54740;" lay-event="showHistory">财务不同意</a>
+    {{# }else if(d.state == 'refusePayment'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #f50503;" lay-event="showHistory">拒绝付款</a>
+    {{# }else if(d.state == 'waitPayment'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #67f531;" lay-event="showHistory">待付款</a>
+    {{# }else if(d.state == 'executing'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #009688;" lay-event="showHistory">执行中</a>
+    {{# }else if(d.state == 'completed'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #13e2f5;" lay-event="showHistory">已完成</a>
+    {{# }else if(d.state == 'cancel'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #c2c2c2;" lay-event="showHistory">已取消</a>
+    {{# } }}
+
+</script>
+<!--采购单操作按钮-->
+<script id="purchase_barDemo" type="text/html">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="purchase_detail">查看</a>
+    {{#  if((d.state == 'draft'|| d.state == 'businessDisagree'|| d.state == 'financeDisagree'|| d.state == 'refusePayment') && window.purchase_write){  }}
+    <a class="layui-btn  layui-btn-xs" lay-event="purchase_edit">编辑</a>
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="submit">提交</a>
+    {{# } }}
+    {{#  if(d.state == 'executing' && window.purchase_write){  }}
+    <a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="purchase_edit_trackingNo">填运单号</a>
+    {{# } }}
+    {{#  if((d.state != 'executing'&& d.state !='completed'&& d.state != 'cancel'&& d.state != 'waitPayment') && window.purchase_write){  }}
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="giveUp">取消</a>
+    {{# } }}
+    {{#  if((d.state == 'draft') && window.purchase_write){  }}
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="purchase_delete">删除</a>
+    {{# } }}
+    {{#  if((d.state == 'waitFinanceApprove') && window.purchase_finance_approve){  }}
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="agreeByFinance">同意</a>
+    <a class="layui-btn layui-btn layui-btn-xs" lay-event="disagreeByFinance">不同意</a>
+    {{# } }}
+    {{#  if(d.state == 'waitPayment'){  }}
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="pay">付款</a>
+    <a class="layui-btn layui-btn layui-btn-xs" lay-event="refusePay">拒绝付款</a>
+    {{# } }}
+    {{#  if((d.state == 'executing'|| d.state == 'completed') && window.purchase_returned_authority){  }}
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="purchase_returned_btn">采购退货</a>
+    {{# } }}
+</script>
+
+<!--部门下拉的tpl-->
+<script id="purchase_dept_option" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.departmentName}}</option>
+    {{/each}}
+</script>
+
+<!--状态下拉的tpl-->
+<script id="purchase_state_option" type="text/html">
+    {{each purchaseState value index}}
+    <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<!--采购详情的tpl-->
+<script id="purchase_show_detail_tpl" type="text/html">
+    <br>
+    <div class="layui-fluid">
+        <div class="layui-form margin-l-30">
+            <br>
+            <div class="layui-form-item">
+                <div class="layui-col-md4">
+                    <label>采购渠道：</label>
+                    <label style="color:#01AAED">{{platName}}</label>
+                </div>
+                <div class="layui-col-md4">
+                    <label>渠道订单号：</label>
+                    <label style="color: #01AAED;">{{platOrdersNo}}</label>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-col-md4">
+                    <label>供应商：</label>
+                    <label style="color: #01AAED;">{{supplierName}}</label>
+                </div>
+                <div class="layui-col-md4">
+                    <label>采购总价： </label>
+                    <label style="color: #01AAED;">{{amount}}</label>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-col-md4">
+                    <label>备注：</label>
+                    <label style="color: #01AAED;">{{memo}}</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="border1ccc" style="margin: 30px 0px;">
+            <div class="clear-float" style="background-color: #f2f2f2;padding: 20px;">
+                <div class="layui-col-md2">产品信息</div>
+                <div class="layui-col-md3" style="padding-left: 10px;">sku</div>
+                <div class="layui-col-md6">
+                    <div class="layui-col-md2">
+                        部门
+                    </div>
+                    <div class="layui-col-md2">
+                        采购需求数
+                    </div>
+                    <div class="layui-col-md2">
+                        日均销量
+                    </div>
+                    <div class="layui-col-md2">
+                        待审商品数
+                    </div>
+                    <div class="layui-col-md2">
+                        采购数量
+                    </div>
+                    <div class="layui-col-md2">
+                        采购价格
+                    </div>
+                </div>
+            </div>
+
+            <div id="purchase_detail_wrap" class="clear-float padding10" style="">
+                <div class="clear-float" style="height: 100%">
+                    <div class="layui-form float-l layui-col-md2">
+                        <img src="{{product.mainImageUrl}}" width="80%">
+                        <br>
+                        <div style="width: 80%;">
+                            <div style="margin: 10px 0px;">
+                                <div title="{{product.title}}"
+                                     style="color:#01AAED;text-overflow:ellipsis;overflow: hidden">
+                                    {{product.title}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="float-l layui-col-md10 border1ccc">
+                        {{each purchaseSkuDtoList val idx}}
+                        <hr>
+                        <div class="layui-form float-l layui-col-md12"
+                             style="margin-bottom: 20px; margin-left: 4px;">
+                            <div class="float-l layui-col-md3">
+                                <div class="layui-col-md10"
+                                     style="background-color: #f2f2f2;border-radius: 30px; padding-left:14px;margin-left: 10px; ">
+                                    <div class="clear-float">
+                                        <div class="float-l">
+                                            <div class="" style="color: #01AAED;">
+                                                <br>
+                                                <span>SKU:{{val.sku}}</span>
+                                                <br>
+                                                <span>SKU名称:{{val.skuTitle}}</span>
+                                            </div>
+                                            <br>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="float-l layui-col-md9">
+                                <div class="layui-col-md10"
+                                     style="background-color: #eeeeee;margin-bottom: 16px;border-radius:30px;margin-left: 20px;">
+                                    <div class="layui-col-md12">
+                                        <div style="height: 20px">
+                                            <div class="layui-col-md3" style="float: left;padding: 9px 15px;">小计</div>
+                                            <div class="layui-col-md2" style="float: left;padding: 9px 15px;">
+                                                {{val.totalPurchaseQty}}
+                                            </div>
+                                            <div class="layui-col-md2" style="float: left;padding: 9px 15px;">
+                                                {{val.totalAvgSaleQty}}
+                                            </div>
+                                            <div class="layui-col-md2" style="float: left;padding: 9px 15px;">
+                                                {{val.totalPendingOrderQty}}
+                                            </div>
+                                            <div class="layui-col-md1" style="float: left;padding: 9px 15px;">
+                                                {{val.totalQuantity}}
+                                            </div>
+                                            <div class="layui-col-md2" style="float: left;padding: 9px 15px;">
+                                                {{val.price}}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{each val.purchaseItemList val2 idx2}}
+                                    <div class="layui-col-md12" style="margin-top: 10px;">
+                                        <div class="layui-col-md3" style="float: left;padding: 9px 15px;">
+                                            {{val2.deptName}}
+                                        </div>
+                                        <div class="layui-col-md2" style="float: left;padding: 9px 15px;">
+                                            {{val2.purchaseQty}}
+                                        </div>
+                                        <div class="layui-col-md2" style="float: left;padding: 9px 15px;">
+                                            {{val2.avgSaleQty}}
+                                        </div>
+                                        <div class="layui-col-md2" style="float: left;padding: 9px 15px;">
+                                            {{val2.pendingOrderQty}}
+                                        </div>
+                                        <div class="layui-col-md1" style="float: left;padding: 9px 15px;">
+                                            {{val2.quantity}}
+                                        </div>
+                                        <div class="layui-col-md2" style="float: left;padding: 9px 15px;">
+                                            {{val2.price}}
+                                        </div>
+                                    </div>
+                                    {{/each}}
+                                </div>
+                            </div>
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+                <hr>
+                <br>
+            </div>
+        </div>
+    </div>
+</script>
+
+<!--采购编辑的tpl-->
+<script id="purchase_update_detail_tpl" type="text/html">
+    <br>
+    <div class="layui-fluid layui-form">
+
+        <input type="hidden" name="id" value="{{id}}"/>
+
+        <div class=" margin-l-30">
+            <br>
+            <div class="layui-form-item">
+                <div class="layui-col-md5">
+                    <label class="layui-form-label">付款类型：</label>
+                    <div class="layui-input-inline">
+                        <label class="layui-form-label" style="color:#01AAED">{{payMethod}}</label>
+                    </div>
+                </div>
+                <div class="layui-col-md5">
+                    <label class="layui-form-label">供应商&nbsp;<span style="color:red">*</span>：</label>
+                    <div class="layui-input-inline" style="text-overflow: ellipsis;overflow: hidden ;white-space: nowrap;">
+                        <input class="layui-input layui-disabled supplierName purchase_supplierName" required lay-verify="required" type="text" disabled name="supplierName" value="{{supplierName}}"/>
+                        <input class="purchase_supplierId" type="hidden" name="supplierId" value="{{supplierId}}" />
+
+                    </div>
+                    <button lay-submit lay-filter="supplier_update_btn" style="margin: 8px 5px;"
+                            class="layui-btn layui-btn-xs layui-btn-normal">
+                        更换供应商
+                    </button>
+
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-col-md5">
+                    <label class="layui-form-label" style="width:100px; margin-left: -20px;">渠道订单号&nbsp;<span style="color:red">*</span>：</label>
+                    <div class="layui-input-inline">
+                        <input type="text" class="layui-input" name="platOrdersNo"
+                                value="{{platOrdersNo}}"/>
+                    </div>
+                </div>
+                <div class="layui-col-md5">
+                    <label class="layui-form-label">采购渠道&nbsp;<span style="color:red">*</span>：</label>
+                    <div class="layui-input-inline">
+                        <select id="purchase_plat" data-buyerId={{buyerId}} data-account="{{buyerAccount}}"
+                                lay-filter="purchase_plat" required lay-verify="required" name="platId">
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-col-md5">
+                    <label class="layui-form-label">采购总价&nbsp;<span style="color:red">*</span>：</label>
+                    <div class="layui-input-inline">
+                        <input type="number" min="0" name="amount"  placeholder=""
+                               id="purchase_edit_amount" onblur="checkedAmount(this)"
+                               autocomplete="off" class="layui-input" value="{{amount}}">
+                    </div>
+                </div>
+                <div class="layui-col-md5">
+                    <label class="layui-form-label">购买账号&nbsp;<span style="color:red">*</span>：</label>
+                    <div class="layui-input-inline">
+                        <select id="purchase_buyerAccount" name="buyerAccount">
+                            <option value=""></option>
+                        </select>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-col-md9">
+                    <label class="layui-form-label">备注</label>
+                    <div class="layui-input-block">
+                        <textarea name="memo" placeholder="请输入内容" class="layui-textarea">{{memo}}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="border1ccc" style="margin: 30px 0px;">
+            <div class="clear-float" style="background-color: #f2f2f2;padding: 20px;">
+                <div class="layui-col-md2">产品信息</div>
+                <div class="layui-col-md3" style="padding-left: 10px;">sku</div>
+                <div class="layui-col-md6">
+                    <div class="layui-col-md2">
+                        部门
+                    </div>
+                    <div class="layui-col-md2">
+                        采购需求数
+                    </div>
+                    <div class="layui-col-md2">
+                        日均销量
+                    </div>
+                    <div class="layui-col-md2">
+                        待审商品数
+                    </div>
+                    <div class="layui-col-md2">
+                        采购数量
+                    </div>
+                    <div class="layui-col-md2">
+                        采购价格
+                    </div>
+                </div>
+            </div>
+
+            <div id="purchase_detail_update_wrap" class="clear-float padding10" style="">
+                <div class="clear-float" style="height: 100%">
+                    <div class="float-l layui-col-md2">
+                        <img src="{{product.mainImageUrl}}" width="80%">
+                        <br>
+                        <div style="width: 80%;">
+                            <div style="margin: 10px 0px;">
+                                <div title="{{product.title}}"
+                                     style="color:#01AAED;text-overflow:ellipsis;overflow: hidden">
+                                    {{product.title}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="float-l layui-col-md10 border1ccc">
+                        {{each purchaseSkuDtoList val idx}}
+                        <hr>
+                        <div class="layui-form float-l layui-col-md12" id="skuTpl_{{val.sku}}"
+                             style="margin-bottom: 20px; margin-left: 4px;">
+                            <div class="float-l layui-col-md3">
+                                <div class="layui-col-md10"
+                                     style="background-color: #f2f2f2;border-radius: 30px; padding-left:14px;margin-left: 10px; ">
+                                    <div class="clear-float">
+                                        <div class="float-l">
+                                            <div class="" style="color: #01AAED;">
+                                                <br>
+                                                <span>SKU:{{val.sku}}</span>
+                                                <br>
+                                                <span>SKU名称:{{val.skuTitle}}</span>
+                                            </div>
+                                            <br>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="float-l layui-col-md9">
+                                <div class="layui-col-md11"
+                                     style="background-color: #eeeeee;margin-bottom: 16px;border-radius:30px;margin-left: 20px;">
+                                    <div class="layui-col-md11">
+                                        <div style="height: 20px">
+                                            <div class="layui-col-md3" style="float: left;padding: 11px 15px;">小计</div>
+                                            <div class="layui-col-md2" style="float: left;padding: 11px 15px;">
+                                                {{val.totalPurchaseQty}}
+                                            </div>
+                                            <div class="layui-col-md2" style="float: left;padding: 11px 15px;">
+                                                {{val.totalAvgSaleQty}}
+                                            </div>
+                                            <div class="layui-col-md1" style="float: left;padding: 11px 15px;">
+                                                {{val.totalPendingOrderQty}}
+                                            </div>
+                                            <div class="layui-col-md2 totalPlanQty_{{val.sku}}" style="float: left;padding: 11px 15px;">
+                                                {{val.totalQuantity}}
+                                            </div>
+                                            <div class="layui-col-md2" style="float: left;padding: 0px 15px;">
+                                                <input type="text" placeholder="" id="sku_price_{{val.sku}}" default-value="{{val.price}}" onblur="purchase_update_price('{{val.sku}}')" totalQuantity="{{val.totalQuantity}}" autocomplete="off" class="layui-input purchase_edit_price" value="{{val.price}}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{each val.purchaseItemList val2 idx2}}
+                                    <div class="layui-col-md11 purchae_item_{{val2.id}}" style="margin-top: 10px;">
+
+                                        <div class="layui-col-md3" style="float: left;padding: 11px 15px;">
+                                            {{val2.deptName}}
+                                        </div>
+                                        <div class="layui-col-md2" style="float: left;padding: 11px 15px;">
+                                            {{val2.purchaseQty}}
+                                        </div>
+                                        <div class="layui-col-md2" style="float: left;padding: 11px 15px;">
+                                            {{val2.avgSaleQty}}
+                                        </div>
+                                        <div class="layui-col-md1" style="float: left;padding: 11px 15px;">
+                                            {{val2.pendingOrderQty}}
+                                        </div>
+                                        <div class="layui-col-md2" style="float: left;padding: 0px 15px;">
+                                            <input type="text" name="quantity" placeholder=""  id="quantity_{{val2.id}}" autocomplete="off"
+                                                   class="layui-input quantity_{{val.sku}}" default-value="{{val2.quantity}}" value="{{val2.quantity}}" onblur="purchase_update_planQty({{val2.id}}, '{{val.sku}}')">
+                                        </div>
+                                        <div class="layui-col-md2 purchase_sku_price sku_price_{{val.sku}}" id="price_{{val2.id}}"
+                                             style="float: left;padding: 11px 15px;">
+                                            {{val2.price}}
+                                        </div>
+                                    </div>
+                                    <div class="layui-col-md1 purchae_item_{{val2.id}}">
+                                        <button style="margin: 16px 0px;" itemId="{{val2.id}}" data-sku="{{val.sku}}" lay-submit lay-filter="purchase_item_delete" class="layui-btn layui-btn-danger layui-btn-sm">删除</button>
+                                    </div>
+                                    {{/each}}
+                                </div>
+                            </div>
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+                <hr>
+                <br>
+            </div>
+        </div>
+        <div style="text-align: center;margin-bottom: 14px;">
+            <button lay-submit lay-filter="purchase_submit_edit"
+                    class="layui-btn layui-btn-normal">
+                确定
+            </button>
+            <button class="layui-btn layui-btn-warm layui-layer-close layui-layer-close1">
+                取消
+            </button>
+        </div>
+    </div>
+</script>
+
+<!--运单号-->
+<script id="purchase_trackingNo_tpl" type="text/html">
+    <br>
+
+    <div class="layui-fluid layui-form">
+        <input type="hidden" name="purchaseNo" value="{{purchaseNo}}"/>
+        <button lay-submit lay-filter="purchase_add_tracking_no"
+                class="layui-btn layui-btn-warm">
+            添加运单号
+        </button>
+    </div>
+    <div class="layui-fluid">
+        <table id="purchase_tracking_no_table" lay-filter="purchase_tracking_no_demo"></table>
+    </div>
+    <br>
+    <div class="layui-fluid" id="add_tracking_no_demo"></div>
+</script>
+
+<!--添加更多运单号-->
+<script id="add_tracking_no_tpl" type="text/html">
+    <br>
+    <div class="layui-form border1ccc margin-b-30">
+        <input type="hidden" value="{{purchaseNo}}" name="purchaseNo"/>
+        <input type="hidden" value="" id="addId" name="id"/>
+        <div class="layui-form-item" style="margin-top: 16px">
+            <label class="layui-form-label">运费类型 <span style="color: red">*</span>:</label>
+            <div class="layui-input-inline">
+                <input type="radio" class="shippingTypeEnum" name="shippingTypeEnum" value="free" title="包邮" checked>
+                <input type="radio" class="shippingTypeEnum" name="shippingTypeEnum" value="toPay" title="到付">
+            </div>
+
+        </div>
+        <div class="layui-form-item" style="margin-top: 16px">
+            <label class="layui-form-label">快递单号 <span style="color: red">*</span>:</label>
+            <div class="layui-input-inline">
+                <input class="layui-input" id="addTrackingNo" name="trackingNo" value=""
+                       onblur="checkedTrackingNo(this)"/>
+            </div>
+        </div>
+        <div class="layui-form-item" style="margin-top: 16px">
+            <label class="layui-form-label">物流承运商 :</label>
+            <div class="layui-input-inline">
+                <select id="tracking_no_add_shipping_select" name="shippingId">
+                    <option value=""></option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item" style="margin-top: 16px">
+            <label class="layui-form-label">到付运费:</label>
+            <div class="layui-input-inline">
+                <input class="layui-input" id="add_shippingAmount" name="shippingAmount" value="" type="number" min="0"/>
+            </div>
+        </div>
+
+        <div class="layui-form-item" style="text-align: center">
+            <div class="layui-input-inline">
+                <button lay-submit lay-filter="add_tracking_no_submit"
+                        class="layui-btn layui-btn-normal">
+                    确定
+                </button>
+                <button lay-submit lay-filter="add_tracking_no_cancel"
+                        class="layui-btn">
+                    取消
+                </button>
+            </div>
+        </div>
+    </div>
+</script>
+
+<!--初始化购买账号-->
+<script id="purchase_buyerAccount_tpl" type="text/html">
+    <option value=""></option>
+    {{each item value index}}
+    <option value="{{value.account}}" {{if buyerAccount=== value.account}} selected {{/if}} >{{value.account}}</option>
+    {{/each}}
+</script>
+
+<!--初始化购买账号-->
+<script id="purchase_plat_tpl" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}" {{if originalPlatId== value.id}} selected {{/if}} >{{value.name}}</option>
+    {{/each}}
+</script>
+
+<!--初始化购买账号-->
+<script id="productDemo" type="text/html">
+    <a style="color: #01AAED; cursor: pointer;" lay-event="showProductDetail">{{d.product.title}}</a>
+</script>
+
+<!--运单号类型-->
+<script id="tracking_no_type" type="text/html">
+    <input type="checkbox" name="type" value="{{d.id}}" lay-skin="switch" lay-text="到付|包邮"
+           shippingAmount="{{d.shippingAmount}}" shippingType="{{d.shippingTypeEnum.ordinal}}"
+           lay-filter="switchTrackingNoType" {{ d.shippingTypeEnum.ordinal== 1 ? 'checked' : '' }} id="trackingNoType">
+</script>
+
+<!--运单号的物流承运商-->
+<script id="tracking_no_shipping" type="text/html">
+    <div class="layui-form">
+        <select id="tracking_no_shipping_select" data-id="{{d.id}}" lay-filter="trackingNoShippingSelect"
+                name="shippingId">
+            <option value=""></option>
+            {{{# layui.each(d.partnerList, function(index, item){ }}
+            <option value="{{item.id}}" {{# if(d.shippingId !=null && item.id== d.shippingId){ }} selected {{# } }}>
+                {{item.name}}
+            </option>
+            {{# }); }}
+        </select>
+    </div>
+</script>
+
+<script id="tracking_no_add_shipping_option" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.name}}</option>
+    {{/each}}
+</script>
+
+<!--运单号操作的tpl-->
+<script id="purchase_tracking_no_barDemo" type="text/html">
+    <input type="hidden" name="purchaseNo" value="{{d.purchaseNo}}"/>
+    <button class="layui-btn layui-btn-sm layui-btn-danger" lay-submit lay-event="purchase_tracking_no_delete">删除
+    </button>
+</script>
+
+<!--显示供应商列表的tpl-->
+<script id="purchase_show_supplier_tpl" type="text/html">
+    <br>
+    <div id="purchase_supplier_list_id"></div>
+    <div id="purchase_add_supplier">
+
+    </div>
+
+
+</script>
+
+<!--供应商列表的tpl-->
+<script id="purchase_supplier_list_tpl" type="text/html">
+    <div class="layui-fluid margin20" style="max-height: 240px;overflow-y:scroll;">
+        {{each item value index}}
+        <div class="layui-form layui-col-md12" id="supplier_{{sku}}_{{value.id}}" style="margin: 5px 0px;">
+            <div class="layui-col-md5" title="{{value.supplierName}}" style="margin: 10px 0px; text-overflow: ellipsis;overflow: hidden ;white-space: nowrap;">
+                <a style=" width:80%;color: #01AAED;cursor: pointer" target="_blank" href="{{value.purchaseUrl}}"
+                   lay-submit lay-filter="purchase_confirm_supplier">{{value.supplierName}}</a>
+                <input type="hidden" name="supplierId" value="{{value.supplierId}}"/>
+                <input type="hidden" name="id" value="{{value.id}}"/>
+                <input type="hidden" name="supplierName" value="{{value.supplierName}}"/>
+                <input type="hidden" name="purchaseId" value="{{purchaseId}}"/>
+            </div>
+            <div class="layui-col-md2" style="margin: 10px 0px;text-align: center">
+                <button lay-submit lay-filter="purchase_delete_supplier" class="layui-btn layui-btn-xs"><i
+                        class="layui-icon"><i class="layui-icon">&#xe640;</i>删除</i></button>
+            </div>
+            <div class="layui-col-md5" style="margin: 10px 0px;">
+                <div style="float: right">
+                    {{if value.lowestFlag === 1}}
+                    <span class="layui-badge">最低</span>
+                    {{/if}}
+                    {{value.lastPurchasePrice}}
+                </div>
+            </div>
+        </div>
+        {{/each}}
+    </div>
+    <div style="border-style: dashed; border-width: 2px;text-align: center; cursor:pointer;"
+         onclick="show_purchase_add_supplier_tpl('{{purchaseId}}')" class="layui-col-md6 margin20">
+        <i class="layui-icon">&#xe654;</i>
+    </div>
+</script>
+
+<!--添加供应商的tpl-->
+<script id="purchase_add_supplier_tpl" type="text/html">
+    <hr>
+    <br>
+    <div class="layui-fluid layui-form">
+        <input type="hidden" name="purchaseId" value="{{purchaseId}}"/>
+        <div class="layui-form-item">
+            <label class="layui-form-label">供应商名</label>
+            <div class="layui-input-inline">
+                <input type="text" name="supplierName" class="auto_matchinput layui-input" style="width: 196px"
+                       oninput="supplier_input_match(this)"/>
+                <input type="hidden" name="supplierId" class="auto_complateval">
+                <div class="auto_matchwrap layui-anim layui-anim-upbit layui-select-group"
+                     style="display: none; position: absolute;background-color: #fff;z-index: 999; ">
+                </div>
+
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">采购链接</label>
+            <div class="layui-input-inline">
+                <input value="" type="text" name="purchaseUrl" placeholder=""
+                       autocomplete="off" class="layui-input" required lay-verify="required|url">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-inline layui-col-md12"
+                 style="margin-top:10px; text-align: center;margin-left: 100px;">
+                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="purchase_add_supplier_btn"><i
+                        class="layui-icon">&#xe654;</i>新增
+                </button>
+                <button class="layui-btn" lay-submit lay-filter="purchase_cancel_supplier_btn"><i class="layui-icon">&#x1006;</i>取消
+                </button>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/html" id="showHistory_tpl">
+    <table id="purchase_fsm_history_tpl" lay-filter="purchase_fsm_history_demo"></table>
+
+    </table>
+</script>
+
+
+<!--主函数-->
+<script type="text/javascript">
+    var purchase_index;
+    var purchase_form;
+    layui.use(['layer', 'form', 'table', 'element', 'laydate'], function () {
+        var purchase_layer = layui.layer;
+        var partnerList;
+        purchase_index = layer.load(0, {time: 5 * 1000});
+        purchase_form = layui.form;
+        var purchase_table = layui.table;
+        var purchase_laydate = layui.laydate;
+        //初始化部门信息
+        initDeptSelect(purchase_form);
+        initStateSelect(purchase_form);
+        purchase_form.render();
+
+        //初始化表单
+        purchase_table.render({
+            elem: '#purchase_table'
+            , url: "/purchase/manage/purchase/find"
+            , even: true //开启隔行背景
+            , method: 'POST'
+            , height: 'full-260'
+            , request: {
+                limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , page: true //关闭分页
+            , done: function (res, curr, count) {
+                var element = layui.element;
+                element.init();
+                layer.close(purchase_index);
+            }
+            , cols: [[ //表头
+                {field: 'purchaseNo', title: '采购单号', fixed: 'left', minWidth: 90}
+                , {title: '产品信息', templet: '#productDemo', minWidth: 120}
+                , {field: 'buDeptName', title: '事业部', minWidth: 100}
+                , {field: 'platName', title: '采购渠道', minWidth: 110}
+                , {field: 'platOrdersNo', title: '渠道订单号', minWidth: 100}
+                , {field: 'supplierName', title: '供应商', minWidth: 200}
+                , {field: 'payMethod', title: '付款类型', minWidth: 110}
+                , {field: 'buyer', title: '采购员', minWidth: 110}
+                , {field: '', title: '状态', align: 'center', toolbar: '#purchase_stateDemo', minWidth: 160}
+                , {field: 'purchaseQty', title: '采购需求数', minWidth: 100}
+                , {field: 'avgSaleQty', title: '日均销量', minWidth: 100}
+                , {field: 'pendingOrderQty', title: '待审单数', minWidth: 100}
+                , {field: 'quantity', title: '采购数量', minWidth: 100}
+                , {field: '', title: '入库数', minWidth: 100}
+                , {field: '', title: '在途采退数', minWidth: 100}
+                , {field: 'amount', title: '采购总价', minWidth: 100}
+                , {field: 'factAmount', title: '实付总价', minWidth: 100}
+                , {field: 'trackingNo', title: '运单号', minWidth: 110}
+                , {field: 'buyerAccount', title: '买手账号', minWidth: 110}
+                , {field: 'memo', title: '备注', minWidth: 100}
+                , {field: '', title: '操作', fixed: 'right', align: 'center', toolbar: '#purchase_barDemo', minWidth: 400}
+            ]]
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+        });
+        //搜索
+        purchase_form.on('submit(purchase_search)', function (data) {
+            if (data.field.hasTracking === 'on') {
+                data.field.hasTracking = 'true';
+            } else {
+                data.field.hasTracking = 'false';
+            }
+            var createAt = data.field.createAt;
+            if (createAt != null) {
+                data.field.minCreateAt = createAt.split("～")[0];
+                data.field.maxCreateAt = createAt.split("～")[1];
+                data.field.createAt = undefined;
+            }
+            purchase_table.reload('purchase_table', {
+                where: data.field
+            });
+        });
+        //监听采购渠道的变化
+        purchase_form.on('select(purchase_plat)', function (data) {
+            var buyerId = $(data.elem).attr('data-buyerId');
+            var buyerAccount = $(data.elem).attr('data-account');
+            $.ajax({
+                type: 'GET',
+                url: '/purchase/base/userBuy/findByPlatAndBuyer',
+                dataType: 'json',
+                data: {
+                    platId: data.value,
+                    buyerId: buyerId
+                },
+                success: function (res) {
+                    res.buyerAccount = buyerAccount;
+                    console.log(res);
+                    $('#purchase_buyerAccount').html(template('purchase_buyerAccount_tpl', res));
+                    purchase_form.render('select');
+                }
+            })
+        });
+
+        //日期范围
+        purchase_laydate.render({
+            elem: '#purchase_time_range'
+            , type: 'datetime'
+            , range: '～'
+        });
+
+        //采购单表格的table监听
+        purchase_table.on('tool(purchase_table_demo)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+            var tr = obj.tr;
+            switch (layEvent) {
+                case 'purchase_detail':
+                    purchaseDetail(obj, purchase_index);
+                    break;
+                case 'purchase_edit':
+                    purchaseEdit(obj, purchase_form);
+                    break;
+                case 'submit':
+                    purchaseSubmit(obj, this, purchase_table);
+                    break;
+                case 'purchase_edit_trackingNo':
+                    purchaseEditTrackingNo(obj, purchase_table, purchase_form);
+                    break;
+                case 'giveUp':
+                    processEvent(obj, this, purchase_table);
+                    break;
+                case 'purchase_delete' :
+                    purchaseDelete(obj, purchase_table);
+                    break;
+                case 'agreeByFinance' :
+                    processEvent(obj, this, purchase_table);
+                    break;
+                case 'disagreeByFinance':
+                    processEvent(obj, this, purchase_table);
+                    break;
+                case 'purchase_returned_btn':
+                    purchaseReturnedBtn(obj);
+                    break;
+                case 'pay':
+                    processEvent(obj, this, purchase_table);
+                    break;
+                case 'refusePay':
+                    processEvent(obj, this, purchase_table);
+                    break;
+                case 'showHistory':
+                    showHistory(obj, this, purchase_table);
+                    break;
+                case 'showProductDetail':
+                    showProductDetail(obj);
+                    break;
+            }
+        });
+
+        //监听运单号表格的编辑事件
+        purchase_table.on('edit(purchase_tracking_no_demo)', function (obj) {
+            var value = obj.value //得到修改后的值
+                , data = obj.data //得到所在行所有键值
+                , field = obj.field; //得到字段
+            var parten = /^[+]{0,1}(\d+)$|^[+]{0,1}(\d+\.\d+)$/;//正浮点数
+            if (!parten.exec(value) && value != 0) {
+                purchase_table.reload('purchase_tracking_no_table');
+                layer.msg('请输入正确的价格！');
+                return;
+            }
+            data.table = undefined;
+            data.shippingTypeEnum = data.shippingTypeEnum.name;
+            delete data.LAY_TABLE_INDEX;
+            delete data.partnerList;
+            updateTrackingNo(data, purchase_table);
+        });
+
+        //监听运单号表格的删除事件
+        purchase_table.on('tool(purchase_tracking_no_demo)', function (obj) {
+            if (obj.event === 'purchase_tracking_no_delete') {
+                delete obj.data.shippingTypeEnum;
+                delete obj.data.partnerList;
+                layer.confirm('你确定要删除该采购单运单号吗?', {icon: 3, title: '提示'}, function (index) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '/purchase/manage/purchase/deleteTrackingNoRel',
+                        dataType: 'json',
+                        data: obj.data,
+                        success: function (res) {
+                            state_response(res);
+                            purchase_table.reload('purchase_tracking_no_table');
+                            layer.close(index);
+                        }
+                    })
+                });
+            }
+
+        });
+
+        purchase_form.on('switch(switchTrackingNoType)', function (obj) {
+            var shippingAmount = obj.elem.getAttribute("shippingAmount");
+            var shippingType = obj.elem.getAttribute("shippingType");
+            if(shippingAmount == "null" && shippingType == 0){
+                purchase_table.reload('purchase_tracking_no_table');
+                layer.msg("没有设置到付运费，类型不能修改");
+                return;
+            }
+
+            var data = {};
+            data.id = this.value;
+            data.shippingTypeEnum = 'free';
+            if (obj.elem.checked) {
+                data.shippingTypeEnum = 'toPay';
+            }
+            $.ajax({
+                type: 'POST',
+                url: '/purchase/manage/purchase/updateShippingEnum',
+                data: data,
+                dataType: 'json',
+                success: function (res) {
+                    state_response(res);
+                    $('#add_tracking_no_demo').html("");
+                    purchase_table.reload('purchase_tracking_no_table');
+                }
+
+            })
+        });
+        //提交采购单修改
+        purchase_form.on('submit(purchase_submit_edit)', function (obj) {
+            var items = [];
+            if (obj.field.memo.length > 64) {
+                layer.msg('备注过长！！！');
+                return;
+            }
+            var totalQuantity = 0;
+            var flag = false;
+            debugger;
+            $('.purchase_sku_price').each(function () {
+                var purchaseItem = {};
+                purchaseItem.price = $(this).text();
+                purchaseItem.id = $(this).attr('id').replace('price_', '');
+                var quantity = $('#quantity_' + purchaseItem.id).val();
+                var parten = /^[1-9]\d*$/;
+                if (!parten.exec(quantity)) {
+                    layer.msg('采购数量只能为正整数！');
+                    flag = true;
+                    return false;
+                }
+                purchaseItem.quantity = quantity;
+
+                totalQuantity += parseInt(purchaseItem.quantity);
+                items.push(purchaseItem);
+            });
+            if(flag){
+                return;
+            }
+            obj.field.quantity = totalQuantity;
+            obj.field.items = items;
+            delete obj.field.itemId;
+            $.ajax({
+                type: 'POST',
+                url: '/purchase/manage/purchase/updatePurchaseDto',
+                dataType: 'json',
+                data: {
+                    purchaseDtoStr: JSON.stringify(obj.field)
+                },
+                success: function (res) {
+                    state_response(res, obj);
+                    if (res.code === 'NOTICE') {
+                        layer.closeAll();
+                        purchase_table.reload('purchase_table');
+                    }
+                }
+            })
+        });
+        //添加更多运单号
+        purchase_form.on('submit(purchase_add_tracking_no)', function (obj) {
+            $('#add_tracking_no_demo').html(template('add_tracking_no_tpl', obj.field));
+            findPartner(purchase_form);
+            purchase_form.render();
+        });
+        //确认添加运单号
+        purchase_form.on('submit(add_tracking_no_submit)', function (obj) {
+            var type = obj.field.shippingTypeEnum;
+            var shippingAmount = obj.field.shippingAmount;
+
+            if (!obj.field.trackingNo) {
+                layer.msg('运单号不允许为空！！！', {icon: 3});
+                return;
+            }
+            if (type == 'toPay' && !obj.field.shippingId) {
+                layer.msg('物流承运商不允许为空！！！', {icon: 3});
+                return;
+            }
+            if (type == 'toPay' && !obj.field.shippingAmount) {
+                layer.msg('到付运费不允许为空不允许为空！！！', {icon: 3});
+                return;
+            }
+            var parten = /^[+]{0,1}(\d+)$|^[+]{0,1}(\d+\.\d+)$/;//正浮点数
+            if (type == 'toPay' && !parten.exec(shippingAmount)) {
+                layer.msg('运费不能为负数！');
+                return;
+            }
+            if(type == 'free' && shippingAmount && !parten.exec(shippingAmount) ){
+                layer.msg('运费不能为负数！');
+                return;
+            }
+            $.ajax({
+                type: 'POST',
+                url: '/purchase/manage/purchase/addTrackingNoRel',
+                dataType: 'json',
+                data: obj.field,
+                success: function (res) {
+                    state_response(res, obj);
+                    if (res.code == 'NOTICE') {
+                        layer.close(purchase_index);
+                        purchase_table.reload('purchase_table');
+                    }
+
+                }
+            })
+
+        });
+        //取消
+        purchase_form.on('submit(add_tracking_no_cancel)', function (obj) {
+            $('#add_tracking_no_demo').html("");
+        });
+        //选择运单号
+        purchase_form.on('select(trackingNoShippingSelect)', function (obj) {
+            var data = {};
+            data.id = $(obj.elem).attr('data-id');
+            data.shippingId = obj.value;
+            $.ajax({
+                type: 'POST',
+                url: '/purchase/manage/purchase/updateShippingEnum',
+                data: data,
+                dataType: 'json',
+                success: function (res) {
+                    state_response(res);
+                    $('#add_tracking_no_demo').html("");
+                    purchase_table.reload('purchase_tracking_no_table');
+                }
+
+            })
+        });
+
+        //删除供应商
+        purchase_form.on('submit(purchase_delete_supplier)', function (obj) {
+            if(obj.field.supplierId === $('.purchase_supplierId').val()){
+                layer.msg('不能删除采购单绑定的供应商！！！',{icon:2});
+                return;
+            }
+            layer.confirm('您确定要删除该供应商吗？', function (index) {
+                $.ajax({
+                    type: 'POST'
+                    , url: '/purchase/manage/purchase/deleteSkuSupplier'
+                    , dataType: 'json'
+                    , data: {
+                        id:obj.field.purchaseId,
+                        supplierId:obj.field.supplierId
+                    }
+                    , success: function (res) {
+                        debugger;
+                        state_response(res);
+                        if (res.code === 'NOTICE') {
+                            $('#supplier_' + obj.field.sku + '_' + obj.field.id).remove();
+                        }
+                        layer.close(purchase_index);
+                    }
+                })
+            });
+        });
+
+        //更换供应商
+        purchase_form.on('submit(supplier_update_btn)', function (obj) {
+            $.ajax({
+                type: 'POST'
+                , url: '/purchase/manage/purchase/querySupplierByPurchaseId'
+                , dataType: 'json'
+                , data: {id: obj.field.id}
+                , success: function (res) {
+                    state_response(res);
+                    if (res.code === 'OK') {
+                        purchase_index = layer.open({
+                            type: 1,
+                            title: '修改供应商',
+                            content: $('#purchase_show_supplier_tpl').html(),
+                            maxmin: false,
+                            area: '35%',
+                            offset:'10%',
+                            success: function () {
+                                res.purchaseId = obj.field.id;
+                                $('#purchase_supplier_list_id').html(template('purchase_supplier_list_tpl', res));
+                            }
+                        });
+                    }
+                }
+            });
+        });
+
+        //取消供应商
+        purchase_form.on('submit(purchase_cancel_supplier_btn)', function (obj) {
+            $('#purchase_add_supplier').html('');
+        });
+
+        //确认更换供应商
+        purchase_form.on('submit(purchase_confirm_supplier)', function (obj) {
+            $.ajax({
+                type: 'POST',
+                url: '/purchase/manage/purchase/updateSupplier',
+                dataType: 'json',
+                data: {
+                    id:obj.field.purchaseId,
+                    supplierId:obj.field.supplierId
+                },
+                success: function (res) {
+                    state_response(res);
+                    if (res.code === 'NOTICE') {
+                        $('.purchase_supplierName').text(obj.field.supplierName);
+                        $('.purchase_supplierName').val(obj.field.supplierName);
+                        $('.purchase_supplierId').val(obj.field.supplierId);
+                        layer.close(purchase_index);
+                    }
+                }
+            })
+        });
+
+
+        //新增供应商
+        purchase_form.on('submit(purchase_add_supplier_btn)', function (obj) {
+            debugger;
+            var supplierName = obj.field.supplierName;
+            var purchaseUrl = obj.field.purchaseUrl;
+            if(supplierName.length > 50){
+                layer.msg('供应商名称最多50个字符！', {icon: 3});
+                return;
+            }
+            if(purchaseUrl.length > 100){
+                layer.msg('采购链接最多100个字符！', {icon: 3});
+                return;
+            }
+            preventRepeat(obj);
+            $.ajax({
+                type: 'POST',
+                url: '/purchase/manage/purchase/addSupplier',
+                data: {
+                    id:obj.field.purchaseId,
+                    supplierId:obj.field.supplierId,
+                    supplierName:obj.field.supplierName
+                },
+                dataType: 'json',
+                success: function (res) {
+                    state_response(res, obj);
+                    if (res.code === 'NOTICE') {
+                        $.ajax({
+                            type: 'POST'
+                            , url: '/purchase/manage/purchase/querySupplierByPurchaseId'
+                            , dataType: 'json'
+                            , data: {id:obj.field.purchaseId}
+                            , success: function (res) {
+                                state_response(res);
+                                if (res.code === 'OK') {
+                                    res.purchaseId= obj.field.purchaseId;
+                                    $('#purchase_supplier_list_id').html(template('purchase_supplier_list_tpl', res));
+                                    $('#purchase_add_supplier').html('');
+                                }
+                            }
+                        });
+                    }
+                }
+            })
+        });
+
+        purchase_form.on('submit(purchase_item_delete)',function (obj) {
+            console.log($(this).attr('itemid'));
+            var itemId = $(this).attr('itemid');
+            var sku = $(this).attr('data-sku');
+            debugger;
+            layer.confirm('您确定要删除该采购单明细吗？', function (index) {
+                $.ajax({
+                    type: 'POST'
+                    , url: '/purchase/manage/purchaseItem/delete'
+                    , dataType: 'json'
+                    , data: {
+                        id:itemId
+                    }
+                    , success: function (res) {
+                        state_response(res);
+                        if (res.code === 'NOTICE') {
+                            $('.purchae_item_'+itemId).remove();
+                            var total = 0;
+                            $('.quantity_' + sku).each(function () {
+                                total = total + parseInt($(this).val());
+                            });
+                            if($('.quantity_'+sku).length<1){
+                                $('#skuTpl_'+sku).html('');
+                            }else{
+                                $('.totalPlanQty_' + sku).val(total);
+                                $('.totalPlanQty_' + sku).html(total);
+                            }
+
+
+                        }
+                        layer.close(index);
+                    }
+                })
+            });
+        });
+
+
+
+    });
+
+
+    //修改单条的计划采购数
+    function purchase_update_planQty(id, sku) {
+        var result = $('#quantity_' + id).val();
+        var defalutValue = $('#quantity_' + id).attr("default-value");
+        if (result !== defalutValue) {
+            var parten =  /^[0-9]\d*$/;//正浮点数
+            if (!parten.exec(result)) {
+                layer.msg('请输入正确的数量！',{icon:2});
+                $('#quantity_' + id).val(defalutValue);
+                return;
+            }
+            if(result.length>6){
+                layer.msg('计划采购数不能大于六位！',{icon:2});
+                $('#quantity_' + id).val(defalutValue);
+                return;
+            }
+
+            $('#quantity_' + id).attr("default-value", result);
+            var total = 0;
+            $('.quantity_' + sku).each(function () {
+                total = total + parseInt($(this).val());
+            });
+            $('.totalPlanQty_' + sku).val(total);
+            $('.totalPlanQty_' + sku).html(total);
+
+
+        }
+
+    }
+
+    function purchase_update_price(sku) {
+        debugger;
+        var result = $('#sku_price_' + sku).val();
+        var defalutValue = $('#sku_price_' + sku).attr("default-value");
+        if (result !== defalutValue) {
+            var parten = /^[+]{0,1}(\d+)$|^[+]{0,1}(\d+\.\d+)$/;//正浮点数
+            if (result != '' && !parten.exec(result)) {
+                layer.msg('请输入正确的价格！', {icon: 2});
+                $('#sku_price_' + sku).val(defalutValue);
+                return;
+            }
+            $('#sku_price_' + sku).attr("default-value", result);
+            $('.sku_price_' + sku).text(result);
+
+
+        }
+    }
+
+    function  showProductDetail(obj) {
+        debugger;
+        productSpuInfo = obj.data.product.spu;
+        $.get('view/product/manage/productInfo.html', function (str) {
+            purchase_index = layer.open({
+                type: 1,
+                title: '产品详情',
+                content: str,
+                maxmin: true,
+                area: ['1600px', '800px']
+            });
+        });
+    }
+
+    function updateTrackingNo(data, purchase_table) {
+        $.ajax({
+            type: 'POST',
+            url: '/purchase/manage/purchase/updateTrackingNo',
+            data: data,
+            dataType: 'json',
+            success: function (res) {
+                state_response(res);
+                $('#add_tracking_no_demo').html("");
+                purchase_table.reload('purchase_tracking_no_table');
+            }
+
+        })
+    }
+
+    function purchaseSubmit(obj, that, purchase_table) {
+        var platName = obj.data.platName;
+        var platOrdersNo = obj.data.platOrdersNo;
+        var supplierName = obj.data.supplierName;
+        var amount = obj.data.amount;
+        if (!platName || !platOrdersNo || !supplierName || !amount) {
+            layer.msg('该采购单信息不完整，不允许提交！', {icon: 3});
+            return;
+        }
+        processEvent(obj, that, purchase_table);
+    }
+    
+    function showHistory(obj,that,purchase_table) {
+        purchase_index = layer.open({
+            type: 1,
+            title: '采购单历史',
+            content: template('showHistory_tpl', obj.data),
+            maxmin: false,
+            offset:'10%',
+            area: '50%',
+            success: function () {
+                purchase_table.render({
+                    elem: '#purchase_fsm_history_tpl'
+                    , url: "/purchase/manage/purchase/queryFsmHistory?purchaseId="+obj.data.id
+                    , even: true //开启隔行背景
+                    , method: 'POST'
+                    , height: 'full-260'
+                    ,limit: 10
+                    , request: {
+                        pageName: 'page' //页码的参数名称，默认：page
+                        ,limitName: 'limit' //每页数据量的参数名，默认：limit
+                    }
+                    , page: true //关闭分页
+                    , done: function (res, curr, count) {
+                        var element = layui.element;
+                        element.init();
+                    }
+                    , cols: [[ //表头
+                        {field: 'srcStateDisplay', title: '原始状态',width:"15%"}
+                        ,{field: 'eventNameDisplay', title: '事件',width:"15%"}
+                        ,{field: 'dstStateDisplay', title: '目标状态',width:"15%"}
+                        ,{field: 'optUid', title: '用户',width:"15%"}
+                        ,{field: 'createAt', title: '时间',width:"20%"}
+                        ,{field: 'memo', title: '备注',width:"20%"}
+                    ]]
+                    , response: {
+                        statusName: 'code' //数据状态的字段名称，默认：code
+                        , statusCode: 'OK' //成功的状态码，默认：0
+                        , msgName: 'desc' //状态信息的字段名称，默认：msg
+                        , countName: 'total' //数据总数的字段名称，默认：count
+                        , dataName: 'item' //数据列表的字段名称，默认：data
+                    }
+                })
+            }
+        });
+    }
+
+
+    function checkedTrackingNo(that) {
+        $.ajax({
+            type: 'POST',
+            url: '/purchase/manage/purchase/getTrackingNoByNo',
+            dataType: 'json',
+            data: {trackingNo: $(that).val()},
+            success: function (res) {
+                state_response(res);
+                if (res.item != null) {
+                    $('#tracking_no_add_shipping_select option[value=' + res.item.shippingId + ']').attr('selected', true);
+                    $('.shippingTypeEnum[value=' + res.item.shippingTypeEnum.name + ']').attr('checked', true);
+                    $('#add_shippingAmount').val(res.item.shippingAmount);
+                    purchase_form.render();
+                }
+            }
+        })
+    }
+
+    //初始化部门下拉
+    function initDeptSelect(required_form) {
+        $.ajax({
+            type: 'POST'
+            , dataType: 'json'
+            , url: '/purchase/base/userBuDeptRel/findBuDeptByCurrentUser'
+            , success: function (res) {
+                $("#purchase_dept_select").append(template('purchase_dept_option', res));
+                required_form.render('select');
+            }
+        })
+    }
+
+    //初始化状态下拉
+    function initStateSelect(required_form) {
+        $.ajax({
+            type: 'GET'
+            , dataType: 'json'
+            , url: '/purchase/common/enumList'
+            , success: function (res) {
+                $("#purchase_state_select").append(template('purchase_state_option', res.item));
+                required_form.render('select');
+            }
+        })
+    }
+
+    //采购详情的方法
+    function purchaseDetail(obj, purchase_index) {
+        $.ajax({
+            type: 'POST',
+            url: '/purchase/manage/purchase/getPurchaseDtoById',
+            dataType: 'json',
+            data: {
+                purchaseId: obj.data.purchaseNo
+            },
+            success: function (res) {
+                state_response(res);
+                if (res.item == null) {
+                    layer.msg('未查询到对应的采购单！', {icon: 2});
+                    return;
+                }
+                if (res.code === 'OK') {
+                    purchase_index = layer.open({
+                        type: 1,
+                        title: '采购单详情',
+                        content: template('purchase_show_detail_tpl', res.item),
+                        maxmin: true,
+                        area: '70%'
+                    });
+                }
+            }
+        })
+    }
+
+    //编辑采购单的方法
+    function purchaseEdit(obj, purchase_form) {
+        $.ajax({
+            type: 'POST',
+            url: '/purchase/manage/purchase/getPurchaseDtoById',
+            dataType: 'json',
+            async: true,
+            data: {
+                purchaseId: obj.data.purchaseNo
+            },
+            success: function (res) {
+                state_response(res);
+                if (res.code === 'OK') {
+                    purchase_index = layer.open({
+                        type: 1,
+                        title: '采购单编辑',
+                        content: template('purchase_update_detail_tpl', res.item),
+                        maxmin: true,
+                        area: '70%',
+                        success: function () {
+                            $.ajax({
+                                type: 'POST',
+                                url: '/purchase/base/userAccountRel/findAllPlatform',
+                                dataType: 'json',
+                                success: function (obj) {
+                                    obj.originalPlatId = res.item.platId;
+                                    $('#purchase_plat').append(template('purchase_plat_tpl', obj));
+                                    purchase_form.render('select');
+
+                                }
+                            });
+                            $.ajax({
+                                type: 'GET',
+                                url: '/purchase/base/userBuy/findByPlatAndBuyer',
+                                dataType: 'json',
+                                data: {
+                                    platId: res.item.platId == null ? 1 : res.item.platId,
+                                    buyerId: res.item.buyerId
+                                },
+                                success: function (buyerThing) {
+                                    buyerThing.buyerAccount = res.item.buyerAccount;
+                                    console.log(res);
+                                    $('#purchase_buyerAccount').html(template('purchase_buyerAccount_tpl', buyerThing));
+                                    purchase_form.render('select');
+                                }
+                            })
+
+                        }
+                    });
+                    purchase_form.render('select');
+                }
+
+
+            }
+        });
+    }
+
+    // 自动完成组件start
+    function supplier_input_match(that) {
+        $(that).removeClass("inserted");
+        $(that).siblings(".auto_matchwrap").show();
+        $.ajax({
+            type: 'POST',
+            url: "/purchase/manage/required/findSupplierBySearch",
+            data: {
+                search: $(that).val()
+            },
+            dataType: 'json',
+            success: function (res) {
+                state_response(res);
+                $(that).siblings(".auto_matchwrap").html(template('position-nametpl', res));
+            }
+        });
+        $(that).siblings(".auto_complateval").val("");
+    }
+
+    //采购单状态机的方法
+    function processEvent(obj, that, purchase_table) {
+        layer.prompt({
+            title: that.text + '采购单，备注',
+            formType: 0,
+            value: '',
+            yes: function (index, pass) {
+                var memo = pass.find(".layui-layer-input").val();
+                $.ajax({
+                    type: 'POST',
+                    url: '/purchase/manage/purchase/processEvent',
+                    dataType: 'json',
+                    data: {
+                        id: obj.data.id,
+                        purchaseEvent: obj.event,
+                        memo: memo
+                    },
+                    success: function (res) {
+                        state_response(res);
+                        layer.close(index);
+                        purchase_table.reload('purchase_table');
+                    }
+                })
+            }
+        });
+    }
+
+    //填运单号的方法
+    function purchaseEditTrackingNo(obj, purchase_table, purchase_form) {
+        var purchaseNo = obj.data.purchaseNo;
+        purchase_index = layer.open({
+            type: 1,
+            title: '填运单号',
+            content: template('purchase_trackingNo_tpl', obj.data),
+            maxmin: true,
+            area: ['70%','80%'],
+            offset: '10%',
+            success: function () {
+                purchase_table.render({
+                    elem: '#purchase_tracking_no_table'
+                    , even: true //开启隔行背景
+                    , page: false
+                    , url: '/purchase/manage/purchase/getTrackingNo?purchaseNo=' + purchaseNo
+                    , cols: [[ //表头
+                        {field: '', toolbar: '#tracking_no_type', title: '运输类型'}
+                        , {field: 'trackingNo', title: '快递单号'}
+                        , {field: '', toolbar: '#tracking_no_shipping', title: '物流承运商'}
+                        , {field: 'shippingAmount', edit: 'text', title: '到付运费'}
+                        , {
+                            field: '',
+                            title: '操作',
+                            fixed: 'right',
+                            align: 'center',
+                            toolbar: '#purchase_tracking_no_barDemo'
+                        }
+                    ]]
+                    , response: {
+                        statusName: 'code' //数据状态的字段名称，默认：code
+                        , statusCode: 'OK' //成功的状态码，默认：0
+                        , msgName: 'desc' //状态信息的字段名称，默认：msg
+                        , countName: 'total' //数据总数的字段名称，默认：count
+                        , dataName: 'item' //数据列表的字段名称，默认：data
+                    }
+                });
+            }
+        });
+
+    }
+
+    function findPartner(purchase_form) {
+        $.ajax({
+            type: 'POST',
+            url: '/purchase/manage/purchase/findPartnerList',
+            dataType: 'json',
+            success: function (res) {
+                $("#tracking_no_add_shipping_select").append(template('tracking_no_add_shipping_option', res));
+                purchase_form.render('select');
+            }
+        })
+    }
+
+    //取消采购
+    function purchaseCancel() {
+
+    }
+
+    //删除采购单
+    function purchaseDelete(obj, purchase_table) {
+        layer.confirm('你确定要删除该采购单吗?', {icon: 3, title: '提示'}, function (index) {
+            $.ajax({
+                type: 'POST',
+                url: '/purchase/manage/purchase/delete',
+                dataType: 'json',
+                data: {
+                    id: obj.data.id
+                },
+                success: function (res) {
+                    state_response(res);
+                    layer.close(index);
+                    purchase_table.reload('purchase_table');
+                }
+            })
+        });
+    }
+
+    //采购退货
+    function purchaseReturnedBtn(obj) {
+
+        $.get('view/purchase/manage/addReturn.html', function (str) {
+            purchase_index = layer.open({
+                type: 1,
+                title: '新增采购退货页面',
+                content: str,
+                maxmin: true,
+                area: ['1600px', '800px'],
+                success: function () {
+                    $.ajax({
+                        type: 'POST',
+                        url: "/purchase/returned/getPurchaseDtoById?purchaseId=" + obj.data.id,
+                        dataType: 'json',
+                        success: function (res) {
+                            res.purchaseId = obj.data.id;
+                            $("#purchase_return_add_wrap").html(template("purchase_return_add_tpl", res));
+                        }
+                    });
+                }
+            });
+        });
+
+    }
+
+    //添加采购总价的时候判断总价是否符合规范
+    function checkedAmount(that) {
+        var amount = $(that).val();
+        var parten = /^[+]{0,1}(\d+)$|^[+]{0,1}(\d+\.\d+)$/;//正浮点数
+        if (!parten.exec(amount)) {
+            layer.msg('请输入正确的价格！');
+            $('#purchase_edit_amount').val('');
+            return;
+        }
+        var purchaseTotal = 0;
+        var autoComplete = true;
+        $('.purchase_edit_price').each(function () {
+            purchaseTotal = purchaseTotal + parseInt($(this).attr('totalQuantity'));
+            if (!!$(this).val()) {
+                autoComplete = false;
+            }
+        });
+        if (autoComplete) {
+            var price = amount / purchaseTotal;
+            $('.purchase_edit_price').val(price.toFixed(2));
+            $('.purchase_sku_price').text(price.toFixed(2));
+        }
+    }
+
+    //展现添加更多供应商
+    function show_purchase_add_supplier_tpl(purchaseId) {
+        var res = {};
+        res.purchaseId = purchaseId;
+        $('#purchase_add_supplier').html(template('purchase_add_supplier_tpl', res));
+    }
+</script>
+
+

@@ -1,0 +1,41 @@
+<div class="layui-form border1ccc padding30">
+    <div class="layui-form-item">
+        <label class="layui-form-label">敏感词</label>
+        <div class="layui-input-inline">
+            <input value="" type="text" name="name" required lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="addSensitiveWordForm"><i class="layui-icon">&#xe618;</i>确认</button>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    layui.use(['form','table'], function () {
+        var product_add_sensitiveWord_form = layui.form;
+        var product_add_sensitiveWord_table = layui.table;
+        //监听提交
+        product_add_sensitiveWord_form.on('submit(addSensitiveWordForm)', function (data) {
+            $.ajax({
+                type: 'POST',
+                url: "/product/base/sensitiveWord/add",
+                data: data.field,
+                dataType: 'json',
+                success: function (res) {
+                    if(res.code==='NOTICE') {
+                        layer.close(index);         //此时你只需要把获得的index，轻轻地赋予layer.close即可
+                        product_add_sensitiveWord_table.reload('sensitiveWordId');
+                        layer.msg('新增成功', {icon: 1});
+                    }else{
+                        layer.msg(res.desc,{icon:2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                }
+            });
+            return false;
+        });
+    });
+</script>

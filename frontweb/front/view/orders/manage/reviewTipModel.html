@@ -1,0 +1,68 @@
+<div class="layui-form form-item-model" id="reviewTip" style="width: 90%; margin-top: 20px">
+    <div style="font-size: 15px;padding-bottom: 20px;padding-top: 20px;text-align: center;"><span id='remarkTip'></span>
+    </div>
+    <div class="layui-form-item" style="text-align: center">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            <textarea name="remark" class="layui-textarea" rows="8"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="applySubmit">确定</button>
+            <button type="button" class="layui-btn layui-btn-primary"   onclick="closeModel()">取消
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+    layui.use(['form'], function(){
+        var form = layui.form;
+        form.render(); //更新全部
+        var url = "";
+        form.on('submit(applySubmit)', function(data){
+            var filed = data.field;
+            postData.applyType = filed.applyType;
+            switch(isCancelOrNpass)
+            {
+                case "cancel":
+                    url = "/orderschange/cancelRefund";
+                    break;
+                case "reject":
+                    url = "/orderschange/reviewAndPass";
+                    break;
+                default:
+                    return false;
+            }
+
+            $.ajax({
+                type: 'POST',
+                url : url,
+                data: {id:changeId,},
+                dataType: 'json',
+                contentType : 'application/json',
+                success: function(data){
+
+                    if(data.code == "FAIL"){
+                        layer.msg(data.desc);
+                        return ;
+                    }
+                    closeModel();
+                },
+                error: function(data){
+                    layer.msg(data.desc);
+                }
+            })
+            return false;
+        });
+    });
+
+    function closeModel(){
+        layer.close(applyModelIndex)
+    }
+
+
+</script>

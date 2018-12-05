@@ -1,0 +1,203 @@
+<style>
+    #tar_box {
+        width: 500px;
+        height: 500px;
+        border: 1px solid red;
+    }
+</style>
+<br>
+<div class="layui-form" onpaste="parse_ctrlV(event)">
+    <hr class="layui-bg-green">
+    <div class="layui-form-item">
+            <label class="layui-form-label">下拉树组件</label>
+            <div class="layui-input-inline">
+                <input readonly="readonly" type="text" class="layui-input component_input" />
+                <i class="layui-icon empty_inputbtn" onclick="empty_inputfunc(this);">&#x1006;</i>   
+                <span class="layui-btn layui-btn-xs componentchoose_btn" onclick="start_treeselect('/product/base/category/tree',this,'name','id');">选择</span>
+            </div>
+            <label class="layui-form-label">多选组件</label>
+            <div class="layui-input-inline">
+                <input readonly="readonly" type="text" class="layui-input component_input" />
+                <span class="layui-btn layui-btn-xs componentchoose_btn" onclick="start_multiselect('/product/base/zone/findAll',this,'title','id');">选择</span>
+            </div>
+    </div>
+    <hr class="layui-bg-green">
+    <div class="layui-form-item">
+            <label class="layui-form-label">树形多选组件(页面内使用)</label>
+            <div class="layui-input-inline">
+                <input readonly="readonly" type="text" class="layui-input component_input" />
+                <span class="layui-btn layui-btn-xs componentchoose_btn" onclick="start_treemultiselect('/product/base/label/findLabelBind?objectType=Material&keyword=material-label&objectId=87900',this,'/product/base/labelObject/add?objectId=1','/product/base/labelObject/delete');">选择</span>
+            </div>
+    </div>
+    <hr class="layui-bg-green">
+    <div class="layui-form-item">
+        <label class="layui-form-label">部门树形下拉</label>
+        <div class="layui-input-inline">
+            <select id="department_treenode_dept" name="deptNo">
+                <option value=""></option>
+            </select>
+        </div>
+    </div>
+    <hr class="layui-bg-green">
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户自动完成</label>
+        <div class="layui-input-inline">
+            <input name="creatorId" class="auto_complateval layui-hide" >
+            <input type="text" class="auto_matchinput layui-input" style="width: 196px"
+                   oninput="input_match(this)"  onblur="blur_event(this)" />
+            <div class="auto_matchwrap layui-anim layui-anim-upbit layui-select-group" style="display: none; position: absolute;background-color: #fff;z-index: 999; ">
+            </div>
+        </div>
+    </div>
+    <hr class="layui-bg-green">
+    <div class="layui-form-item">
+        <label class="layui-form-label">末级品类控件</label>
+        <div class="layui-input-inline">
+            <input name="creatorId" class="auto_complateval layui-hide" >
+            <input type="text" class="auto_matchinput layui-input" style="width: 196px"
+                   oninput="input_match_test(this)"  onblur="blur_event_test(this)" />
+            <div class="auto_matchwrap layui-anim layui-anim-upbit layui-select-group" style="display: none; position: absolute;background-color: #fff;z-index: 999; ">
+            </div>
+        </div>
+    </div>
+    <hr class="layui-bg-green">
+    <div class="layui-form-item">
+        <label class="layui-form-label">区域下拉</label>
+        <div class="layui-input-inline">
+            <select id="department_select_zone" name="code">
+                <option value=""></option>
+            </select>
+        </div>
+    </div>
+    <hr class="layui-bg-green">
+    <div class="layui-form-item">
+        <label class="layui-form-label">仓库下拉</label>
+        <div class="layui-input-inline">
+            <select id="demo-test-wms" name="code">
+                <option value=""></option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="layui-form-item">
+        <button class="layui-btn" lay-submit lay-filter="department_search">搜索</button>
+    </div>
+
+    <hr class="layui-bg-green">
+
+    <div class="layui-form-item">
+        <table class="layui-table" id="fsmTable">
+        </table>
+    </div>
+
+    <hr class="layui-bg-green">
+    <button class="layui-btn" onclick='multi_lang_operation("/product/base/language/find","/product/base/categoryLang/add","/product/base/categoryLang/delete","/product/base/categoryLang/update","",{attributeId:59349});'>多语言</button>
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="required_mark">*</span>图片</label>
+        <div class="layui-upload-drag" id="new_add_imageUpload">
+            <p class="ctrlv_tip">可以直接按ctrl-v粘贴</p>
+        </div>
+        <!--<div id="upload_box" contenteditable onpaste="parse_ctrlV(event)"><p class="ctrlv_tip">点击这里也可以直接按ctrl-v粘贴</p></div>-->
+    </div>
+
+
+    <div class="layui-upload">
+        <button type="button" class="layui-btn" id="test1">上传图片</button>
+        <div class="layui-upload-list">
+            <img class="layui-upload-img" id="demo1">
+            <p id="demoText"></p>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $("#upload_box").hover(function () {
+        $(".ctrlv_tip").toggle();
+    });
+    //按需求传入参数，目前只能传 no 或id 这两种，传入no那么选中后，拿到的值就是部门编号，传id同理。
+    tree_formDept('department_treenode_dept','no');
+
+    zone_select('department_select_zone','code');
+
+    store_wmsId_option('demo-test-wms', {type:''});
+
+    layui.use(['layer', 'form','table'], function () {
+        var department_form = layui.form;
+        //状态机历史表格组件调用
+        loadFsmHistory(layui.table,"fsmTable","/orders/orders/queryFsmHistory",{"orderId":"2692"});
+
+        department_form.on('submit(department_search)',function (data) {
+            layer.msg(JSON.stringify(data.field))
+        })
+    });
+
+
+    layui.use('upload', function() {
+        var $ = layui.jquery
+            , upload = layui.upload;
+
+        //普通图片上传
+        var uploadInst = upload.render({
+            elem: '#test1'
+            , url: 'http://192.168.105.59/upload/'
+            , data:{
+                type: "admin"
+            }
+            , before: function (obj) {
+                //预读本地文件示例，不支持ie8
+                obj.preview(function (index, file, result) {
+                    $('#demo1').attr('src', result); //图片链接（base64）
+                });
+            }
+            , done: function (res) {
+                //如果上传失败
+                if (res.code > 0) {
+                    return layer.msg('上传失败');
+                }
+                //上传成功
+            }
+            , error: function () {
+                //演示失败状态，并实现重传
+                var demoText = $('#demoText');
+                demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-mini demo-reload">重试</a>');
+                demoText.find('.demo-reload').on('click', function () {
+                    uploadInst.upload();
+                });
+            }
+        });
+    });
+
+
+    //
+    function input_match_test(that) {
+        console.log($(that).val());
+        $(that).removeClass("inserted");
+        $(that).siblings(".auto_matchwrap").show();
+        $.ajax({
+            type: 'GET',
+            url: "/product/base/category/leafSearch?name=" + $(that).val(),
+            dataType: 'json',
+            success: function (res) {
+                console.log("职位模糊查询", res);
+                state_response(res);
+                $(that).siblings(".auto_matchwrap").html(template('position-nametpl', res));
+            }
+        });
+        $(that).siblings(".auto_complateval").val("");
+    }
+
+    function blur_event_test(that) {
+        if (!$(that).hasClass("inserted")) {
+            $(that).val("");
+        }
+    }
+</script>
+<!--图片模板-->
+<script type="text/html" id="newAdd_imageUpLoadTpl">
+    <img style=" width: 150px; height: 150px;" src="{{productImgPrefix}}/{{mainImageUrl}}" />
+    <input value="{{mainImageUrl}}" type="hidden" name="mainImageUrl" class="layui-input" required>
+</script>
+
+

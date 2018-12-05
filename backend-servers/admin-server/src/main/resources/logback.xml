@@ -1,0 +1,121 @@
+<configuration scanPeriod="60 seconds">
+	<!-- 1.logback首先会试着查找logback.groovy文件; -->
+	<!-- 2.当没有找到时，继续试着查找logback-test.py.xml文件; -->
+	<!-- 3.当没有找到时，继续试着查找logback.xml文件; -->
+	<!-- 4.如果仍然没有找到，则使用默认配置（打印到控制台） -->
+
+	<timestamp key="bySecond" datePattern="yyyy-MM-dd HH:mm:ss" />
+	<property file="project.properties" />
+	<property name="project.app.name" value="admin-server" />
+	<contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator" />
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+		</layout>
+	</appender>
+
+	<appender name="MAIN"
+			  class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>
+				${user.home}/logs/${project.app.name}/${spring.profiles.active}/${project.app.name}.%d.log.gz
+			</FileNamePattern>
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<charset>UTF-8</charset>
+			<pattern>%date %-5level [%13.13thread] %30.30logger{30} [%file:%line]
+				>>> %msg%n
+			</pattern>
+		</encoder>
+	</appender>
+
+
+	<appender name="SQL"
+			  class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>
+				${user.home}/logs/${project.app.name}/${spring.profiles.active}/sql/mybatis.%d.log.gz
+			</FileNamePattern>
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<charset>UTF-8</charset>
+			<pattern>%date %-5level [%13.13thread] %30.30logger{30} [%file:%line]
+				>>> %msg%n
+			</pattern>
+		</encoder>
+	</appender>
+
+
+
+
+	<appender name="oasync"
+			  class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>
+				${user.home}/logs/${project.app.name}/${spring.profiles.active}/oasync/oasync.%d.log.gz
+			</FileNamePattern>
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<charset>UTF-8</charset>
+			<pattern>%date %-5level [%13.13thread] %30.30logger{30} [%file:%line]
+				>>> %msg%n
+			</pattern>
+		</encoder>
+	</appender>
+
+
+
+	<logger name="ch.qos.logback" level="warn" />
+
+	<logger name="com.mangofactory.swagger" level="warn" />
+	<logger
+			name="org.springframework.context.support.PropertySourcesPlaceholderConfigurer"
+			level="debug"/>
+	<logger name="com" level="info" />
+
+	<logger name="org" level="INFO" />
+	<logger name="cn" level="warn" />
+	<logger name="net" level="info" />
+	<logger name="com.github" level="debug" />
+
+	<!-- -->
+	<logger name="org.apache.http" level="INFO"/>
+	<logger name="org.apache.http.wire" level="INFO"/>
+	<logger name="org.apache.http.wire" level="INFO"/>
+	<logger name="com.mchange" level="INFO"/>
+	<logger name="sun.net" level="INFO"/>
+
+
+
+	<logger name="com.stosz.admin.mapper" aditivity="false">
+		<!--additivity="false"-->
+		<level value="info" />
+		<appender-ref ref="SQL"/>
+		<!--<appender-ref ref="STDOUT"/>-->
+	</logger>
+
+
+	<!--OA调度日志-->
+	<logger name="com.stosz.admin.service.sync.OaJobSyncService">
+		<level value="DEBUG"></level>
+		<appender-ref ref="oasync"/>
+	</logger>
+	<logger name="com.stosz.admin.service.sync.OldErpUserSyncService">
+		<level value="DEBUG"></level>
+		<appender-ref ref="oasync"/>
+	</logger>
+	<logger name="com.stosz.admin.service.sync.UserSyncService">
+		<level value="DEBUG"></level>
+		<appender-ref ref="oasync"/>
+	</logger>
+	<logger name="com.stosz.admin.service.sync.OaUserSyncService">
+		<level value="DEBUG"></level>
+		<appender-ref ref="oasync"/>
+	</logger>
+
+	<root level="trace">
+		<appender-ref ref="MAIN" />
+	</root>
+
+</configuration>

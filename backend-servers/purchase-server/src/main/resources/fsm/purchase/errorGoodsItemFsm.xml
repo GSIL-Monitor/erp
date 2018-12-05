@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FSM EntityName="ErrorGoodsItem" EntityDao="ErrorGoodsItemMapper" ParentEntityName="">
+
+	<States>
+		<!-- 正常流 -->
+		<State Name="start" Description="开始">
+			<Event Name="create" Description="创建" DstState="waitBusinessApprove" />
+		</State>
+
+		<State Name="waitBusinessApprove" Description="待业务审核">
+			<Event Name="giveUp" Description="放弃" DstState="cancel"/>
+			<Event Name="agreeByBusiness" Description="业务同意" DstState="executing" After="agreeErrorGoodsItemAfter"/>
+			<Event Name="disagreeByBusiness" Description="业务不同意" DstState="businessDisagree" After="disAgreeErrorGoodsItemAfter"/>
+		</State>
+
+		<State Name="businessDisagree" Description="业务不同意">
+			<Event Name="giveUp" Description="放弃" DstState="cancel"/>
+		</State>
+
+
+		<State Name="executing" Description="执行中">
+			<Event Name="completing" Description="完成" DstState="completed"/>
+		</State>
+
+		<State Name="completed" Description="已完成">
+		</State>
+
+		<State Name="cancel" Description="已取消">
+		</State>
+	</States>
+
+</FSM>

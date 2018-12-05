@@ -1,0 +1,483 @@
+<br>
+<div class="layui-fluid">
+    <div class="layui-form">
+        <div class="layui-form-item" style="margin-top: 16px">
+            <label class="layui-form-label">名称</label>
+            <div class="layui-input-inline">
+                <select name="name" lay-search id="currency_autocomplete">
+                    <option value="">输入自动完成</option>
+                </select>
+            </div>
+            <div class="layui-input-inline">
+                <button class="layui-btn" lay-submit lay-filter="currency_search">搜索</button>
+                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="currency_add">新增</button>
+            </div>
+        </div>
+    </div>
+
+    <table id="currency_table" lay-filter="currency_demo"></table>
+</div>
+
+
+<script>
+    layui.use(['layer', 'form', 'table', 'element'], function () {
+        var currency_layer = layui.layer;
+        var currency_index = layer.load(0,{time:5*1000});
+        var currency_form = layui.form;
+        var currency_table = layui.table;
+        $.ajax({
+            type: 'POST'
+            , url: 'product/base/currency/find?limit=10000&start=0&name='
+            , dataType: 'json'
+            , success: function (res) {
+                console.log(res);
+                $("#currency_autocomplete").append(template('currency_option', res));
+                currency_form.render('select');
+            }
+        });
+
+//        初始化table
+        var tableTest = currency_table.render({
+            elem: '#currency_table'
+            , url: "/product/base/currency/find"
+            , even: true //开启隔行背景
+            , method: 'POST'
+            , height: 'full-200'
+            , request: {
+//                pageName: 'start' //页码的参数名称，默认：page
+                limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , page: true //关闭分页
+            , done: function (res, curr, count) {
+                var element = layui.element;
+                element.init();
+                layer.close(currency_index);
+            }
+            , cols: [[ //表头
+                {type: 'numbers'}
+                , {field: 'id', title: 'ID'}
+                , {field: 'name', title: '名称'}
+                , {field: 'currencyCode', title: '货币编码'}
+                , {field: 'symbol', title: '币种符号'}
+                , {field: 'symbolLeft', title: '左符号'}
+                , {field: 'symbolRight', title: '右符号'}
+                , {field: 'rateCny', title: '到人民币汇率'}
+                , {field: 'rateUsd', title: '到美元汇率'}
+                , {field: '', title: '状态', align: 'center', toolbar: '#currency_usableDemo'} //这里的toolbar值是模板元素的选择器
+                , {field: '', title: '操作', fixed: 'right', align: 'center', toolbar: '#currency_barDemo'} //这里的toolbar值是模板元素的选择器
+            ]]
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+        });
+
+        //搜索
+        currency_form.on('submit(currency_search)', function (obj) {
+            currency_table.reload('currency_table', {
+                where: {
+                    name: obj.field.name
+                },
+                page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+            })
+        });
+//        跳出新增弹窗
+        currency_form.on('submit(currency_add)', function (obj) {
+            currency_index = currency_add(currency_index);
+            currency_form.render();
+        });
+
+        //添加货币
+        currency_form.on('submit(currency_add_btn)', function (obj) {
+            $.ajax({
+                type: 'POST'
+                , url: '/product/base/currency/add'
+                , dataType: 'json'
+                , data: obj.field
+                , success: function (res) {
+                    state_response(res);
+                    if (res.code === 'FAIL') {
+                        layer.msg(res.desc, {icon: 2});
+                    } else {
+                        layer.close(currency_index);
+                        currency_table.reload('currency_table');
+                    }
+                }
+            })
+        });
+
+        //监听table中的操作按钮
+        currency_table.on('tool(currency_demo)', function (obj) {
+            var event = obj.event;
+            switch (event) {
+                case 'del':
+                    currency_delete(obj);
+                    break;
+                case 'update':
+                    currency_index = currency_update(currency_index, obj);
+                    break;
+                case 'history':
+                    currency_index=currency_history(currency_index, obj, currency_table);
+                    break;
+                case 'open':
+                    currency_open(obj,currency_table);
+                    break;
+            }
+
+
+        });
+
+        //修改货币
+        currency_form.on('submit(currency_update_btn)', function (obj) {
+            $.ajax({
+                type: 'POST'
+                , url: '/product/base/currency/update'
+                , dataType: 'json'
+                , data: obj.field
+                , success: function (res) {
+                    state_response(res);
+                    if (res.code === 'FAIL') {
+                        layer.msg(res.desc, {icon: 2});
+                    } else {
+                        layer.close(currency_index);
+                        currency_table.reload('currency_table');
+                    }
+                }
+            })
+        })
+    });
+
+    //跳出添加货币的弹窗
+    function currency_add(currency_index) {
+        currency_index = layer.open({
+            type: 1
+            , title: '新增货币'
+            , content: $('#currency_addTpl').html() //注意，如果str是object，那么需要字符拼接。
+            , maxmin: true
+            , area: '40%'
+        });
+        return currency_index;
+    }
+
+    //删除
+    function currency_delete(obj) {
+        layer.confirm('确认删除该货币类型么?', function (currency_del_index) {
+            obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
+            layer.close(currency_del_index);
+            //向服务端发送删除指令
+            $.ajax({
+                type: 'POST',
+                url: "/product/base/currency/delete",
+                data: {
+                    id: obj.data.id
+                },
+                dataType: 'json',
+                success: function (res) {
+                    state_response(res);
+                    if (res.code === 'FAIL') {
+                        layer.msg(res.desc, {icon: 2});
+                    }
+                }
+            });
+        })
+    }
+
+    //开启
+    function currency_open(obj,currency_table) {
+        layer.confirm('确认开启该货币类型么?', function (currency_open_index) {
+            layer.close(currency_open_index);
+            //向服务端发送删除指令
+            obj.data.usable = true;
+            $.ajax({
+                type: 'POST',
+                url: "/product/base/currency/update",
+                data: obj.data,
+                dataType: 'json',
+                success: function (res) {
+                    state_response(res);
+                    if (res.code === 'FAIL') {
+                        layer.msg(res.desc, {icon: 2});
+                    }
+                    currency_table.reload('currency_table');
+                }
+            });
+        })
+    }
+
+    //修改
+    function currency_update(currency_index, res) {
+        console.log(res.data);
+        currency_index = layer.open({
+            type: 1
+            , title: '修改货币'
+            , content: template('currency_updateTpl', res.data) //注意，如果str是object，那么需要字符拼接。
+            , maxmin: true
+            , area: '40%'
+        });
+        return currency_index;
+    }
+
+    //查看历史
+    function currency_history(currency_index, res, currency_table) {
+        console.log(res.data);
+
+        currency_index = layer.open({
+            type: 1
+            , title: '查看历史'
+            , content: template('currency_historyTpl', res.data) //注意，如果str是object，那么需要字符拼接。
+            , maxmin: true
+            , area: ['60%', '80%']
+        });
+        currency_table.render({
+            elem: '#currency_history_table'
+            , url: "/product/base/currency/findHistory?name="+res.data.name+"&currencyCode="+res.data.currencyCode
+            , even: true //开启隔行背景
+            , method: 'POST'
+            , request: {
+//                pageName: 'start' //页码的参数名称，默认：page
+                limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , page: true //关闭分页
+            , done: function (res, curr, count) {
+                var element = layui.element;
+                element.init();
+            }
+            , cols: [[ //表头
+                {type: 'numbers'}
+                , {field: 'name', title: '名称'}
+                , {field: 'currencyCode', title: '货币编码'}
+                , {field: 'rateCny', title: '到人民币汇率'}
+                , {field: 'updateAt', title: '更新时间'}
+            ]]
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+        });
+        console.log("table渲染完成============》");
+        return currency_index;
+    }
+</script>
+
+
+<!--加载模糊查询的option-->
+<script id="currency_option" type="text/html">
+    {{each item value index}}
+    <option value="{{value.name}}">{{value.name}}</option>
+    {{/each}}
+</script>
+
+<!--状态转换的tpl-->
+<script id="currency_usableDemo" type="text/html">
+    {{#  if(d.usable === true){ }}
+    <span style="color: #93f580;">启用</span>
+    {{#  } else { }}
+    <span style="color: #f5636c;">禁用</span>
+    {{#  } }}
+</script>
+
+<!--操作按钮的tpl-->
+<!--<button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="history" style="text-align: center;">历史</button>-->
+<script id="currency_barDemo" type="text/html">
+    {{#  if(d.usable === true){ }}
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="history" style="text-align: center;">历史</button>
+    <button class="layui-btn layui-btn-xs" lay-event="update" style="text-align: center;">修改</button>
+    {{#  } else { }}
+    <button class="layui-btn layui-btn-xs layui-btn-warm" lay-event="open" style="text-align: center;">启用</button>
+    <button class="layui-btn layui-btn-xs" lay-event="update" style="text-align: center;">修改</button>
+    <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del" style="text-align: center;">删除</button>
+    {{#  } }}
+</script>
+
+<!--新增币种tpl-->
+<script id="currency_addTpl" type="text/html">
+    <div class="layui-row margin-l-30">
+        <div class="layui-form layui-form-pane margin-l-30">
+            <br>
+            <div class="layui-form-item">
+                <label class="layui-form-label">名称</label>
+                <div class="layui-input-inline">
+                    <input value="" type="text" name="name" lay-verify="required"
+                           class="layui-input">
+                </div>
+                <label class="layui-form-label">货币编码</label>
+                <div class="layui-input-inline">
+                    <input value="" type="text" name="currencyCode" lay-verify="required"
+                           class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">币种符号：</label>
+                <div class="layui-input-inline">
+                    <input value="" type="text" name="symbol" required lay-verify="required" placeholder=""
+                           autocomplete="off" class="layui-input">
+                </div>
+                <label class="layui-form-label">RMB汇率：</label>
+                <div class="layui-input-inline">
+                    <input value="" type="text" name="rateCny" required lay-verify="required|number" placeholder=""
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">左币种符号</label>
+                <div class="layui-input-inline">
+                    <input value="" type="text" name="symbolLeft"
+                           class="layui-input">
+                </div>
+                <label class="layui-form-label">右币种符号</label>
+                <div class="layui-input-inline">
+                    <input value="" type="text" name="symbolRight"
+                           class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <div class="float-r" style="margin-right: 60px;">
+                    <button class="layui-btn layui-btn-normal float-l" lay-submit lay-filter="currency_add_btn">
+                        确认
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<!--修改币种tpl-->
+<script id="currency_updateTpl" type="text/html">
+    <div class="layui-row margin-l-30">
+        <div class="layui-form layui-form-pane margin-l-30">
+            <br>
+            <div class="layui-form-item">
+                <label class="layui-form-label">名称</label>
+                <div class="layui-input-inline">
+                    {{if !usable}}
+                    <input value="{{name}}" type="text" name="name" lay-verify="required"
+                           class="layui-input">
+                    {{else}}
+                    <input value="{{name}}" type="text" name="name" disabled lay-verify="required"
+                           class="layui-input layui-disabled">
+                    {{/if}}
+                </div>
+                <label class="layui-form-label">货币编码</label>
+                <div class="layui-input-inline">
+                    {{if !usable}}
+                    <input value="{{currencyCode}}" type="text" name="currencyCode" lay-verify="required"
+                           class="layui-input">
+                    {{else}}
+                    <input value="{{currencyCode}}" type="text" disabled name="currencyCode" lay-verify="required"
+                           class="layui-input layui-disabled">
+                    {{/if}}
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">币种符号：</label>
+                <div class="layui-input-inline">
+                    {{if !usable}}
+                    <input value="{{symbol}}" type="text" name="symbol" required lay-verify="required" placeholder=""
+                           autocomplete="off" class="layui-input">
+                    {{else}}
+                    <input value="{{symbol}}" type="text" name="symbol" disabled required lay-verify="required"
+                           placeholder=""
+                           autocomplete="off" class="layui-input layui-disabled">
+                    {{/if}}
+                </div>
+                <label class="layui-form-label">RMB汇率：</label>
+                <div class="layui-input-inline">
+                    <input value="{{rateCny}}" type="text" name="rateCny" required lay-verify="required|number"
+                           placeholder=""
+                           autocomplete="off" class="layui-input ">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">左币种符号</label>
+                <div class="layui-input-inline">
+                    {{if !usable}}
+                    <input value="{{symbolLeft}}" type="text" name="symbolLeft"
+                           class="layui-input">
+                    {{else}}
+                    <input value="{{symbolLeft}}" type="text" name="symbolLeft" disabled
+                           class="layui-input layui-disabled">
+                    {{/if}}
+                </div>
+                <label class="layui-form-label">右币种符号</label>
+                <div class="layui-input-inline">
+                    {{if !usable}}
+                    <input value="{{symbolRight}}" type="text" name="symbolRight"
+                           class="layui-input">
+                    {{else}}
+                    <input value="{{symbolRight}}" type="text" name="symbolRight" disabled
+                           class="layui-input layui-disabled">
+                    {{/if}}
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <div class="float-r" style="margin-right: 60px;">
+                    <input value="{{id}}" type="hidden" name="id" lay-verify="required"
+                           class="layui-input">
+                    <input value="{{usable}}" type="hidden" name="usable" lay-verify="required"
+                           class="layui-input">
+                    <button class="layui-btn layui-btn-normal float-l" lay-submit lay-filter="currency_update_btn">
+                        确认
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+<script id="currency_historyTpl" type="text/html">
+    <br>
+    <div class="border1ccc" style="margin: 30px 40px;">
+        <div class="layui-form-item" style="margin-top: 30px;">
+            <label class="layui-form-label">名称</label>
+            <div class="layui-input-inline">
+                <input value="{{name}}" type="text" name="name" disabled lay-verify="required"
+                       class="layui-input layui-disabled">
+            </div>
+            <label class="layui-form-label">货币编码</label>
+            <div class="layui-input-inline">
+                <input value="{{currencyCode}}" type="text" disabled name="currencyCode" lay-verify="required"
+                       class="layui-input layui-disabled">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">币种符号：</label>
+            <div class="layui-input-inline">
+                <input value="{{symbol}}" type="text" name="symbol" disabled required lay-verify="required"
+                       placeholder=""
+                       autocomplete="off" class="layui-input layui-disabled">
+            </div>
+            <label class="layui-form-label">RMB汇率：</label>
+            <div class="layui-input-inline">
+                <input value="{{rateCny}}" type="text" name="rateCny" disabled required lay-verify="required|number"
+                       placeholder=""
+                       autocomplete="off" class="layui-input layui-disabled">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">左币种符号</label>
+            <div class="layui-input-inline">
+                <input value="{{symbolLeft}}" type="text" disabled name="symbolLeft" lay-verify="required"
+                       class="layui-input layui-disabled">
+            </div>
+            <label class="layui-form-label">右币种符号</label>
+            <div class="layui-input-inline">
+                <input value="{{symbolRight}}" type="text" disabled name="symbolRight" lay-verify="required"
+                       class="layui-input layui-disabled">
+            </div>
+        </div>
+
+
+    <table id="currency_history_table" lay-filter="currency_history_demo"></table>
+    </div>
+</script>

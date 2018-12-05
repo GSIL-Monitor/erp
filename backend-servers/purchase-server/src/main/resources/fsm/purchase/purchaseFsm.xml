@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FSM EntityName="Purchase" EntityDao="PurchaseMapper" ParentEntityName="">
+
+	<States>
+		<!-- 正常流 -->
+		<!--在创建的时候要改变库存在途数，将增加在途数，然后发起采购需求计算-->
+		<State Name="start" Description="开始">
+			<Event Name="create" Description="创建" DstState="draft" After="purchaseCreateAfter"/>
+		</State>
+
+		<State Name="draft" Description="草稿">
+			<Event Name="submit" Description="提交" DstState="waitBusinessApprove" After="purchaseSubmitAfter"/>
+			<Event Name="pay" Description="错货生成直接执行中" DstState="executing" After="purchasePayAfter"/>
+			<Event Name="giveUp" Description="放弃" DstState="cancel" After="purchaseCancelAfter"/>
+		</State>
+
+		<!--不主动调用该事件，应该所有采购单明细业务审核通过后，触发业务同意事件，有一个不同意，就触发业务不同意事件-->
+		<!--该状态由采购明细单驱动-->
+		<State Name="waitBusinessApprove" Description="待业务审核">
+			<Event Name="giveUp" Description="放弃" DstState="cancel" After="purchaseCancelAfter"/>
+			<Event Name="agreeByBusiness" Description="业务同意" DstState="waitFinanceApprove"/>
+			<Event Name="disagreeByBusiness" Description="业务不同意" DstState="businessDisagree"/>
+		</State>
+
+		<!--业务不同意，采购修改采购单的时候，每次修改明细，都要修改库存在途数，然后发起采购需求计算-->
+		<State Name="businessDisagree" Description="业务不同意">
+			<Event Name="submit" Description="提交" DstState="waitBusinessApprove" After="purchaseSubmitAfter"/>
+			<Event Name="giveUp" Description="放弃" DstState="cancel" After="purchaseCancelAfter"/>
+		</State>
+
+		<State Name="waitFinanceApprove" Description="待财务审核">
+			<Event Name="giveUp" Description="放弃" DstState="cancel" After="purchaseCancelAfter"/>
+			<Event Name="agreeByFinance" Description="财务同意" DstState="waitPayment" After="purchaseAgreeAfter"/>
+			<Event Name="disagreeByFinance" Description="财务不同意" DstState="financeDisagree" After="purchaseDisagreeAfter"/>
+		</State>
+
+		<!--财务不同意，采购修改采购单的时候，每次修改明细，都要修改库存在途数，然后发起采购需求计算-->
+		<State Name="financeDisagree" Description="财务不同意">
+			<Event Name="submit" Description="提交" DstState="waitBusinessApprove" After="purchaseSubmitAfter"/>
+			<Event Name="giveUp" Description="放弃" DstState="cancel" After="purchaseCancelAfter"/>
+		</State>
+
+		<State Name="waitPayment" Description="待付款">
+			<Event Name="pay" Description="付款" DstState="executing" After="purchasePayAfter"/>
+			<Event Name="refusePay" Description="拒绝付款" DstState="refusePayment" After="purchaseRefusePayAfter"/>
+		</State>
+
+		<!--财务不同意，采购修改采购单的时候，每次修改明细，都要修改库存在途数，然后发起采购需求计算-->
+		<State Name="refusePayment" Description="拒绝付款">
+			<Event Name="submit" Description="提交" DstState="waitBusinessApprove" After="purchaseSubmitAfter"/>
+			<Event Name="giveUp" Description="放弃" DstState="cancel" After="purchaseCancelAfter"/>
+		</State>
+
+		<State Name="executing" Description="执行中">
+			<Event Name="inStock" Description="入库" DstState="completed"/>
+		</State>
+
+		<State Name="completed" Description="已完成">
+		</State>
+
+		<State Name="cancel" Description="已取消">
+		</State>
+	</States>
+
+</FSM>

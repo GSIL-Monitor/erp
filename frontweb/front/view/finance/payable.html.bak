@@ -1,0 +1,410 @@
+<br>
+<div class="layui-form">
+
+    <div class="layui-form-item">
+
+        <label class="layui-form-label">发生单据负责人</label>
+        <div class="layui-input-inline">
+            <input type="text" name="changeUserName" lay-verify="" placeholder="请输发生单据负责人" autocomplete="off"
+                   class="layui-input">
+        </div>
+
+        <label class="layui-form-label">订单号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="platOrdersNo" lay-verify="" placeholder="请输订单号" autocomplete="off"
+                   class="layui-input">
+        </div>
+        <label class="layui-form-label">目标单号</label>
+
+        <div class="layui-input-inline">
+            <input type="text" name="goalBillNo" lay-verify="" placeholder="请输目标单号" autocomplete="off"
+                   class="layui-input">
+        </div>
+
+        <label class="layui-form-label">付款单号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="paymentId" lay-verify="" placeholder="请输付款单号" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-form-item">
+            <label class="layui-form-label">发生类型</label>
+            <div class="layui-input-inline">
+                <select name="changeBillType">
+                    <option value="">所有</option>
+                </select>
+            </div>
+
+            <label class="layui-form-label">生成状态</label>
+            <div class="layui-input-inline">
+                <select id="" name="hasPaymentId">
+                    <option value="">所有</option>
+                </select>
+            </div>
+
+            <label class="layui-form-label">创建时间</label>
+            <div class="layui-input-inline">
+                <input name="createTime" type="text" class="layui-input" id="fin_pay_createTime">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <button class="layui-btn" lay-submit lay-filter="fin_pur_search">搜索</button>
+            <button class="layui-btn" lay-submit lay-filter="fin_pur_export">导出</button>
+            <button class="layui-btn" lay-submit lay-filter="fin_pur_statistics">显示统计信息</button>
+            <div id="fin_pur_statistics_info" style="color: #ff0000;display: none;">显示统计信息</div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-form-item">
+            <label class="layui-form-label">生成付款</label>
+            <button class="layui-btn" lay-submit lay-filter="fin_pur_reject">拒绝</button>
+            <button class="layui-btn" lay-submit lay-filter="fin_pur_generate">生成</button>
+        </div>
+    </div>
+</div>
+<table id="demo" lay-filter="fin_pur_tab"></table>
+
+<script id="generateType-option-tpl" type="text/html">
+    {{each payableStateEnum value index}}
+    <option value="{{value.ordinal}}">{{value.display}}</option>
+    {{/each}}
+</script>
+<script id="billType-option-tpl" type="text/html">
+    {{each billTypeEnum value index}}
+    <option value="{{value.ordinal}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+
+<script type="text/html" id="generateTypeEnumTpl">
+    {{d.payableStateEnum.display}}
+</script>
+<script type="text/html" id="goalBillTypeEnumTpl">
+    {{d.goalBillTypeEnum.display}}
+</script>
+<script type="text/html" id="changeBillTypeEnumTpl">
+    {{d.changeBillTypeEnum.display}}
+</script>
+
+<!--<script type="text/html" id="finPayAmountTpl">
+    {{#  if(d.payAmount==null){ }}
+    <input name="payAmount" style="color: #ff0000;" value="{{ d.amount }}"></input>
+    {{#  } else{ }}
+    <input name="payAmount" style="color: #ff0000;" value="{{ d.payAmount }}"></input>
+    {{#  } }}
+</script>-->
+
+<script type="text/html" id="fin_pur_option">
+    <a class="layui-btn layui-btn-xs" lay-event="fin_pur_detail">查看详情</a>
+</script>
+
+<script>
+    var fin_pur_que_para = "", fin_pur_table;
+    var fin_pay_item_data = {};
+
+    layui.use(['layer', 'table', 'element', 'form', 'laydate'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0, {time: 5 * 1000});
+        var table = layui.table;
+        var form = layui.form;
+        var laydate = layui.laydate;
+        form.render();
+
+        $.ajax({
+            type: 'GET',
+            url: "/finance/common/enumList",
+            dataType: 'json',
+            data: '',
+            success: function (res) {
+                console.log("请求枚举-下拉框数据", res);
+                state_response(res);
+                $("select[name='changeBillType']").append(template('billType-option-tpl', res.item));
+                $("select[name='hasPaymentId']").append(template('generateType-option-tpl', res.item));
+                form.render('select'); //刷新select选择框渲染
+            }
+        });
+
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#fin_pay_createTime' //指定元素
+            , type: 'datetime'
+            , range: '~' //或 range: '~' 来自定义分割字符
+            , max: 'new Date()'
+            , theme: 'molv'
+            , ready: function (date) {
+            }
+            , change: function (value, date) { //监听日期被切换
+            }
+            , done: function (value, date, endDate) {
+
+            }
+        });
+
+        //第一个实例
+        fin_pur_table = table.render({
+            elem: '#demo'
+            , id: 'demo'
+            , url: '/finance/payable/findList' //数据接口
+            , method: 'post'
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , done: function (res, curr, count) {
+                layer.close(index);
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , page: true //开启分页
+            , cols: [[ //表头
+                {checkbox: true}
+                , {field: 'platOrdersNo', title: '订单号', width: 120}
+                , {field: 'goalBillNo', title: '目标单号', width: 120}
+                , {templet: '#goalBillTypeEnumTpl', title: '目标单据类型', width: 120}
+                , {field: 'changeBillNo', title: '发生单号', width: 120}
+                , {templet: '#changeBillTypeEnumTpl', title: '发生单据类型', width: 120}
+                , {field: 'changeUserName', title: '发生单据负责人', width: 120}
+                , {field: 'createAt', title: '创建时间', width: 120}
+                , {field: 'partner', title: '付款人'}
+                , {field: 'productTitle', title: '产品名'}
+                , {field: 'quantity', title: '数量'}
+                , {field: 'amount', title: '金额'}
+                , {field: 'payAmount', edit: 'text', title: '本次支付金额', style: 'color: #ff0000;', width: 150}
+//                , {field: 'payAmount',templet: '#finPayAmountTpl', title: '本次支付金额', width: 150}
+                , {field: 'plat_orders_no', title: '渠道号'}
+                , {field: 'paymentId', title: '付款单号'}
+                , {templet: '#generateTypeEnumTpl', title: '生成状态', width: 120}
+                , {field: 'memo', title: '备注'}
+                , {field: '', title: '操作', templet: '#fin_pur_option', align: 'center', fixed: 'right', width: 200}
+            ]]
+        });
+
+        //监听查询
+        form.on('submit(fin_pur_search)', function (data) {
+            fin_pur_que_para = data.field;
+
+            var createAt = $.trim(data.field.createTime).split("~");
+            fin_pur_que_para.minCreateAt = createAt[0];
+            fin_pur_que_para.maxCreateAt = createAt[1];
+            console.log('search:' + JSON.stringify(fin_pur_que_para));
+            //上述方法等价于
+            table.reload('demo', {
+                where: fin_pur_que_para    //设定异步数据接口的额外参数，任意设
+                , page: {
+                    offset: 1 //重新从第 1 页开始
+                }
+            });
+            return false;
+        });
+
+        //导出
+        form.on('submit(fin_pur_export)', function (data) {
+            layer.msg('暂时未开放');
+            return false;
+        });
+        //统计
+        form.on('submit(fin_pur_statistics)', function (data) {
+            console.log(JSON.stringify(data.field));
+            var checkStatus = table.checkStatus('demo'); //test即为基础参数id对应的值
+            console.log('checkStatus:' + JSON.stringify(checkStatus));
+            if (checkStatus.data.length) {
+                var billNum = 0, productNum = 0, payTotal = 0.0;
+                var err = 0;
+                $.each(checkStatus.data, function (i, n) {
+                    billNum++;
+                    productNum += n.quantity;
+                    payTotal += n.payAmount;
+
+                    if (n.payAmount > n.amount) {
+                        layer.msg('订单号[' + n.platOrdersNo + ']实际支付金额不能大于原支付金额', {icon: 3});
+                        err++;
+                        return false;
+                    }
+                });
+                if (err > 0) {
+                    return false;
+                }
+                var info = '单据数量：' + billNum + ',产品总数量：' + productNum + ',付款总额：' + payTotal;
+                $("#fin_pur_statistics_info").html(info).show();
+                //前端统计不行再后台统计
+//                postAjaxBat('store/invalid/auditPassBat', {ids: ids});
+            } else {
+                layer.msg('请勾选要操作的行', {icon: 3});
+            }
+            return false;
+        });
+        //拒绝
+        form.on('submit(fin_pur_reject)', function (data) {
+            console.log(JSON.stringify(data.field));
+            var checkStatus = table.checkStatus('demo'); //test即为基础参数id对应的值
+            console.log('checkStatus:' + JSON.stringify(checkStatus));
+
+            if (checkStatus.data.length) {
+                var err = 0;
+                $.each(checkStatus.data, function (i, n) {
+                    if (n.paymentId != null) {
+                        layer.msg('订单号[' + n.platOrdersNo + ']已生成，不能再拒绝，请重新勾选', {icon: 3});
+                        err++;
+                    }
+                });
+                if (err > 0) {
+                    return false;
+                }
+
+                postAjaxList('/finance/payable/reject', JSON.stringify(checkStatus.data));
+
+            } else {
+                layer.msg('请勾选要操作的行', {icon: 3});
+            }
+            return false;
+        });
+        // 生成
+        form.on('submit(fin_pur_generate)', function (data) {
+            var checkStatus = table.checkStatus('demo'); //test即为基础参数id对应的值
+            console.log('checkStatus:' + JSON.stringify(checkStatus));
+
+            if (checkStatus.data.length) {
+                //发生单据负责人\收款方 需一致
+                var changeUserNameSet = new Set();
+                var partnerSet = new Set();
+                var err = 0;
+                $.each(checkStatus.data, function (i, n) {
+                    //js的foreach无法跳出循环
+                    //https://www.cnblogs.com/PheonixHkbxoic/p/5708749.html
+                    changeUserNameSet.add(n.changeUserName);
+                    partnerSet.add(n.partner);
+
+                    delete n.payableStateEnum;
+                    delete n.goalBillTypeEnum;
+                    delete n.changeBillTypeEnum;
+
+                    if (n.payAmount > n.amount) {
+                        layer.msg('订单号[' + n.platOrdersNo + ']实际支付金额不能大于原支付金额', {icon: 3});
+                        err++;
+                        return false;
+                    }
+                    if (n.paymentId != null) {
+                        layer.msg('订单号[' + n.platOrdersNo + ']已生成，请重新勾选', {icon: 3});
+                        err++;
+                    }
+                });
+                if (err > 0) {
+                    return false;
+                }
+                if (changeUserNameSet.size > 1) {
+                    layer.msg('发生单据负责人需一致', {icon: 3});
+                    return false;
+                }
+                if (partnerSet.size > 1) {
+                    layer.msg('收款方需一致', {icon: 3});
+                    return false;
+                }
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/finance/payable/generate',
+                    dataType: 'json',
+                    contentType: 'application/json;charset=utf-8',
+                    data: JSON.stringify(checkStatus.data),
+                    success: function (res) {
+                        console.log('...res:' + JSON.stringify(res));
+                        switch (res.code) {
+                            case "OK":
+                                layer.msg('操作成功');
+                                fin_pay_item_data = res.item;
+                                showDetail('view/finance/payableResult.html');
+                                break;
+                            case "NOTICE":
+                            case "FAIL":
+                                layer.msg(res.desc, {icon: 3});
+                                break;
+                            default:
+                        }
+                        fin_pur_table.reload({
+                            where: fin_pur_que_para
+                        });
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        layer.msg('操作失败，请重试');
+                    }
+                });
+
+            } else {
+                layer.msg('请勾选要操作的行', {icon: 3});
+            }
+            return false;
+        });
+
+
+        /*  table.on('edit(fin_pur_tab)', function (obj) { //注：edit是固定事件名，test是table原始容器的属性 lay-filter="对应的值"
+              console.log(obj.value); //得到修改后的值
+              console.log(obj.field); //当前编辑的字段名
+              console.log(obj.data); //所在行的所有相关数据
+          });*/
+
+
+        //监听工具条
+        table.on('tool(fin_pur_tab)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+            console.log('data:' + JSON.stringify(data));
+
+            if (layEvent === 'fin_pur_detail') { // 查看详情
+                fin_pay_item_data = data;
+                showDetail('view/finance/payableItem.html');
+            }
+        });
+
+        function showDetail(url) {
+            $.get(url, function (str) {
+                var fin_pay_item_index = layer.open({
+                    type: 1
+                    , title: '详情信息'
+                    , content: str //注意，如果str是object，那么需要字符拼接。
+                    , maxmin: true
+                    , area: '50%'
+                });
+            });
+        }
+
+        function postAjaxList(url, data) {
+            $.ajax({
+                type: 'POST',
+                url: url,
+                dataType: 'json',
+                contentType: 'application/json;charset=utf-8',
+                data: data,
+                success: function (res) {
+                    console.log('...res:' + JSON.stringify(res));
+//                    state_response(res);
+                    switch (res.code) {
+                        case "OK":
+                            layer.msg('操作成功');
+                            break;
+                        case "NOTICE":
+                        case "FAIL":
+                            layer.msg(res.desc, {icon: 3});
+                            break;
+                        default:
+                    }
+                    fin_pur_table.reload({
+                        where: fin_pur_que_para
+                    });
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    layer.msg('操作失败，请重试');
+                }
+            });
+        }
+    });
+
+</script>
+

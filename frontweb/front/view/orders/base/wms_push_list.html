@@ -1,0 +1,265 @@
+<br>
+<form class="layui-form" >
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">接口类型</label>
+            <div class="layui-input-inline" >
+                <select class="layui-select"  name="interfaceTypeEnum">
+                    <option value="others" selected>不限</option>
+                    <option value="orders">订单</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">接口名称</label>
+            <div class="layui-input-inline" >
+                <select class="layui-select"  name="interfaceNameEnum">
+                    <option value="others" selected>不限</option>
+                    <option value="addSaleOrder">新增销售订单</option>
+                    <option value="cancelSaleOrder">取消新增销售订单</option>
+                    <option value="saleOutCallback">出库回调</option>
+                </select>
+            </div>
+        </div>
+
+
+
+        <div class="layui-inline">
+            <label class="layui-form-label">推送结果</label>
+            <div class="layui-input-inline" >
+                <select class="layui-select"  name="responseResultEnum">
+                    <option value="others" selected>不限</option>
+                    <option value="fail">失败</option>
+                    <option value="wait">等待</option>
+                    <option value="success">成功</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-inline">
+            <label class="layui-form-label">创建时间</label>
+            <div class="layui-input-inline">
+                <input name="createAt" type="text" class="layui-input" id="createAt">
+            </div>
+            </div>
+        </div>
+
+    <div class="layui-form-item">
+
+        <div class="layui-inline">
+            <label class="layui-form-label">推送id</label>
+            <div class="layui-input-inline" style="width: 200px;">
+                <input type="text"  name="objectId" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <div >
+                <button  lay-submit  class="layui-btn" lay-filter="wmsPushListForm">搜索</button>
+                <button  type="reset"  class="layui-btn" >重置</button>
+                <button  type="reset"  class="layui-btn" id="importwmsPushListBtn">导出</button>
+            </div>
+        </div>
+
+    </div>
+
+</form>
+<table class="layui-table" lay-filter="wmsPushListTable" id="wmsPushListTableId"></table>
+<script>
+        var layer,table;
+        layui.use(['form','table','layer','jquery','laydate','element'],function () {
+        var form = layui.form;
+         table = layui.table;
+         layer = layui.layer;
+        var $ = layui.$;
+        var date = layui.laydate;
+        var element = layer.element;
+//        element.init();
+            date.render({
+                elem : '#createAt',
+                range : '~'
+            });
+
+
+        form.render();
+            var tableIndex   =table.render({
+            elem:'#wmsPushListTableId',
+            url:'/orders/base/wmsPushList/find',
+            method:'POST',
+            page:true,
+            limit:20,
+            limits:[20,50,100],
+            response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                ,statusCode: 'OK' //成功的状态码，默认：0
+                ,msgName: 'desc' //状态信息的字段名称，默认：msg
+                ,countName: 'total' //数据总数的字段名称，默认：count
+                ,dataName: 'item' //数据列表的字段名称，默认：data
+            },
+            cols:[[
+                {field:'id',title:'流水号',templet:'#idTemplat'},
+                {field:'interfaceTypeEnum',title:'接口类型',templet:'#typeTemplat'},
+                {field:'interfaceNameEnum',title:'接口名称',templet:'<div>{{=d.interfaceNameEnum.display}}</div>'},
+                {field:'objectId',title:'推送id'},
+                {field:'responseResultEnum',title:'推送结果',templet:'<div>{{=d.responseResultEnum.display}}</div>'},
+                {field:'responseDesc',title:'返回内容'},
+                {field:'requestTimes',title:'推送次数'},
+                {field:'requestTime',title:'推送时间',minWidth:180},
+                {field:'createAt',title:'创建时间',minWidth:180},
+                {title:'操作',fixed:'right',align:'right',toolbar:'#toolBar' },
+            ]]
+        });
+
+
+        form.on('submit(wmsPushListForm)',function (data) {
+            layer.msg(JSON.stringify(data.field));
+            var createTimeArray = data.field.createAt.split("~");
+            minTime = $.trim(createTimeArray[0]);
+            maxTime = $.trim(createTimeArray[1]);
+            if (minTime != '') minTime = minTime + " 00:00:00";
+            if (maxTime != '') maxTime = maxTime + " 23:59:59";
+            tableIndex.reload({where:{
+                interfaceTypeEnum:data.field.interfaceTypeEnum,
+                interfaceNameEnum:data.field.interfaceNameEnum,
+                responseResultEnum:data.field.responseResultEnum,
+                objectId:data.field.objectId,
+                minCreateAt:minTime,
+                maxCreateAt:maxTime,
+            }});
+            return false;
+        });
+
+
+        table.on('tool(wmsPushListTable)',function (obj) {
+            var data = obj.data;
+            var event = obj.event;
+            if(event === 'showRecordInfo')
+            {
+                layer.open({
+                    type: 1
+                    , title: '查看详情'
+                    , content: template('wmsPushRecordShow', data)
+                    , maxmin: true
+                    , area: '70%'
+                });
+            }else if(event === 'delete')
+            {
+                layer.open({type:0,title:'确认删除这条记录吗？',area:[200,300],btn:['yes','no'],shade: [0.8, '#393D49'],
+                yes:function (index,layero) {
+                    layer.close(index);
+                    $.post('/orders/base/black_list/delete',{id:data.id},function (data) {
+                        tableIndex.reload();
+                    });
+                }});
+            }
+        });
+
+    });
+
+        var recordId;
+        function wmsPushDetail(id) {
+            recordId = id;
+            $.get('./view/orders/base/wms_push_detail.html', function (str) {
+                modalIndex = layer.open({
+                    type: 1
+                    , title: '推送历史'
+                    , content: str //注意，如果str是object，那么需要字符拼接。
+                    , maxmin: true
+                    , area: ['70%', '70%']
+                });
+            });
+
+        }
+
+</script>
+<script type="text/html" id="blackType">
+    {{d.blackTypeEnum.display}}
+</script>
+
+<script type="text/html" id="idTemplat">
+   <a href="#" title="点击查看发送历史" style="color: red;" onclick="javascript:wmsPushDetail({{d.id}});"> {{d.id}} </a>
+</script>
+
+<script type="text/html" id="typeTemplat">
+    <a href="#" title="点击查看发送详情" style="color: green;" lay-event="showRecordInfo"> {{d.interfaceTypeEnum.display}} </a>
+</script>
+
+<script type="text/html" id="toolBar">
+    <div class="layui-btn-group">
+   <button class="layui-btn"  lay-event="delete">重新推送</button>
+   <!--<button class="layui-btn"  lay-event="fuck">填写订单备注</button>-->
+    </div>
+</script>
+
+
+
+<script type="text/html" id="wmsPushRecordShow">
+    <div class="layui-form layui-form-pane" >
+        <div class="layui-form-item">
+            <label class="layui-form-label">id</label>
+            <div class="layui-input-block">
+                <span class="layui-show">{{id}}</span>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">接口名称</label>
+            <div class="layui-input-block">
+                <span class="layui-input">{{interfaceNameEnum.display}}</span>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">请求URL</label>
+            <div class="layui-input-block">
+                <span class="layui-input">{{requestUrl}}</span>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">请求参数</label>
+            <div class="layui-input-block">
+                <span class="layui-input">{{requestParam}}</span>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">推送时间</label>
+            <div class="layui-input-block">
+                <span class="layui-input">{{requestTime}}</span>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">推送结果</label>
+            <div class="layui-input-block">
+                <span class="layui-input">{{responseResultEnum.display}}</span>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">响应内容</label>
+            <div class="layui-input-block">
+                <span class="layui-input">{{responseDesc}}</span>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">响应时间</label>
+            <div class="layui-input-block">
+                <span class="layui-input">{{responseTime}}</span>
+            </div>
+        </div>
+
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">推送次数</label>
+            <div class="layui-input-block">
+                <span class="layui-input">{{requestTimes}}</span>
+            </div>
+        </div>
+
+    </div>
+
+</script>
+
+

@@ -1,0 +1,132 @@
+<br>
+<div class="layui-form">
+
+    <div class="layui-form-item">
+
+        <label class="layui-form-label">付款单号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="paymentId" lay-verify="" placeholder="请输订单号" autocomplete="off"
+                   class="layui-input">
+        </div>
+
+        <label class="layui-form-label">目标单号</label>
+
+        <div class="layui-input-inline">
+            <input type="text" name="goalBillNo" lay-verify="" placeholder="请输目标单号" autocomplete="off"
+                   class="layui-input">
+        </div>
+
+        <label class="layui-form-label">sku</label>
+        <div class="layui-input-inline">
+            <input type="text" name="sku" lay-verify="" placeholder="请输付款单号" autocomplete="off"
+                   class="layui-input">
+        </div>
+
+        <label class="layui-form-label">单据类型</label>
+        <div class="layui-input-inline">
+            <select id="payment_type" name="changeBillType">
+                <option value="">所有</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <button class="layui-btn" lay-submit lay-filter="fin_pur_search">搜索</button>
+        <button class="layui-btn" lay-submit lay-filter="fin_pur_export">导出</button>
+        <button class="layui-btn" lay-submit lay-filter="fin_pur_stattis">显示统计信息</button>
+    </div>
+</div>
+<table id="demo" lay-filter="fin_pur_tab"></table>
+
+<script id="paymentTypeEnum" type="text/html">
+    {{each payTypeEnum value index}}
+    <option value="{{value.ordinal}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<script type="text/html" id="">
+    {{d.wmsTypeEnum.display}}
+</script>
+<script type="text/html" id="paymentStateEnum">
+    {{d.wmsStateEnum.display}}
+</script>
+
+<script type="text/html" id="fin_pur_option">
+    <a class="layui-btn layui-btn-xs" lay-event="fin_pur_delete">删除</a>
+    <a class="layui-btn layui-btn-xs" lay-event="fin_pur_detail">查看</a>
+</script>
+
+<script>
+    var fin_pur_que_para = "", fin_pur_table;
+    /*    var _query_id, sto_addWms_index;
+        var sto_wms_edit_sel_data = null;*/
+    layui.use(['layer', 'table', 'element', 'form'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0, {time: 5 * 1000});
+        var table = layui.table;
+        var form = layui.form;
+        form.render();
+        $.ajax({
+            type: 'GET',
+            url: "/purchase/common/enumList",
+            dataType: 'json',
+            data: '',
+            success: function (res) {
+                console.log("请求枚举-下拉框数据", res);
+                state_response(res);
+                $("#payment_type").append(template('paymentTypeEnum', res.item));
+                form.render('select'); //刷新select选择框渲染
+            }
+        });
+
+        //第一个实例
+        fin_pur_table = table.render({
+            elem: '#demo'
+            , id: 'demo'
+            , url: '/purchase/finance/paymentItem/findList' //数据接口
+            , method: 'post'
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , done: function (res, curr, count) {
+                layer.close(index);
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , page: true //开启分页
+            , cols: [[ //表头
+                {checkbox: true}
+                , {field: 'paymentId', title: '付款单号'}
+                , {field: 'changeBillNo', title: '发生单据'}
+                , {field: 'changeBillType', title: '发生单据类型'}
+                , {field: 'goalBillNo', title: '目标单据'}
+                , {field: 'goalBillType', title: '目标单据类型'}
+                , {field: 'createAt', title: '创建时间'}
+                , {field: 'deptName', title: '部门'}
+                , {field: 'sku', title: 'sku'}
+                , {field: 'quantity', title: '数量'}
+                , {field: 'amount', title: '金额'}
+                ]]
+        });
+
+        //监听查询
+        form.on('submit(fin_pur_search)', function (data) {
+            fin_pur_que_para = data.field;
+//            minCreateAt=
+            //上述方法等价于
+            table.reload('demo', {
+                where: fin_pur_que_para    //设定异步数据接口的额外参数，任意设
+                , page: {
+                    offset: 1 //重新从第 1 页开始
+                }
+            });
+            return false;
+        });
+    });
+</script>
+

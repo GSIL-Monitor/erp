@@ -1,0 +1,286 @@
+<style>
+    .cls_content{
+        display: inline-block;
+        padding: 10px;
+        width: 118px;
+        box-sizing: border-box;
+    }
+    #add_item_btn{
+        padding: 15px;
+        margin: 10px;
+        margin-left: 20px;
+    }
+    #add_item_content{
+        margin-top: 17px;
+        padding-left: 16px;
+    }
+    .remark_icon{
+        color: red;
+    }
+    .auto_width{
+        width: auto;
+    }
+    .btn_lf_mg{
+        margin-left:65px;
+    }
+
+    #multi_lang_operation_contentwrap{
+        padding-left: 25px;
+        padding-top: 18px;
+    }
+    .btn_lg{
+        width: 160px;
+    }
+    .item_detail i{
+
+        margin-right: 10px;
+        font-size: 20px;
+        cursor: pointer;
+    }
+    .item_detail i:hover{
+        color: #1E9FFF;
+    }
+</style>
+<div id="multi_lang_operation_contentwrap"></div>
+<div id="add_item">
+    <div id="add_item_btn">
+        <!--<i class="layui-icon" >&#xe654;</i>-->
+        <button class="layui-btn layui-btn-lg btn_lg" onclick="add_lang_operation(this);">添加</button>
+    </div>
+    <div class="layui-form hide" id="add_item_content">
+        <div class="layui-form-item">
+            <label class="layui-form-label auto_width"><span class="remark_icon">*</span>语言</label>
+            <div class="layui-input-inline">
+                <select name="langSelect" lay-search>
+                    <option value="">请选择</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label auto_width"><span class="remark_icon">*</span>内容</label>
+            <div class="layui-input-inline">
+                <input type="text" name="langContent" placeholder="" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item btn_lf_mg">
+            <button class="layui-btn" lay-submit lay-filter="submit_lang_operate">确定</button>
+            <button class="layui-btn layui-btn-primary" onclick="cancel_lang_operate()">取消</button>
+        </div>
+    </div>
+    
+</div>
+<script type="text/html" id="langOperationTpl">
+       {{each item value index}}
+               <div class="item_detail">
+                   <span class="cls_content">{{value.langName}}</span>
+                   <span class="cls_content">{{value.name}}</span>
+                   <i class="layui-icon hide" onclick="edit_lang_operation(this,'{{value.langCode}}','{{value.name}}','{{value.id}}','{{value.langName}}');">&#xe642;</i>
+                   <i class="layui-icon hide"  onclick="del_lang_operation(this,'{{value.langCode}}','{{value.name}}','{{value.id}}','{{value.langName}}');">&#xe640;</i>
+               </div>
+       {{/each}}
+</script>
+<!--区域 -->
+<script id="lang_select" type="text/html">
+    {{each item value index}}
+        <option value={{value.langCode}}>{{value.name}}</option>
+    {{/each}}
+</script>
+<script type="text/javascript">
+        var isEdit=false;
+//        var passID=59349,isEdit=false,aa,bb,cc,dd,ee;
+        //获取下拉语言列表的的值，aa
+        var get_list_api='';
+        //增加api bb
+        var add_api='';
+        //删除api cc
+        var del_api="";
+        //更新 api dd
+        var update_api="";
+        // 传来的属性数据 ee
+        var pass_attr_data="";
+        //传来的属性id ff
+        var pass_attr_id_data="";
+//        var obj={
+//            item:[ {
+//                "creatorId" : null,
+//                "id" : 17,
+//                "createAt" : "2018-01-19 13:38:29",
+//                "updateAt" : "2018-01-19 13:38:29",
+//                "name" : "语言",
+//                "attributeId" : 59349,
+//                "langCode" : "zh",
+//                "langName" : "中文",
+//                "table" : "attribute_lang"
+//            }, {
+//                "creatorId" : null,
+//                "id" : 18,
+//                "createAt" : "2018-01-19 15:56:48",
+//                "updateAt" : "2018-01-19 15:56:48",
+//                "name" : "xzc",
+//                "attributeId" : 59349,
+//                "langCode" : "csa",
+//                "langName" : "测试",
+//                "table" : "attribute_lang"
+//            } ]
+//        };
+
+        function multi_lang_operation_modalrender(a,b,c,d,e,f) {
+            get_list_api=a;
+            add_api=b;
+            del_api=c;
+            update_api=d;
+            pass_attr_data=e;
+            pass_attr_id_data=f;
+            layui.use(['form','layer'],function () {
+                lang_form=layui.form;
+                var layer=layui.layer;
+                $("#multi_lang_operation_contentwrap").html(template('langOperationTpl', pass_attr_data));
+                //点击确定按钮
+                lang_form.on('submit(submit_lang_operate)',function (data) {
+
+                    if(!data.field.langSelect){
+                        layer.msg("请选择您要操作的语言");
+                        return;
+                    }
+                    if(!data.field.langContent){
+                        layer.msg("内容是必填项");
+                        return;
+                    }
+                    var langName=$("select[name='langSelect']").next().find(".layui-this").text();
+                    var req_data={
+                        langCode:data.field.langSelect,
+                        name:data.field.langContent,
+                        langName:langName
+                    };
+                    req_data=$.extend(req_data,pass_attr_id_data);
+                    if( isEdit){
+                        req_data.id=passParam[3] ;
+                        updateData(req_data);
+                    }else{
+                        req_data.id ? delete req_data[id] && addData(req_data):addData(req_data);
+                    }
+
+                return false;
+                })
+            });
+        }
+        $("#multi_lang_operation_contentwrap").on("mouseenter mouseleave",'.item_detail',function (e) {
+            $(this).find("i").toggle();
+        });
+        //点击增加，获取下拉列表
+        function add_lang_operation(that) {
+            $("#add_item_content").show();
+            $("#add_item_btn").hide();
+//           var  a="/product/base/language/find";
+            $.ajax({
+                url:get_list_api,
+                type:"GET",
+                dataType: "json",
+                contentType: "application/json",
+                success:function (res) {
+                    state_response(res);
+                    $("select[name='langSelect']").val("");
+                    $("[name='langContent']").val("");
+                    $("select[name='langSelect']").append(template('lang_select', res));
+                    lang_form.render();
+                }
+            });
+
+        }
+        //取消按钮
+        function cancel_lang_operate() {
+            $("#add_item_btn").show();
+            $("#add_item_content").hide();
+            isEdit=false;
+        }
+        //编辑按钮
+        var passParam,selectIndex;
+        function edit_lang_operation() {
+            $(arguments[0]).parents(".item_detail").index();
+            selectIndex=$(arguments[0]).parents(".item_detail").index();
+                isEdit=true;
+            passParam=arguments;
+                var _arguments=arguments;
+               add_lang_operation();
+               setTimeout(function () {
+                   $("select[name='langSelect']").val(_arguments[1]);
+                   $("[name='langContent']").val(_arguments[2]);
+                   lang_form.render();
+               },100);
+        }
+        //增加接口
+        function addData(data) {
+//            var b="/product/base/attributeLang/add";
+            $.ajax({
+                type: 'POST',
+                url: add_api,
+                dataType: 'json',
+                data:data,
+                success: function (res) {
+                    state_response(res);
+                    if(res.code!='FAIL'){
+                        $("#add_item_btn").show();
+                        $("#add_item_content").hide();
+                        getData();
+                    }
+                }
+            });
+        }
+        //删除按钮
+        function del_lang_operation() {
+            var _argument=arguments;
+            layer.confirm('确实要删除['+_argument[4] +'](id: '+_argument[3]+')吗?', {icon: 3, title:'提示'}, function(index){
+                $.ajax({
+                    type: 'POST',
+                    url: del_api,
+                    dataType: 'json',
+                    data:{
+                        id:_argument[3]
+                    },
+                    success: function (res) {
+                        state_response(res);
+                        if(res.code!='FAIL'){
+                            getData();
+                        }
+                    }
+                });
+                layer.close(index);
+            });
+        }
+        //获取系统最新数据
+
+        function getData() {
+            $.ajax({
+                type: "POST",
+                url: "/product/base/categoryLang/findByCategoryId",
+                dataType: 'json',
+                data: {
+                    categoryId: pass_attr_id_data.categoryId
+                },
+                success: function (res) {
+                    state_response(res);
+                    $("#multi_lang_operation_contentwrap").html(template('langOperationTpl', res));
+                }
+            });
+        }
+        //更新接口
+        function updateData(data) {
+            var d="/product/base/attributeLang/update";
+            $.ajax({
+                type: 'POST',
+                url: update_api,
+                dataType: 'json',
+                data:data,
+                success: function (res) {
+                    state_response(res);
+                    if(res.code!='FAIL'){
+                        $("#add_item_btn").show();
+                        $("#add_item_content").hide();
+                     getData()
+                        isEdit=false;
+                    }
+
+                }
+            });
+        }
+</script>

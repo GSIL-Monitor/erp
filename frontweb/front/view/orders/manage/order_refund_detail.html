@@ -1,0 +1,672 @@
+<style type="text/css">
+    #container {
+        padding: 25px;
+    }
+
+    .label {
+        text-align: right;
+    }
+
+    .input {
+        line-height: 38px;
+    }
+
+</style>
+<div id="container">
+    <div id="info_area"></div>
+    <div id="demonic_area"></div>
+    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+        <legend>状态机信息</legend>
+    </fieldset>
+    <button class="layui-btn layui-btn-normal" id="addMemo"><i class="layui-icon">&#xe654;</i>添加备注</button>
+    <table id="fsmTable" lay-filter="fsmTable"></table>
+</div>
+
+<div id="add-memo" style="display: none">
+    <form class="layui-form" id="addMemoForm" style="padding: 25px;">
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">文本域</label>
+            <div class="layui-input-block">
+                <textarea name="memo" placeholder="请输入内容" class="layui-textarea" lay-verify="required"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="memo_submit">提交</button>
+                <button type="button" class="layui-btn layui-btn-primary" lay-filter="memo_cancel"
+                        onclick="layer.close(memoModelIndex)">取消
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script type="text/html" id="data-info">
+    <fieldset class="layui-elem-field layui-field-title">
+        <legend>退款单信息</legend>
+    </fieldset>
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">站点来源：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{siteFrom}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">订单流水号：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{ordersId}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">订单金额：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{ordersAmount}}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退货单号：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{ordersRamBillId}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退款单号：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{id}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">下单时间：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{ordersPurchaserAt}}
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/html" id="data-view">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退款类型：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{refundTypeEnum.display}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">申请时间：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{createAt}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退款方式：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{refundMethodEnum.display}}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-row layui-col-space15">
+        {{if refundMethodEnum.name!='logistics'}}
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">付款流水号：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{ordersPayNo}}
+                </div>
+            </div>
+        </div>
+        {{/if}}
+        {{if refundMethodEnum.name=='logistics'}}
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退款物流：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{logisticName}}
+                </div>
+            </div>
+        </div>
+        {{/if}}
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退款金额：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{refundAmount}} <span style="margin-left: 30px;">{{currencyCode}}</span>
+                </div>
+            </div>
+        </div>
+        {{if refundSerialNumber && refundSerialNumber.length>0}}
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退款流水号：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{refundSerialNumber}}
+                </div>
+            </div>
+        </div>
+        {{/if}}
+    </div>
+</script>
+
+<script type="text/html" id="data-editForm">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">申请时间：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{createAt}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退款类型：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{refundTypeEnum.display}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退款方式：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{refundMethodEnum.display}}
+                </div>
+            </div>
+        </div>
+    </div>
+    <form class="layui-form" id="editForm">
+        <div class="layui-row layui-col-space15">
+            <!--<div class="layui-col-md4">-->
+            <!--<div class="layui-row layui-col-space15">-->
+            <!--<div class="layui-col-md4">-->
+            <!--<div class="label input">退款方式：</div>-->
+            <!--</div>-->
+            <!--<div class="layui-col-md6">-->
+            <!--<select name="refundMethodEnum" lay-verify="required" value="{{refundMethodEnum.name}}">-->
+            <!--<option value="">不限</option>-->
+            <!--</select>-->
+            <!--</div>-->
+            <!--</div>-->
+            <!--</div>-->
+            <div class="layui-col-md4">
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md4">
+                        <div class="label">付款流水号：</div>
+                    </div>
+                    <div class="layui-col-md8">
+                        {{ordersPayNo}}
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-md4">
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md4">
+                        <div class="label input">退款金额：</div>
+                    </div>
+                    <div class="layui-col-md6">
+                        <input type="text" name="refundAmount" placeholder="退款金额" autocomplete="off" class="layui-input"
+                               value="{{refundAmount}}" lay-verify="required|number">
+                    </div>
+                    <div class="layui-col-md2">
+                        <div class="input">{{currencyCode}}</div>
+                    </div>
+                </div>
+            </div>
+            <!--<div class="layui-col-md4">-->
+            <!--<div class="layui-row layui-col-space15">-->
+            <!--<div class="layui-col-md4">-->
+            <!--<div class="label input">收款账号：</div>-->
+            <!--</div>-->
+            <!--<div class="layui-col-md6">-->
+            <!--<input type="text" name="customerGetAccount" placeholder="收款账号" autocomplete="off"-->
+            <!--class="layui-input" value="{{customerGetAccount}}">-->
+            <!--</div>-->
+            <!--</div>-->
+            <!--</div>-->
+        </div>
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md8 layui-col-md-offset2" style="text-align: center;">
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md4 layui-col-md-offset2">
+                        <button class="layui-btn" lay-filter="modify" lay-submit>提交</button>
+                    </div>
+                    <div class="layui-col-md4">
+                        <button type="reset" class="layui-btn  layui-btn-primary">重置</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</script>
+
+<!--审核-->
+<script type="text/html" id="data-approveForm">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退款类型：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{refundTypeEnum.display}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">申请时间：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{createAt}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退款方式：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{refundMethodEnum.display}}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">付款流水号：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{ordersPayNo}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退款金额：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{refundAmount}} <span style="margin-left: 30px;">{{currencyCode}}</span>
+                </div>
+            </div>
+        </div>
+        <!--<div class="layui-col-md4">-->
+        <!--<div class="layui-row layui-col-space15">-->
+        <!--<div class="layui-col-md4">-->
+        <!--<div class="label">收款账号：</div>-->
+        <!--</div>-->
+        <!--<div class="layui-col-md8">-->
+        <!--{{customerGetAccount}}-->
+        <!--</div>-->
+        <!--</div>-->
+        <!--</div>-->
+    </div>
+    <form class="layui-form" id="approveForm">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md8 layui-col-md-offset2">
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md2">
+                        <div class="label">审核备注：</div>
+                    </div>
+                    <div class="layui-col-md9">
+                        <textarea id="auditMemo" name="auditMemo" class="layui-textarea" placeholder="审核备注"
+                                  lay-verify="required"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md8 layui-col-md-offset2" style="text-align: center;">
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md4 layui-col-md-offset2">
+                        <button class="layui-btn" lay-filter="approve" lay-submit>通过</button>
+                    </div>
+                    <div class="layui-col-md4">
+                        <button class="layui-btn  layui-btn-danger" lay-filter="reject" lay-submit>驳回</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</script>
+
+<script type="text/html" id="data-refundForm">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">申请时间：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{createAt}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退款方式：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{refundMethodEnum.display}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退款类型：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{refundTypeEnum.display}}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退款金额：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{refundAmount}} <span style="margin-left: 30px;">{{currencyCode}}</span>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">付款流水号：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{ordersPayNo}}
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <form class="layui-form" id="refundForm">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md4">
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md4">
+                        <div class="label input">退款流水号：</div>
+                    </div>
+                    <div class="layui-col-md6">
+                        <input type="text" name="refundSerialNumber" placeholder="退款流水号" autocomplete="off"
+                               class="layui-input" lay-verify="required">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md8 layui-col-md-offset2" style="text-align: center;">
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md4 layui-col-md-offset2">
+                        <button class="layui-btn" lay-filter="refunded" lay-submit>确认退款</button>
+                    </div>
+                    <div class="layui-col-md4">
+                        <button type="button" class="layui-btn  layui-btn-primary"
+                                onclick="layui.layer.close(refundDetailPage);">取消
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</script>
+
+<script id="select_refundMethodEnum" type="text/html">
+    {{each refundMethodEnum value index}}
+    <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<script type="text/javascript">
+
+
+    $("#info_area").html(template('data-info', rowData));
+
+    if (module == 'view')
+        $("#demonic_area").html(template('data-view', rowData));
+    else if (module == 'edit')
+        $("#demonic_area").html(template('data-editForm', rowData));
+    else if (module == 'approve')
+        $("#demonic_area").html(template('data-approveForm', rowData));
+    else if (module == 'refund')
+        $("#demonic_area").html(template('data-refundForm', rowData));
+
+    layui.use(['layer', 'table', 'form'], function () {
+        var layer = layui.layer;
+        var table = layui.table;
+        var form = layui.form;
+
+        //table渲染
+        table.render({
+            elem: '#fsmTable'
+            , id: 'fsmTable'
+            , url: '/orders/refund/fms?id=' + id //数据接口
+            , method: 'get'
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , cols: [[ //表头
+                {field: 'optUid', title: '操作人', width: 100}
+                , {field: 'createAt', title: '操作时间', width: 170}
+                , {field: 'eventNameDisplay', title: '操作内容', width: 400}
+                , {field: 'memo', title: '备注'}
+            ]]
+        });
+
+
+        $("select[name='refundMethodEnum']").append(template('select_refundMethodEnum', enumList));
+
+        $("select[name='refundMethodEnum']").val(rowData.refundMethodEnum.name);
+        form.render("select");
+
+        form.on('submit(modify)', function (data) {
+            data: data.field.id = id;
+            $.ajax({
+                type: 'POST',
+                url: "/orders/refund/modify",
+                dataType: 'json',
+                data: data.field,
+                success: function (res) {
+                    if (res.success) {
+                        layer.msg("修改成功");
+                        layer.close(refundDetailPage);
+                        table.reload('order_refund', {
+                            where: new_obj    //设定异步数据接口的额外参数，任意设
+                        });
+                    } else {
+                        layer.msg(res.desc);
+                    }
+                },
+                error: function () {
+                    layer.msg("提交失败");
+                }
+            });
+
+            return false;
+        });
+
+        form.on('submit(approve)', function (data) {
+            data.field.id = id;
+            data.field.result = true;
+            $.ajax({
+                type: 'POST',
+                url: "/orders/refund/approve",
+                dataType: 'json',
+                data: data.field,
+                success: function (res) {
+                    if (res.success) {
+                        layer.msg("审批完成");
+                        layer.close(refundDetailPage);
+                        table.reload('order_refund', {
+                            where: new_obj    //设定异步数据接口的额外参数，任意设
+                        });
+                    } else {
+                        layer.msg(res.desc);
+                    }
+                },
+                error: function () {
+                    layer.msg("提交失败");
+                }
+            });
+            return false;
+        });
+        form.on('submit(reject)', function (data) {
+            data.field.id = id;
+            data.field.result = false;
+            $.ajax({
+                type: 'POST',
+                url: "/orders/refund/approve",
+                dataType: 'json',
+                data: data.field,
+                success: function (res) {
+                    if (res.success) {
+                        layer.msg("审批完成");
+                        layer.close(refundDetailPage);
+                        table.reload('order_refund', {
+                            where: new_obj    //设定异步数据接口的额外参数，任意设
+                        });
+                    } else {
+                        layer.msg(res.desc);
+                    }
+                },
+                error: function () {
+                    layer.msg("提交失败");
+                }
+            });
+            return false;
+        });
+        form.on('submit(refunded)', function (data) {
+            layer.confirm('你确定要退款确认吗？', {
+                btn: ['确定', '取消']
+            }, function () {
+                data.field.id = id;
+                $.ajax({
+                    type: 'POST',
+                    url: "/orders/refund/refunded",
+                    dataType: 'json',
+                    data: data.field,
+                    success: function (res) {
+                        if (res.success) {
+                            layer.msg("退款成功");
+                            layer.close(refundDetailPage);
+                            table.reload('order_refund', {
+                                where: new_obj    //设定异步数据接口的额外参数，任意设
+                            });
+                        } else {
+                            layer.msg(res.desc);
+                        }
+                    },
+                    error: function () {
+                        layer.msg("提交失败");
+                    }
+                });
+            }, function () {
+                //
+            });
+            return false;
+        });
+
+        // 添加备注
+        form.on('submit(memo_submit)', function (data) {
+            data.field.id = id;
+            $.ajax({
+                type: 'POST',
+                url: "/orders/refund/addFmsDemo",
+                dataType: 'json',
+                data: data.field,
+                success: function (res) {
+                    if (res.success) {
+                        layer.msg("添加备注完成");
+                        layer.close(memoModelIndex);
+                        table.reload('fsmTable');
+                    } else {
+                        layer.msg(res.desc);
+                    }
+                },
+                error: function () {
+                    layer.msg("提交失败");
+                }
+            });
+            return false;
+        });
+
+        $('#addMemo').click(function () {
+            memoModelIndex = layer.open({
+                type: 1
+                , title: "添加备注"
+                , content: $('#add-memo').html()
+                , shadeClose: true
+                , area: ['600px', 'auto']
+            });
+
+        });
+    });
+
+</script>

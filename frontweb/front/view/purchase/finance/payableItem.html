@@ -1,0 +1,238 @@
+<style>
+    #payDetail h3 {
+        text-align: center;
+        padding: 10px;
+        color: #00CCFF;
+        font-weight: bolder;
+    }
+
+    #payDetail .content-wd-100 {
+        width: 100px;
+    }
+    #isPay{
+        text-align: right;
+        padding-right: 30px;
+    }
+    .pay_btn{
+        width: 92px;
+    }
+</style>
+<script id="finPayItemTpl" type="text/html">
+    <h3>付款表详情</h3>
+    <form class="layui-form ">
+        <div class="layui-form-item">
+            <label class="layui-form-label">付款单号：</label>
+            <div class="layui-input-inline">
+                <div class="layui-form-mid layui-word-aux">{{item[0].paymentId}}</div>
+            </div>
+
+            <label class="layui-form-label content-wd-100"> 购买账号：</label>
+
+            <div class="layui-input-inline">
+                <div class="layui-form-mid layui-word-aux">{{item[0].buyerAccount}}</div>
+            </div>
+
+            <label class="layui-form-label content-wd-100"> 生成人：</label>
+
+            <div class="layui-input-inline content-wd-100">
+                <div class="layui-form-mid layui-word-aux">{{item[0].buyerName}}</div>
+            </div>
+
+            <label class="layui-form-label content-wd-100">本次付款总额：</label>
+
+            <div class="layui-input-inline">
+                <div class="layui-form-mid layui-word-aux">{{item[0].amount}}</div>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">收款方：</label>
+            <div class="layui-input-inline">
+                <div class="layui-form-mid layui-word-aux">{{item[0].partner.name}}</div>
+            </div>
+
+
+            <label class="layui-form-label content-wd-100 layui-disabled">收款方账户：</label>
+            <div class="layui-input-inline layui-disabled">
+                <div class="layui-form-mid layui-word-aux">{{item[0].partnerNo}}</div>
+            </div>
+
+            <label class="layui-form-label content-wd-100 layui-disabled">收款方开户行：</label>
+            <div class="layui-input-inline layui-disabled">
+                <div class="layui-form-mid layui-word-aux">{{item[0].partnerBank}}</div>
+            </div>
+        </div>
+    </form>
+</script>
+<script type="text/html" id="orderTableDetailTpl">
+    {{each item value index}}
+    <div class="orders_item">
+        <div class="orders_btn_check">
+            <input type="checkbox" name="checkbox_group" value="{{value.id}}">
+        </div>
+        <div class="orders_check_detail">
+            <span class="detail_item1_key">购买账号</span>
+            <span class="detail_item1_value"> {{value.buyerAccount}}</span>
+            <span class="detail_item1_key">渠道订单号</span>
+            <span class="detail_item1_value">{{value.platOrdersNo}}</span>
+            <span class="detail_item1_key">生成状态</span>
+            <span class="detail_item1_value">{{value.hasPaymentId}}</span>
+            <span class="detail_item1_key">付款单号：</span>
+            <span class="detail_item1_value">{{value.paymentId}}</span>
+        </div>
+    </div>
+    <div class="orders_item_content">
+        <div class="orders_item_content_busi">
+            <p class="content_item"><span>发生单据/类型</span><span>{{value.changeBillNo}}</span></p>
+            <p class="content_item"><span>目标单据/类型</span><span>{{value.goalBillNo}}</span></p>
+            <p class="content_item"><span>单据负责人</span><span>{{value.buyerName}}</span></p>
+            <p class="content_item"><span>创建时间</span><span>{{value.createAt}}</span></p>
+        </div>
+        <div class="orders_item_content_img">
+            <img src="" alt="">
+        </div>
+        <div class="orders_item_content_custom">
+            <p class="content_item">
+                <span class="orders_item_content_key">产品名：{{value.productTitle}}</span>
+            </p>
+            {{each value.financeItemSkus val2 ind2}}
+            <p class="content_item">
+                <span class="orders_item_content_val">{{val2.skuTitle}}：{{val2.qty}}</span>
+            </p>
+            {{/each}}
+        </div>
+        <div class="orders_item_content_product">
+            <p class="content_item">
+                <span class="orders_item_content_key">收款方:{{value.partner.name}}</span>
+            </p>
+            <p class="content_item">
+                <span class="orders_item_content_key">渠道:{{value.platName}}</span>
+            </p>
+            <p class="content_item">
+                <span class="orders_item_content_key"> 金额:{{value.amount}}</span>
+            </p>
+            <p class="content_item">
+                <span class="orders_item_content_key">本次付款:{{value.payAmount}}</span>
+            </p>
+        </div>
+        <div class="orders_item_content_remark">
+            <p class="content_item">
+                <span class="orders_item_content_key">备注:</span>
+                <span class="orders_item_content_val">查看详情</span>
+            </p>
+        </div>
+    </div>
+    {{/each}}
+</script>
+<div id="payDetail"></div>
+<div id="tableDetail"></div>
+<div id="isPay">
+
+</div>
+
+<!--是否支付的tpl-->
+<script type="text/html" id="isPayTpl">
+    {{if state === undefined ||(state !== 'paid' && state != 'refuse')}}
+    <button class="layui-btn layui-btn-normal nopay_btn" onclick="">暂不支付</button>
+    <button class="layui-btn layui-btn-normal pay_btn">支付</button>
+    {{/if}}
+</script>
+
+<script>
+    layui.use(['layer', 'table', 'element', 'form', 'laydate'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0, {time: 5 * 1000});
+        var table = layui.table;
+        var form = layui.form;
+        var laydate = layui.laydate;
+        var paymentIds=0;
+        form.render();
+
+        $.ajax({
+            type: 'GET',
+            url: "/purchase/common/enumList",
+            dataType: 'json',
+            data: '',
+            success: function (res) {
+                console.log("请求枚举-下拉框数据", res);
+                state_response(res);
+                $("select[name='changeBillType']").append(template('billType-option-tpl', res.item));
+                $("select[name='hasPaymentId']").append(template('generateType-option-tpl', res.item));
+                form.render('select'); //刷新select选择框渲染
+            }
+        });
+        //暂不支付btn
+        $(".nopay_btn").click(function () {
+            layer.close(fin_pay_item_idx);
+        });
+        //支付btn
+        $(".pay_btn").click(function () {
+            layer.confirm('您确定要执行付款操作吗？', {icon: 3, title:'提示'}, function(index){
+                postAjaxBat('/purchase/finance/payment/pay', {paymentIds:paymentIds});
+                layer.close(index);
+            });
+        });
+
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#fin_pay_createTime' //指定元素
+            , type: 'datetime'
+            , range: '~' //或 range: '~' 来自定义分割字符
+            , max: 'new Date()'
+            , theme: 'molv'
+            , ready: function (date) {
+            }
+            , change: function (value, date) { //监听日期被切换
+            }
+            , done: function (value, date, endDate) {
+
+            }
+        });
+        //初始化div模板
+        getGenerateData();
+
+        ///从服务器端取数据，渲染到#table_tb
+        function getGenerateData() {
+            $.ajax({
+                type: "POST",
+                url: "/purchase/finance/payable/findList",
+                dataType: "json",
+                data: {
+                    paymentId: fin_pay_item_data.id
+                },
+                success: function (res) {
+                    layer.close(index);
+                    page_len = res.item && res.item.length;
+                    paymentIds=res.item[0].paymentId;
+                    if (page_len != 0) {
+
+                        $('#payDetail').html(template('finPayItemTpl', res));
+                        $('#tableDetail').html(template('orderTableDetailTpl', res));
+                        $('#isPay').html(template('isPayTpl', fin_pay_item_data));
+                        $("#get_null").hide();
+                    }
+                }
+            });
+        }
+    });
+
+    function postAjaxBat(url, data) {
+        $.ajax({
+            type: 'POST',
+            url: url,
+            dataType: 'json',
+//                    contentType: 'application/json;charset=utf-8',
+            traditional: true,
+            data: data,
+//                    data: JSON.stringify(req),
+            success: function (res) {
+                console.log('...res:' + JSON.stringify(res));
+                state_response(res);
+                getGenerateData();
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                layer.msg('操作失败，请重试');
+            }
+        });
+    }
+
+</script>

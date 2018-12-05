@@ -1,0 +1,169 @@
+<style>
+    .transfer_ml-33{
+        margin-left: 33px;
+    }
+    .transfer_ml-75{
+        margin-left: 75px;
+    }
+
+    td > .layui-table-cell {
+        height: 100px;
+        line-height: 28px;
+        padding: 0 15px;
+        position: relative;
+        overflow-y: auto;
+    }
+</style>
+
+<script id="transferItemTpl" type="text/html">
+    <form class="layui-form ">
+        <div class="layui-form-item">
+            <label class="layui-form-label">调拨单号</label>
+            <div class="layui-form-mid layui-word-aux">{{ id }}</div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">调出仓</label>
+            <div class="layui-form-mid layui-word-aux">{{ outWmsName }}</div>
+            <label class="layui-form-label transfer_ml-33">调入仓</label>
+            <div class="layui-form-mid layui-word-aux">{{ inWmsName }}</div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">调出部门</label>
+            <div class="layui-form-mid layui-word-aux">{{ outDeptName }}</div>
+            <label class="layui-form-label">调入部门</label>
+            <div class="layui-form-mid layui-word-aux">{{ inDeptName }}</div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">创建人</label>
+            <div class="layui-form-mid layui-word-aux">{{ creator }}</div>
+            <label class="layui-form-label transfer_ml-75">创建时间</label>
+            <div class="layui-form-mid layui-word-aux">{{ createAt }}</div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">备注</label>
+            <div class="layui-form-mid layui-word-aux">{{ description }}</div>
+        </div>
+        <label class="layui-form-label">明细</label>
+
+        <table id="transferItemPackTplTable" lay-filter="" style="display: none"></table>
+
+        <table id="transferItemSkuTplTable" lay-filter="" style="display: none"></table>
+
+    </form>
+</script>
+<form class="layui-form " id="transferItemTplFrom"></form>
+
+<script type="text/html" id="sto-transfer-attr-tpl">
+    {{#  layui.each(d.spuList, function(index, item){ }}
+    <div><a href="javascript:;" class="layui-table-link">{{item.innerTitle}}</a></div>
+    {{#  layui.each(item.skuList, function(index, item){ }}
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;{{item.sku}}&nbsp;&nbsp;{{item.attr}}&nbsp;<span class="text-red">x</span>&nbsp;{{item.qty}}
+    </div>
+    {{#  }); }}
+    {{#  }); }}
+</script>
+
+<script type="text/javascript">
+
+    layui.use(['form', 'layer', 'table'], function () {
+        var layer = layui.layer;
+        var formSel = layui.form;
+        var table = layui.table;
+
+        formSel.render();
+
+        console.log('stoTransferItemReq:' + JSON.stringify(stoTransferItemReq));
+
+        $("#transferItemTplFrom").html(template('transferItemTpl', stoTransferItemReq));
+
+        //初始化加载
+        sto_transfer_readLoad(table);
+
+        function sto_transfer_readLoad(table) {
+            switch (stoTransferItemReq.type) {
+                case 0:
+                    console.log('0');
+                case 1:
+                    console.log('1');
+                    sto_transfer_renderSku(table);
+                    break;
+                case 2:
+                    sto_transfer_renderSku(table);
+                    sto_transfer_renderPack(table);
+                    break;
+                case 3:
+                case 4:
+                    sto_transfer_renderPack(table);
+                    break;
+                default:
+            }
+        }
+
+        function sto_transfer_renderPack(table) {
+            table.render({
+                elem: '#transferItemPackTplTable'
+                , url: '/store/transfer/getPackItem' //数据接口
+                , method: 'post'
+                , where: {'tranId': stoTransferItemReq.id}
+                , even: true  //开启隔行背景
+                , page: false //开启分页
+                , request: {
+                    pageName: 'page' //页码的参数名称，默认：page
+                    , limitName: 'limit' //每页数据量的参数名，默认：limit
+                }
+                , response: {
+                    statusName: 'code' //数据状态的字段名称，默认：code
+                    , statusCode: 'OK' //成功的状态码，默认：0
+                    , msgName: 'desc' //状态信息的字段名称，默认：msg
+                    , countName: 'total' //数据总数的字段名称，默认：count
+                    , dataName: 'item' //数据列表的字段名称，默认：data
+                }
+                , cols: [[ //表头
+                    {field: 'id', title: '序号', width: "10%"}
+                    , {field: 'trackingNoOld', title: '运单信息', width: "25%"}
+                    , {field: 'innerName', title: '内部名', width: "23.5%"}
+                    , {templet: '#sto-transfer-attr-tpl', title: '属性值', width: 200, height: 200}
+                    , {field: 'sku', title: 'SKU', width: "10%"}
+                    , {field: 'transitStateName', title: '仓库状态', width: "20%"}
+                ]]
+            });
+            $("#transferItemPackTplTable").show();
+        }
+
+        function sto_transfer_renderSku(table) {
+            table.render({
+                elem: '#transferItemSkuTplTable'
+                , url: '/store/transfer/getTransferItem' //数据接口
+                , method: 'post'
+                , where: {'tranId': stoTransferItemReq.id}
+                , even: true  //开启隔行背景
+                , page: false //开启分页
+                , request: {
+                    pageName: 'page' //页码的参数名称，默认：page
+                    , limitName: 'limit' //每页数据量的参数名，默认：limit
+                }
+                , response: {
+                    statusName: 'code' //数据状态的字段名称，默认：code
+                    , statusCode: 'OK' //成功的状态码，默认：0
+                    , msgName: 'desc' //状态信息的字段名称，默认：msg
+                    , countName: 'total' //数据总数的字段名称，默认：count
+                    , dataName: 'item' //数据列表的字段名称，默认：data
+                }
+                , cols: [[ //表头
+                    {field: 'id', title: '序号', width: "10%"}
+                    , {field: 'spu', title: 'spu信息', width: "25%"}//todo
+//                    , {field: 'innerName', title: '属性值', width: 120}//todo
+                    , {field: 'sku', title: 'SKU', width: "23.5%"}
+                    , {field: 'expectedQty', title: '预调拨数', width: "10%"}
+                    , {field: 'factOutQty', title: '发货数', width: "10%"}
+                    , {field: 'factInQty', title: '入库数', width: "10%"}
+
+                ]]
+            });
+            $("#transferItemSkuTplTable").show();
+        }
+
+    });
+
+</script>

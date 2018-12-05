@@ -1,0 +1,49 @@
+<configuration scanPeriod="60 seconds">
+	<!-- 1.logback首先会试着查找logback.groovy文件; -->
+	<!-- 2.当没有找到时，继续试着查找logback-test.py.xml文件; -->
+	<!-- 3.当没有找到时，继续试着查找logback.xml文件; -->
+	<!-- 4.如果仍然没有找到，则使用默认配置（打印到控制台） -->
+
+	<timestamp key="bySecond" datePattern="yyyy-MM-dd HH:mm:ss" />
+	<property file="project.properties" />
+	<property name="project.app.name" value="orders-server" />
+	<!-- This is used so we can get SEVERE messages logged from 3rd party packages 
+		(guava, jsoup) into zeus.log -->
+	<contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator" />
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+		</layout>
+	</appender>
+
+	<appender name="MAIN"
+			  class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>
+				${user.home}/logs/${project.app.name}/${spring.profiles.active}/${project.app.name}.%d.log.gz
+			</FileNamePattern>
+			<!--<FileNamePattern>${user.home}/logs/erp/${spring.profiles.active}/${project.app.name}.%d.log.gz-->
+			<!--</FileNamePattern>-->
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<charset>UTF-8</charset>
+			<pattern>%date %-5level [%13.13thread] %30.30logger{30} [%file:%line]
+				>>> %msg%n
+			</pattern>
+		</encoder>
+	</appender>
+
+
+
+	<!--开发环境-->
+	<logger name="com.stosz" level="info" />
+	<!--&lt;!&ndash;线上或者预发布&ndash;&gt;-->
+	<!--<logger name="com.stosz.product.mapper" level="info" />-->
+
+	<root level="info">
+		<appender-ref ref="MAIN" />
+		<appender-ref ref="STDOUT" />
+	</root>
+
+</configuration>

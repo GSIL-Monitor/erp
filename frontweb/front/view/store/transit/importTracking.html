@@ -1,0 +1,113 @@
+<br><br>
+<div class="layui-row">
+    <div class="layui-col-md7">
+        <form class="layui-form ">
+            <div class="layui-form-item">
+                <label class="layui-form-label">*仓库</label>
+                <div class="layui-input-inline">
+                    <select name="wmsId" lay-verify="required" id="sto_tran_wmsId">
+
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item layui-form-text">
+                <div class="layui-input-block">
+                    <textarea name="track" lay-verify="required" placeholder="请复制运单号、库位" class="layui-textarea"
+                              style="height: 300px;width:350px"></textarea>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-submit lay-filter="import">导入</button>
+                    <button class="layui-btn" lay-submit lay-filter="duplicate">复制错误信息</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="layui-col-md5">
+        <p class="imp_track_resMeg">结果：</p>
+        <br>
+        <br>
+        <textarea class="imp_track_resDetail" name="imp_track_resDetail" style="height: 300px;width:250px"></textarea>
+    </div>
+</div>
+
+<script type="text/javascript">
+    layui.use(['form', 'layer'], function () {
+        var layer = layui.layer;
+        var formImp = layui.form;
+        formImp.render();
+
+        //转寄仓下拉
+        store_wmsId_option('sto_tran_wmsId', {type: 1});
+
+        //监听提交
+        formImp.on('submit(import)', function (data) {
+
+            console.log("入参:", JSON.stringify(data.field));
+
+            data.field.stockName = $.trim($("#sto_tran_wmsId").find("option:selected").text());
+            data.field.track = $.trim(data.field.track).replace(/\n/g, "|").replace(/\t/g, ",");
+            console.log("入参替代后:", JSON.stringify(data.field));
+
+            $.ajax({
+                type: 'POST',
+                url: "/store/transitStock/importTracking",
+                data: data.field,
+                dataType: 'json',
+                success: function (res) {
+                    console.log("返回值:", JSON.stringify(res));
+                    if (res.code === 'OK') {
+                        var obj = res.item;
+                        var resMsg = '共导入：' + obj.total + '  成功：' + obj.success + '  失败：' + obj.error;
+                        $(".imp_track_resMeg").html(resMsg);
+                        var resObj = '';
+
+                        var err = obj.errDetail;
+//                        console.log("err:" + JSON.stringify(err))
+
+                        for (var key in err) {
+//                            console.log("属性：" + key + ",值：" + err[key]);
+                            resObj += key;
+                            resObj += '\t';
+                            resObj += err[key];
+                            resObj += '\n';
+                        }
+                        console.log("item:" + resObj);
+                        $(".imp_track_resDetail").html(resObj);
+
+                    } else {
+                        layer.msg(res.desc, {icon: 2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                }
+            });
+            return false;
+        });
+
+        //监听提交
+        formImp.on('submit(duplicate)', function (data) {
+            console.log('000000000000000000');
+
+            var copyObj = $("textarea[name='imp_track_resDetail']");
+            copyObj.select(); // 选择对象
+            document.execCommand("Copy"); // 执行浏览器复制命令
+
+            /*if (window.clipboardData) {//如果是IE浏览器
+                window.clipboardData.setData('text', $("textarea").val());
+            } else {//非IE浏览器
+                var clip = new ZeroClipboard.Client();//初始化一个剪切板对象
+                clip.setHandCursor(true);//设置手型游标
+                clip.setText($("textarea").val());//设置待复制的文本内容
+            }*/
+
+            layer.msg('错误信息已复制到粘贴板。');
+//            console.log($("label[name='imp_track_resDetail']").html);
+            return false;
+        });
+    });
+
+</script>

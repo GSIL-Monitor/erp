@@ -1,0 +1,482 @@
+<style>
+    .orders_item_content h4 {
+        font-weight: bolder;
+    }
+
+    .more_btngroup {
+        display: inline-block;
+        padding: 0;
+    }
+
+    .more_btngroup > .layui-nav-item {
+        line-height: 30px;
+    }
+
+    #table_tb {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .more_btngroup > .layui-nav-item > .layui-nav-child {
+        top: 32px;
+    }
+
+    .layui-table-link {
+        cursor: pointer;
+        color: #01AAED;
+    }
+
+    .orders_item_content .border_lf_solid {
+        border-left: 1px solid rgb(174, 216, 255);
+        border-right: 1px solid rgb(174, 216, 255);
+    }
+
+    .readID {
+        display: none;
+    }
+
+    #this_page {
+        margin-top: 10px;
+        width: 49px;
+        height: 23px;
+        display: inline-block;
+        text-align: center;
+    }
+
+    #get_null {
+        text-align: center;
+        height: 500px;
+        display: none;
+        margin-top: 50px;
+    }
+
+    .orders_btn_check, .orders_check_detail, .orders_item_content_detail {
+        float: left;
+    }
+
+    .orders_more_operate {
+        float: left;
+        margin-top: 10px;
+    }
+
+    .orders_item_content .adjust_height {
+        height: 150px;
+    }
+
+    .orders_item_content_detail {
+        box-sizing: border-box;
+        width: 20%;
+        padding-top: 10px;
+        padding-left: 20px;
+        height: 110px;
+    }
+
+    .orders_item:after, .orders_item_content:after {
+        content: "";
+        display: block;
+        clear: both;
+    }
+
+    .orders_item_content_val {
+        margin-right: 20px;
+    }
+
+    .detail_item1_key {
+        margin-right: 10px;
+    }
+
+    .detail_item1_value {
+        margin-right: 20px;
+    }
+
+    .bg_romatic {
+        background: #FF5722;
+        display: inline-block;
+        color: #fff;
+        padding: 2px 5px 2px 5px;
+        border-radius: 3px;
+    }
+
+    .orders_item {
+        background: rgb(174, 216, 255);
+        padding-top:12px;
+    }
+
+    .orders_hover_bg {
+        background: rgb(174, 216, 255);
+        border: 1px solid rgb(174, 216, 255);
+    }
+
+    .orders_item_content.hover_border {
+        border: 1px solid rgb(174, 216, 255);
+    }
+
+    .orders_item_content {
+        margin-bottom: 26px;
+        border: 1px solid #f2f2f2;
+
+    }
+
+    .orders_item.orders_nomsg {
+        padding-bottom: 0;
+        padding-top: 0;
+    }
+
+    .orders_btn_check {
+        text-align: center;
+        padding: 10px;
+    }
+
+    .orders_check_detail {
+        padding-top: 6px;
+    }
+
+    .orders_check_detail_item2 {
+        margin-top: 5px;
+    }
+
+    .orders_item_content_custom {
+        float: left;
+        width: 15%;
+        height: 110px;
+        border-left: 1px solid #F2F2F2;
+        border-right: 1px solid #F2F2F2;
+        padding-left: 20px;
+        padding-top: 10px;
+        box-sizing: border-box;
+        padding-bottom: 10px;
+    }
+
+    .content_item {
+        margin-top: 10px;
+    }
+
+    .content_item:after {
+        content: '';
+        display: block;
+        clear: both;
+    }
+
+    .orders_item_content_busi {
+        height: 110px;
+        border-left: 1px solid #F2F2F2;
+        padding-bottom: 10px;
+        float: left;
+        width: 25%;
+        padding-left: 20px;
+        padding-top: 10px;
+        box-sizing: border-box;
+    }
+    .orders_item_content_img{
+        width: 15%;
+        float: left;
+    }
+    .orders_item_content_img img{
+        width: 100%;
+    }
+    .orders_item_content_money{
+        width: 15%;
+        float: left;
+    }
+    .orders_item_content_remark{
+        width: 15%;
+        float: left;
+    }
+    .orders_item_content_product {
+        padding-bottom: 10px;
+        width: 15%;
+        float: left;
+        height: 110px;
+        border-right: 1px solid #F2F2F2;
+        padding-left: 20px;
+        padding-top: 10px;
+        box-sizing: border-box;
+    }
+
+    .detail_item1_value {
+        margin-right: 20px;
+    }
+
+    .spu_unit_wrap {
+        height: 20px;
+        overflow: hidden;
+    }
+
+    .ellipsis_class {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 50%;
+    }
+
+    .show_spu_unitbtn {
+        position: absolute;
+        top: 1px;
+        left: 50%;
+    }
+    .fin_pur_detail{
+        color: rgb(174, 216, 255);
+        cursor: pointer;
+    }
+</style>
+<br>
+<div class="layui-form">
+
+    <div class="layui-form-item">
+
+        <label class="layui-form-label">付款单号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="id" lay-verify="" placeholder="请输订单号" autocomplete="off"
+                   class="layui-input">
+        </div>
+
+        <label class="layui-form-label">发生单据负责人</label>
+        <div class="layui-input-inline">
+            <input type="text" name="changeUserName" lay-verify="" placeholder="请输发生单据负责人" autocomplete="off"
+                   class="layui-input">
+        </div>
+
+        <label class="layui-form-label">支付状态</label>
+        <div class="layui-input-inline">
+            <select id="sto_department_select_zone" name="state">
+                <option value="">所有</option>
+                <option value="0">待支付</option>
+                <option value="1">已支付</option>
+            </select>
+        </div>
+
+        <label class="layui-form-label">付款类型</label>
+        <div class="layui-input-inline">
+            <select id="payment_type" name="type">
+                <option value="">所有</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <button class="layui-btn" lay-submit lay-filter="fin_pur_search">搜索</button>
+        <button class="layui-btn" lay-submit lay-filter="fin_payment_reject">拒绝</button>
+        <button class="layui-btn" lay-submit lay-filter="fin_payment_paid">付款</button>
+        <button class="layui-btn" lay-submit lay-filter="fin_pur_export">导出</button>
+        <button class="layui-btn" lay-submit lay-filter="fin_pur_stattis">显示统计信息</button>
+    </div>
+</div>
+<table id="demo" lay-filter="fin_pur_tab"></table>
+
+<script id="paymentTypeEnum" type="text/html">
+    {{each payTypeEnum value index}}
+    <option value="{{value.ordinal}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<script type="text/html" id="payTypeTpl">
+    {{d.payTypeEnum.display}}
+</script>
+<script type="text/html" id="">
+    {{d.wmsTypeEnum.display}}
+</script>
+<script type="text/html" id="paymentStateEnum">
+    {{#  if(d.state=='paid'){ }}
+    已支付
+    {{#  } }}
+    {{#  if(d.state=='wait_paid'){ }}
+    待支付
+    {{#  } }}
+
+</script>
+
+<script type="text/html" id="fin_pur_option">
+    <a class="layui-btn layui-btn-xs" lay-event="fin_pur_delete">删除</a>
+    <a class="layui-btn layui-btn-xs" lay-event="fin_pur_detail">查看</a>
+</script>
+
+<script>
+    var fin_pur_que_para = "", fin_pur_table;
+    /*    var _query_id, sto_addWms_index;
+        var sto_wms_edit_sel_data = null;*/
+    layui.use(['layer', 'table', 'element', 'form'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0, {time: 5 * 1000});
+        var table = layui.table;
+        var form = layui.form;
+        form.render();
+           $.ajax({
+               type: 'GET',
+               url: "/purchase/common/enumList",
+               dataType: 'json',
+               data: '',
+               success: function (res) {
+                   console.log("请求枚举-下拉框数据", res);
+                   state_response(res);
+                   $("#payment_type").append(template('paymentTypeEnum', res.item));
+                   form.render('select'); //刷新select选择框渲染
+               }
+           });
+
+        //第一个实例
+        fin_pur_table = table.render({
+            elem: '#demo'
+            , id: 'demo'
+            , url: '/purchase/finance/payment/findList' //数据接口
+            , method: 'post'
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , done: function (res, curr, count) {
+                layer.close(index);
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , page: true //开启分页
+            , cols: [[ //表头
+                {checkbox: true}
+                , {field: 'id', title: '付款单号'}
+                , {field: 'payUserName', title: '发生单据负责人'}
+                , {field: 'state', title: '支付状态',templet: '#paymentStateEnum', align: 'center'}
+                , {field: 'payUser', title: '支付人'}
+                , {field: 'payTime', title: '支付时间'}
+                , {field: 'amount', title: '本次支付金额'}
+                , {field: '', title: '操作', templet: '#fin_pur_option', align: 'center', fixed: 'right', width: 200}
+            ]]
+        });
+
+        //监听查询
+        form.on('submit(fin_pur_search)', function (data) {
+            fin_pur_que_para = data.field;
+//            minCreateAt=
+            //上述方法等价于
+            table.reload('demo', {
+                where: fin_pur_que_para    //设定异步数据接口的额外参数，任意设
+                , page: {
+                    offset: 1 //重新从第 1 页开始
+                }
+            });
+            return false;
+        });
+
+        //拒绝
+        form.on('submit(fin_payment_reject)', function (data) {
+            console.log(JSON.stringify(data.field));
+            var checkStatus = table.checkStatus('demo'); //test即为基础参数id对应的值
+            console.log('checkStatus:' + JSON.stringify(checkStatus));
+            var paymentIds = new Array();
+            if (checkStatus.data.length) {
+                var err = 0;
+                $.each(checkStatus.data, function (i, n) {
+                    if (n.payType==1) {
+                        layer.msg('付款单：[' + n.id + ']已付款，不能再拒绝，请重新勾选', {icon: 3});
+                        err++;
+                    }
+                    paymentIds.push(n.id);
+                });
+                if (err > 0) {
+                    return false;
+                }
+
+                layer.confirm('您确定要执行拒绝操作吗？', {icon: 3, title:'提示'}, function(index){
+                    postAjaxBat('/purchase/finance/payment/refuse', {paymentIds:paymentIds});
+                    layer.close(index);
+                });
+
+
+            } else {
+                layer.msg('请勾选要操作的行', {icon: 3});
+            }
+            return false;
+        });
+
+        //付款
+        form.on('submit(fin_payment_paid)', function (data) {
+            console.log(JSON.stringify(data.field));
+            var checkStatus = table.checkStatus('demo'); //test即为基础参数id对应的值
+            console.log('checkStatus:' + JSON.stringify(checkStatus));
+            var paymentIds = new Array();
+            if (checkStatus.data.length) {
+                var err = 0;
+                $.each(checkStatus.data, function (i, n) {
+                    if (n.payType!=0) {
+                        layer.msg('付款单：[' + n.id + ']状态不为待支付，不能进行付款，请重新勾选', {icon: 3});
+                        err++;
+                    }
+                    paymentIds.push(n.id);
+                });
+                if (err > 0) {
+                    return false;
+                }
+              /*  paymentIds.toString().replaceAll("[","").replaceAll("]","");*/
+                layer.confirm('您确定要执行付款操作吗？', {icon: 3, title:'提示'}, function(index){
+                    postAjaxBat('/purchase/finance/payment/pay', {paymentIds:paymentIds});
+                    layer.close(index);
+                    table.reload('fin_pur_tab');
+                });
+
+
+            } else {
+                layer.msg('请勾选要操作的行', {icon: 3});
+            }
+            return false;
+        });
+
+        //监听工具条
+        table.on('tool(fin_pur_tab)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+            console.log('data:' + JSON.stringify(data));
+
+            if (layEvent === 'fin_pur_detail') { // 查看详情
+                fin_pay_item_data = data;
+                console.log("fin_pay_item_data",fin_pay_item_data);
+                showDetail('view/purchase/finance/payableItem.html');
+            }else {
+                if (data.payType==1) {
+                    layer.msg('付款单：[' + n.id + ']已支付，不能删除', {icon: 3});
+                }else {
+                    layer.confirm('您确定要执行删除操作吗？', {icon: 3, title:'提示'}, function(index){
+                        postAjaxBat('/purchase/finance/payment/delete', {paymentId:data.id});
+                        layer.close(index);
+                    });
+                }
+            }
+        });
+
+        function showDetail(url) {
+            $.get(url, function (str) {
+                fin_pay_item_index = layer.open({
+                    type: 1
+                    , title: '详情信息'
+                    , content: str //注意，如果str是object，那么需要字符拼接。
+                    , maxmin: true
+                    , area: ['65%', '80%']
+                });
+            });
+        }
+
+        function postAjaxBat(url, data) {
+            $.ajax({
+                type: 'POST',
+                url: url,
+                dataType: 'json',
+//                    contentType: 'application/json;charset=utf-8',
+                traditional: true,
+                data: data,
+//                    data: JSON.stringify(req),
+                success: function (res) {
+                    console.log('...res:' + JSON.stringify(res));
+                    state_response(res);
+                    layer.msg('删除成功');
+                    table.reload('fin_pur_tab');
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    layer.msg('操作失败，请重试');
+                }
+            });
+        }
+    });
+</script>
+

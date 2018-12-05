@@ -1,0 +1,82 @@
+<div class="layui-form border1ccc padding30">
+    <div class="layui-form-item">
+        <label class="layui-form-label">部门</label>
+        <div class="layui-input-inline">
+            <select lay-search name="departmentId" id="deptZoneRel_department_add">
+                <option value="">不限</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">地区</label>
+        <div class="layui-input-inline" >
+            <select lay-search name="zoneId" id="deptZoneRel_zoneId_add">
+                <option value="">不限</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="addDeptZoneRelForm"><i class="layui-icon">&#xe618;</i>确认</button>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    layui.use(['form','table'], function () {
+        var product_addDeptZoneRel_form = layui.form;
+        var product_addDeptZoneRel_table = layui.table;
+        product_addDeptZoneRel_form.render();
+
+        //部门
+        $.ajax({
+            type: 'GET',
+            url: "/admin/department/query",
+            dataType: 'json',
+            success: function (res) {
+                $("#deptZoneRel_department_add").append(template('deptZoneRel_add_option_deptTpl', res));
+                product_addDeptZoneRel_form.render();
+            }
+        });
+        //地区
+        $.ajax({
+            type: 'GET',
+            url: "/product/base/zone/findAll",
+            dataType: 'json',
+            success: function (res) {
+                $("#deptZoneRel_zoneId_add").append(template('deptZoneRel_add_option_zoneTpl', res));
+                product_addDeptZoneRel_form.render();
+            }
+        });
+        //监听提交
+        product_addDeptZoneRel_form.on('submit(addDeptZoneRelForm)', function (data) {
+            $.ajax({
+                type: 'POST',
+                url: "/product/base/departmentZoneRel/add",
+                data: data.field,
+                dataType: 'json',
+                success: function (res) {
+                    if(res.code==='NOTICE') {
+                        layer.close(index);         //此时你只需要把获得的index，轻轻地赋予layer.close即可
+                        product_addDeptZoneRel_table.reload('deptZoneRelId');
+                        layer.msg('新增成功', {icon: 1});
+                    }else{
+                        layer.msg(res.desc,{icon:2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                }
+            });
+            return false;
+        });
+    });
+</script>
+<script id="deptZoneRel_add_option_deptTpl" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.departmentName}}</option>
+    {{/each}}
+</script>
+<script id="deptZoneRel_add_option_zoneTpl" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.title}}</option>
+    {{/each}}
+</script>

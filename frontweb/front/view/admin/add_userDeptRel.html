@@ -1,0 +1,89 @@
+<div class="layui-form padding30">
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户</label>
+        <div class="layui-input-inline">
+            <input name="userId" class="auto_complateval layui-hide" >
+            <input type="text" class="auto_matchinput layui-input" style="width: 196px"
+                   oninput="input_match(this)"  onblur="blur_event(this)" />
+            <div class="auto_matchwrap layui-anim layui-anim-upbit layui-select-group" style="display: none; position: absolute;background-color: #fff;z-index: 999; ">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">部门</label>
+        <div class="layui-input-inline">
+            <select id="add_department_treenode_dept" name="departmentId">
+                <option value=""></option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="addUserDeptRel_Form">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    var add_userDeptRel_form;
+    tree_formDept('add_department_treenode_dept','id');
+    layui.use(['form', 'table'], function () {
+         add_userDeptRel_form = layui.form;
+        var add_userDeptRel_table = layui.table;
+//        add_userDeptRel_form.render();
+        add_userDeptRel_form.on('submit(addUserDeptRel_Form)',function (data) {
+            $.ajax({
+                type: 'POST',
+                url: "/admin/userDepartmentRel/add",
+                dataType: 'json',
+                data: {
+                    userId:data.field.userId,
+                    departmentId:data.field.departmentId
+                },
+                success: function (res) {
+                    layer.close(add_userDeptRel_index); //此时你只需要把获得的index，轻轻地赋予layer.close即可
+                    layer.msg('新增成功', {icon: 1});
+                    add_userDeptRel_table.reload('idTest');
+                }
+            });
+        })
+    });
+
+    function add_userDeptRel_reflash() {
+        $.ajax({
+            type: 'GET',
+            url: "/admin/user/userAutoComplement?condition=",
+            dataType: 'json',
+            success: function (res) {
+//                logout_redirect(res);
+                $("#addUserDeptRel_autocomplete").append(template('add_userDeptRel_option_tpl1', res));
+                add_userDeptRel_form.render();
+            }
+        });
+        $.ajax({
+            type: 'GET',
+            url: "/admin/department/query",
+            dataType: 'json',
+            success: function (res) {
+//                logout_redirect(res);
+                $("#addUserDeptRel_departmentName").append(template('add_userDeptRel_option_tpl2', res));
+                add_userDeptRel_form.render();
+            }
+        });
+
+    }
+</script>
+
+
+<script id="add_userDeptRel_option_tpl1" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.lastname}}</option>
+    {{/each}}
+</script>
+
+<script id="add_userDeptRel_option_tpl2" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.departmentName}}</option>
+    {{/each}}
+</script>

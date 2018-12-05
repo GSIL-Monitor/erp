@@ -1,0 +1,209 @@
+<div class="layui-fluid">
+    <br>
+    <div class="layui-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label">用户</label>
+            <div class="layui-input-inline">
+                <input  class="auto_complateval layui-hide" >
+                <input name="username" type="text" class="auto_matchinput layui-input" style="width: 196px"
+                       oninput="input_match(this)"  onblur="blur_event(this)" />
+                <div class="auto_matchwrap layui-anim layui-anim-upbit layui-select-group" style="display: none; position: absolute;background-color: #fff;z-index: 999; ">
+                </div>
+            </div>
+            <label class="layui-form-label">部门</label>
+            <div class="layui-input-inline">
+                <select id="department_treenode_dept" name="departmentId">
+                    <option value=""></option>
+                </select>
+            </div>
+            <label class="layui-form-label">是否有效</label>
+            <div class="layui-input-inline">
+                <select name="usable" id="userDeptRel_usable">
+                    <option value="">不限</option>
+                    <option value="false">无效</option>
+                    <option value="true">有效</option>
+                </select>
+            </div>
+            <div class="layui-input-inline">
+                <button class="layui-btn" lay-submit lay-filter="user_search">搜索</button>
+                <button class="layui-btn layui-btn-normal" onclick="addUserDepartmentRelBtn()" id="add_userdeptrel">新增</button>
+            </div>
+
+        </div>
+    </div>
+
+    <table id="demo" lay-filter="test"></table>
+
+
+</div>
+
+<script>
+    //Demo
+    tree_formDept('department_treenode_dept','id');
+    var add_userDeptRel_index;
+    layui.use(['layer','form','table','element'], function () {
+        var userDeptRel_layer = layui.layer;
+        var userDeptRel_index = userDeptRel_layer.load(0,{time:5*1000});
+        var userDeptRel_form = layui.form;
+        var userDeptRel_table = layui.table;
+        $.ajax({
+            type: 'GET',
+            url: "/admin/user/userAutoComplement?search=",
+            dataType: 'json',
+            success: function (res) {
+                console.log("获取模糊匹配下拉框数据", res);
+//                logout_redirect(res);
+                $("#userDeptRel_autocomplete").append(template('userDeptRel_option_tpl1', res));
+                userDeptRel_form.render(); //刷新select选择框渲染
+            }
+        });
+        $.ajax({
+            type: 'GET',
+            url: "/admin/department/query",
+            dataType: 'json',
+            success: function (res) {
+                console.log("获取模糊匹配下拉框数据", res);
+//                logout_redirect(res);
+                $("#userDeptRel_departmentName").append(template('userDeptRel_option_tpl2', res));
+                userDeptRel_form.render(); //刷新select选择框渲染
+            }
+        });
+
+        var tableTest = userDeptRel_table.render({
+            elem: '#demo'
+            ,id:'idTest'
+            ,url: "/admin/userDepartmentRel/find"
+            , even: true //开启隔行背景
+            , method: 'POST'
+            , height: 'full-200'
+            , request: {
+                pageName: 'start' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , page: true //关闭分页
+            , done: function (res, curr, count) {
+                var element = layui.element;
+                element.init();
+
+                userDeptRel_layer.close(userDeptRel_index);
+            }
+            , cols: [[ //表头
+                {type:'numbers'}
+                , {field: 'userId', title: '用户ID'}
+                , {field: 'username', title: '用户名称' }
+                , {field: 'departmentName', title: '部门名称'}
+                , {field: 'departmentNo', title: '部门编号'}
+                , {field:'',title:'状态', align:'center', toolbar: '#usableDemo'} //这里的toolbar值是模板元素的选择器
+                , {field:'',fixed: 'right',title:'操作', align:'center', toolbar: '#barDemo'} //这里的toolbar值是模板元素的选择器
+            ]]
+                , response: {
+                    statusName: 'code' //数据状态的字段名称，默认：code
+                    , statusCode: 'OK' //成功的状态码，默认：0
+                    , msgName: 'desc' //状态信息的字段名称，默认：msg
+                    , countName: 'total' //数据总数的字段名称，默认：count
+                    , dataName: 'item' //数据列表的字段名称，默认：data
+                }
+        });
+
+        //监听工具条
+        userDeptRel_table.on('tool(test)', function(obj){ //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值
+            if(layEvent === 'del') {
+                userDeptRel_layer.confirm('确认删除该元素么?', function (userDeptRel_index) {
+                    obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
+                    userDeptRel_layer.close(userDeptRel_index);
+                    //向服务端发送删除指令
+                    $.ajax({
+                        type: 'POST',
+                        url: "/admin/userDepartmentRel/delete",
+                        data: {
+                            id: data.id
+                        },
+                        dataType: 'json',
+                        success: function (res) {
+                            console.log("删除返回结果", res);
+                            userDeptRel_layer.msg('删除成功', {icon: 1});
+                        }
+                    });
+                });
+
+            }
+        });
+
+        //监听状态操作
+        userDeptRel_form.on('switch(usableDemo)', function(obj){
+//            向服务端发送修改指令
+                    $.ajax({
+                        type : 'POST',
+                        url : "/admin/userDepartmentRel/update",
+                        data: {
+                            id:this.value,
+                            usable:obj.elem.checked
+                        },
+                        dataType : 'json',
+                        success : function(res){
+                            userDeptRel_layer.msg('修改成功', {icon: 1});
+                        }
+                    });
+        });
+
+
+        userDeptRel_form.on('submit(user_search)',function (obj) {
+//            layer.msg(obj.field.userId+obj.field.departmentName+obj.field.usable);
+            tableTest.reload({
+                where: {
+                    page: 1,
+                    username:obj.field.username,
+                    departmentId:obj.field.departmentId,
+                    usable:obj.field.usable}    //设定异步数据接口的额外参数，任意设
+                , page: {
+                    start: 1 //重新从第 1 页开始
+                }
+            });
+            return false;
+        })
+
+    });
+
+    function addUserDepartmentRelBtn() {
+        $.get('view/admin/add_userDeptRel.html', function(str){
+            console.log("我执行了。。。。。");
+            add_userDeptRel_index = layer.open({
+                type: 1
+                ,tipsMore:false
+                ,title :'新增用户部门关系'
+                ,content: str //注意，如果str是object，那么需要字符拼接。
+                ,maxmin: true
+                ,area: ['60%','40%']
+                ,success: function(layero, index){
+                    console.log(layero, index);
+                    add_userDeptRel_reflash();
+                }
+            });
+        });
+    }
+
+
+</script>
+
+<script type="text/html" id="barDemo">
+    <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del" style="text-align: center;">删除</button>
+</script>
+
+<script type="text/html" id="usableDemo">
+    <input type="checkbox" name="usable" value="{{d.id}}" lay-skin="switch" lay-text="有效|无效" lay-filter="usableDemo" {{ d.usable  ? 'checked' : '' }}>
+</script>
+
+
+<script id="userDeptRel_option_tpl1" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.lastname}}</option>
+    {{/each}}
+</script>
+
+<script id="userDeptRel_option_tpl2" type="text/html">
+        {{each item value index}}
+    <option value="{{value.departmentName}}">{{value.departmentName}}</option>
+    {{/each}}
+</script>

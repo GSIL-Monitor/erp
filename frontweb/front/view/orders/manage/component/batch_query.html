@@ -1,0 +1,105 @@
+<style type="text/css">
+    .form-item-model{
+        width: 90%;
+        margin-top: 20px;
+    }
+    .star-cls{
+        color:#FF0000;
+    }
+</style>
+</br>
+<div class="layui-form form-item-model">
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="star-cls">*</span>类型</label>
+        <div class="layui-input-block">
+            <input type="radio" name="type" value="0" title="运单号" checked="">
+            <input type="radio" name="type" value="1" title="订单流水号">
+            <input type="radio" name="type" value="2" title="联系电话">
+        </div>
+    </div>
+
+
+
+    <div class="layui-form-item">
+        <!-- <label class="layui-form-label">备注</label> -->
+        <div class="layui-input-block" >
+            <textarea name="content" lay-verify="required" rows="18" placeholder="多条记录以回车隔开"  class="layui-textarea"></textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button type="button" onclick="closeEditForm()" class="layui-btn layui-btn-primary">取消</button>
+            <button class="layui-btn" type="button"   lay-submit lay-filter="submitBatchQuery">确定</button>
+        </div>
+    </div>
+</div>
+<br>
+
+
+
+<script>
+    layui.use(['form'], function(){
+        var form = layui.form;
+        form.render(); //更新全部
+        
+        form.on('submit(submitBatchQuery)', function(data){
+            var filed = data.field;
+            batchQueryType =  data.type;
+            $('button').addClass("layui-disabled");
+            $('button').attr("disabled","disabled")
+            $.ajax({
+                type: 'POST',
+                url : "/orders/orders/batch_query",
+                data: filed,
+                dataType: 'json',
+                success: function(data){
+                    if(data.code == "FAIL"){
+                        $('button').removeAttr("disabled");
+                        $('button').removeClass("layui-disabled");
+                        layer.msg(data.desc);
+                        return ;
+                    }
+                    batchQueryResult = data.item;
+                    batchQueryType = filed.type;
+                    layer.close(modalIndex);
+
+                    //创建新弹窗
+                    $.get('view/orders/manage/component/batch_query_result.html', function (str) {
+                        modalIndex = layer.open({
+                            type: 1
+                            ,title: '查询结果'
+                            , content: str //注意，如果str是object，那么需要字符拼接。
+                            , maxmin: true
+                            , area: ['65%','80%']
+                            ,success: function(layero, index){
+                                layero.find('.layui-btn').css('text-align', 'right');
+                                $('button').removeAttr("disabled");
+                                $('button').removeClass("layui-disabled");
+                                
+                            }
+                        });
+                    });
+                },
+                error: function(data){
+                    $('button').removeAttr("disabled");
+                    $('button').removeClass("layui-disabled");
+                    layer.msg(data.desc);
+                }
+            })
+            return false;
+        });
+
+
+
+    });
+
+    function closeEditForm(){
+        layer.close(modalIndex);
+    }
+    
+
+
+
+</script>
+

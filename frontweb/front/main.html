@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ERP管理系统</title>
+    <link rel="stylesheet" href="style/main.css">
+    <link rel="stylesheet" href="lib/layui/css/layui.css">
+    <style type="text/css">
+          .layui-body{overflow-y: scroll;}
+          #view_container{
+              bottom: 0px;
+          }
+          .layui-layout-left {
+              left: 350px;
+          }
+          #tooglesidebarbtn{
+              position: absolute!important;
+              left: 200px;
+              top: 20px;
+              color: #fff;
+              cursor: pointer;
+          }
+          #amplify_img_mask{
+              position: fixed;
+              z-index: 99999999;
+              width: 100%;
+              height: 100%;
+              background: rgba(0,0,0,.85);
+              display: none;
+          }
+          #amplify_img{
+              position: absolute;
+              left: 0;
+              top: 0;
+              right: 0;
+              bottom: 0;
+              margin: auto;
+              height: 60%;
+              width: auto;
+          }
+    </style>
+</head>
+<body class="layui-layout-body">
+    <div id="amplify_img_mask">
+          <img id="amplify_img">
+    </div>
+    <div class="layui-layout layui-layout-admin">
+      <div class="layui-header">
+        <div class="layui-logo">
+                布谷鸟ERP管理系统
+        </div>
+        <span  onselectstart="return false" onclick="tooglesidebar(this);" id="tooglesidebarbtn">隐藏侧边栏</span>
+        <!-- 头部区域（可配合layui已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left" id="top-navwrap">
+          
+        </ul>
+        <ul class="layui-nav layui-layout-right">
+          <li class="layui-nav-item" id="user-info">        
+              贤心        
+          </li>
+          <li class="layui-nav-item"><a href="/admin/logout">注销</a></li>
+        </ul>
+      </div>
+      
+      <div id="sidebar_wrap" class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+          <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+          <ul id="left-navwrap" class="layui-nav layui-nav-tree"  lay-filter="test">
+            <!-- <li class="layui-nav-item layui-nav-itemed">
+              <a class="" href="javascript:;">所有商品</a>
+              <dl class="layui-nav-child">
+                <dd><a href="javascript:;">列表一</a></dd>
+                <dd><a href="javascript:;">列表二</a></dd>
+                <dd><a href="javascript:;">列表三</a></dd>
+              </dl>
+            </li>
+            <li class="layui-nav-item">
+              <a href="javascript:;">解决方案</a>
+              <dl class="layui-nav-child">
+                <dd><a href="javascript:;">列表一</a></dd>
+                <dd><a href="javascript:;">列表二</a></dd>
+              </dl>
+            </li>
+            <li class="layui-nav-item"><a href="javascript:;">云市场</a></li>
+            <li class="layui-nav-item"><a href="javascript:;">发布商品</a></li> -->
+          </ul>
+        </div>
+      </div>
+      
+      <div class="layui-body" id="view_container">
+        <!-- 内容主体区域 -->
+        <div style="padding: 15px;">内容主体区域</div>
+      </div>
+    </div>
+
+
+<script src="lib/layui/layui.js"></script>
+<script src="lib/jquery/jquery.min.js"></script>
+<script src="lib/arttemplate/arttemplate.min.js"></script>
+<!-- <script src="data.js"></script> -->
+<script src="view/baseurl.js"></script>
+<script id="top-navtpl" type="text/html">
+   {{each item value index}}
+        {{if index == 0}}
+   			      <li class="layui-nav-item layui-this"><a class="top-navbtn" href="javascript:;" data-host={{value.httpPrefix}} data-link={{value.keyword}}>{{value.name}}</a></li>
+        {{else}}
+              <li class="layui-nav-item"><a class="top-navbtn" href="javascript:;" data-host={{value.httpPrefix}} data-link={{value.keyword}}>{{value.name}}</a></li>
+        {{/if}}
+   {{/each}}
+</script>
+
+<script id="left-navtpl" type="text/html">   
+    {{each children value index}}
+        {{if value.children}}
+            {{if index == 0}}
+                <li class="layui-nav-item layui-nav-itemed">
+                        <a href="javascript:;">{{value.name}}</a>
+                        <dl class="layui-nav-child">
+                              {{each value.children val idx}}
+                                  {{if idx == 0}}
+                                      <dd class="layui-this"><a class="link_btn" href="javascript:;" data-id={{val.id}} data-url={{val.url}}>{{val.name}}</a></dd>
+                                  {{else}}
+                                      <dd><a class="link_btn" href="javascript:;" data-id={{val.id}} data-url={{val.url}}>{{val.name}}</a></dd>
+                                  {{/if}}
+                              {{/each}}
+                        </dl> 
+                </li>
+            {{else}}
+                <li class="layui-nav-item layui-nav-itemed">
+                        <a href="javascript:;">{{value.name}}</a>
+                        <dl class="layui-nav-child">
+                              {{each value.children val idx}}
+                              <dd><a class="link_btn" href="javascript:;" data-id={{val.id}} data-url={{val.url}}>{{val.name}}</a></dd>
+                              {{/each}}
+                        </dl> 
+                </li>
+            {{/if}}
+        {{else}}
+            {{if index == 0}}
+                <li class="layui-nav-item layui-this"><a class="link_btn" href="javascript:;" data-id={{value.id}} data-url={{value.url}}>{{value.name}}</a></li>
+            {{else}}
+                <li class="layui-nav-item"><a class="link_btn" href="javascript:;" data-id={{value.id}} data-url={{value.url}}>{{value.name}}</a></li>
+            {{/if}}
+        {{/if}}
+    {{/each}} 
+</script>
+
+<!-- 输入自动完成组件 -->
+<script type="text/html" id="position-nametpl">
+        {{each item value index}}
+        <p onclick="insert_val(this,event);" data-id="{{value.id}}">{{value.name}}</p>
+        {{/each}}
+</script>
+
+<!-- 树形下拉返回组件 -->
+<script id="select_deptTree_tpl" type="text/html">
+    {{each item.children value index}}
+          <option value="{{returnedParam ==='id'? value.id : value.no}}">{{value.name}}</option>
+          {{if value.leaf == false}}
+                <optgroup label="&nbsp;&nbsp;&nbsp;&nbsp;{{value.name}}">
+                    {{each value.children val idx}}
+                        <option value="{{returnedParam ==='id'? val.id : val.no}}">&nbsp;&nbsp;&nbsp;&nbsp;{{val.name}}</option>
+                        {{if val.leaf == false}}                  
+                  <optgroup label="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{val.name}}">
+                              {{each val.children val2 idx2}}                       
+                                      <option value="{{returnedParam ==='id'? val2.id : val2.no}}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{val2.name}}</option>
+                              {{/each}}
+                          </optgroup>
+                        {{/if}}
+                    {{/each}}
+                </optgroup>
+          {{/if}}
+    {{/each}}
+</script>
+
+<!--仓库下拉模版-->
+<script id="wmsId-option-tpl" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.name}}</option>
+    {{/each}}
+</script>
+
+
+
+<script id="option-shippingWayId-tpl" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.shippingWayName}}</option>
+    {{/each}}
+</script>
+
+<!-- 区域下拉组件模板 -->
+<script id="select_zone_tpl" type="text/html">
+    {{each item value index}}
+    <option value="{{outParam ==='code'? value.code : value.id}}">{{value.title}}</option>
+    {{/each}}
+</script>
+
+<!--产品中心:状态机历史模板-->
+<script id="product_fsmHistory" type="text/html">
+    <div>
+        <table id="product_fsmHistory_tableId" lay-filter="product_fsmHistory_table"></table>
+    </div>
+</script>
+
+
+<!--结束状态模板-->
+<script id="productCenter_srcStateTpl" type="text/html">
+    {{#  if(d.srcState === 'start'){ }}
+    <span>开始</span>
+    {{# } else if(d.srcState === 'draft'){ }}
+    <span>草稿</span>
+    {{# } else if(d.srcState === 'waitAssign'){ }}
+    <span>待细化分类</span>
+    {{# } else if(d.srcState === 'waitImageMatch'){ }}
+    <span>待图片匹配</span>
+    {{# } else if(d.srcState === 'waitCheck'){ }}
+    <span>待排查</span>
+    {{# } else if(d.srcState === 'checkOk'){ }}
+    <span>通过</span>
+    {{# } else if(d.srcState === 'checkWarn'){ }}
+    <span>有风险</span>
+    {{# } else if(d.srcState === 'duplication'){ }}
+    <span>重复产品</span>
+    {{# } else if(d.srcState === 'waitApprove'){ }}
+    <span>待审批</span>
+    {{# } else if(d.srcState == 'disappeared'){ }}
+    <span>已消档</span>
+    {{# } else if(d.srcState === 'archived'){ }}
+    <span>已建档</span>
+    {{# } else if(d.srcState === 'cancel'){ }}
+    <span>取消</span>
+    {{# } else if(d.srcState === 'waitFill'){ }}
+    <span>待填充</span>
+    {{# } else if(d.srcState === 'archiving'){ }}
+    <span>建档中</span>
+    {{# } else if(d.srcState === 'onsale'){ }}
+    <span>已上架</span>
+    {{# } else if(d.srcState === 'disappeared'){ }}
+    <span>已消档</span>
+    {{# } else { }}
+    <span>{{d.srcState}}</span>
+    {{#  } }}
+</script>
+<!--事件模板-->
+<script id="productCenter_eventTpl" type="text/html">
+    {{#  if(d.eventName === 'create'){ }}
+    <span>创建</span>
+    {{# } else if(d.eventName === 'submit'){ }}
+    <span>提交</span>
+    {{# } else if(d.eventName === 'verify'){ }}
+    <span>审核</span>
+    {{# } else if(d.eventName === 'assign'){ }}
+    <span>细化分类</span>
+    {{# } else if(d.eventName === 'match'){ }}
+    <span>图片匹配</span>
+    {{# } else if(d.eventName === 'backToCreated'){ }}
+    <span>驳回</span>
+    {{# } else if(d.eventName === 'checkOk'){ }}
+    <span>排查通过</span>
+    {{# } else if(d.eventName === 'goback'){ }}
+    <span>返回细化分类</span>
+    {{# } else if(d.eventName === 'warn'){ }}
+    <span>预警</span>
+    {{# } else if(d.eventName == 'duplicate'){ }}
+    <span>重复</span>
+    {{# } else if(d.eventName === 'decline'){ }}
+    <span>拒绝</span>
+    {{# } else if(d.eventName === 'requestApprove'){ }}
+    <span>申请审批</span>
+    {{# } else if(d.eventName === 'archive'){ }}
+    <span>建档</span>
+    {{# } else if(d.eventName === 'giveUp'){ }}
+    <span>放弃</span>
+    {{# } else if(d.eventName === 'fill'){ }}
+    <span>填充</span>
+    {{# } else if(d.eventName === 'cancel'){ }}
+    <span>销档</span>
+    {{# } else if(d.eventName === 'offsale'){ }}
+    <span>下架</span>
+    {{# } else if(d.eventName === 'archiving'){ }}
+    <span>建档中</span>
+    {{# } else if(d.eventName === 'revoke'){ }}
+    <span>撤回</span>
+    {{# } else { }}
+    <span>{{d.eventName}}</span>
+    {{#  } }}
+</script>
+<!--结束状态模板-->
+<script id="productCenter_dstStateTpl" type="text/html">
+    {{#  if(d.dstState === 'start'){ }}
+    <span>开始</span>
+    {{# } else if(d.dstState === 'draft'){ }}
+    <span>草稿</span>
+    {{# } else if(d.dstState === 'waitAssign'){ }}
+    <span>待细化分类</span>
+    {{# } else if(d.dstState === 'waitImageMatch'){ }}
+    <span>待图片匹配</span>
+    {{# } else if(d.dstState === 'waitCheck'){ }}
+    <span>待排查</span>
+    {{# } else if(d.dstState === 'checkOk'){ }}
+    <span>通过</span>
+    {{# } else if(d.dstState === 'checkWarn'){ }}
+    <span>有风险</span>
+    {{# } else if(d.dstState === 'duplication'){ }}
+    <span>重复产品</span>
+    {{# } else if(d.dstState === 'waitApprove'){ }}
+    <span>待审批</span>
+    {{# } else if(d.dstState == 'disappeared'){ }}
+    <span>已消档</span>
+    {{# } else if(d.dstState === 'archived'){ }}
+    <span>已建档</span>
+    {{# } else if(d.dstState === 'cancel'){ }}
+    <span>取消</span>
+    {{# } else if(d.dstState === 'waitFill'){ }}
+    <span>待填充</span>
+    {{# } else if(d.dstState === 'archiving'){ }}
+    <span>建档中</span>
+    {{# } else if(d.dstState === 'onsale'){ }}
+    <span>已上架</span>
+    {{# } else if(d.dstState === 'disappeared'){ }}
+    <span>已消档</span>
+    {{# } else { }}
+    <span>{{d.dstState}}</span>
+    {{#  } }}
+</script>
+
+<script src="script/main.js"></script>
+<script src="script/common_method.js"></script>
+</body>
+</html>

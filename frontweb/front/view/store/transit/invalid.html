@@ -1,0 +1,369 @@
+<style type="text/css">
+    td > .layui-table-cell {
+        height: 100px;
+        line-height: 28px;
+        padding: 0 15px;
+        position: relative;
+        overflow-y: auto;
+    }
+</style>
+<br>
+
+<div class="layui-form">
+    <div class="layui-form-item">
+
+        <label class="layui-form-label">转寄仓</label>
+        <div class="layui-input-inline">
+            <select name="transitId" id="sto_invalid_wms">
+                <option value="">不限</option>
+            </select>
+        </div>
+
+        <label class="layui-form-label">报废单号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="id" lay-verify="" placeholder="请输报废单号" autocomplete="off" class="layui-input">
+        </div>
+
+        <label class="layui-form-label">创建人</label>
+        <div class="layui-input-inline">
+            <input type="text" name="creator" lay-verify="" placeholder="请输创建人" autocomplete="off" class="layui-input">
+        </div>
+
+        <label class="layui-form-label">创建时间</label>
+        <div class="layui-input-inline">
+            <input name="createTime" type="text" class="layui-input" id="sto_invalid_createTime">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="btnSearch">搜索</button>
+
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="btnAdd" id="sto_invalid_add"
+                    style="display: none">新建报废单
+            </button>
+
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="sto_invalid_auditPassBat"
+                    id="sto_invalid_auditPassBat"
+                    style="display: none">同意
+            </button>
+
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="sto_invalid_rejectBat"
+                    id="sto_invalid_rejectBat" style="display: none">不同意
+            </button>
+
+        </div>
+    </div>
+</div>
+
+<br>
+<table id="demo" lay-filter="sto_invalid_table"></table>
+
+<script type="text/html" id="sto_invalid_option">
+    <form class="layui-form">
+        {{# if(window.transit_invalid_edit == true && d.state == 'draft'){ }}
+        <button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="submit">提交</button>
+        <button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="editDetail">编辑单据</button>
+        <button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="delete">删除</button>
+        {{# }else{ }}
+        <button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="detail">明细</button>
+        {{# } }}
+        {{# if(window.transit_invalid_approve == true && d.state == 'waitAudit'){ }}
+        <!-- 待审核 -->
+        <button type="button" class="layui-btn layui-btn-xs" lay-event="auditPass">同意</button>
+        <button type="button" class="layui-btn layui-btn-xs layui-btn-warm " lay-event="reject">不同意</button>
+        {{# } }}
+
+
+    </form>
+</script>
+
+<script type="text/html" id="invalidTypeEnumTpl">
+    {{d.invalidTypeEnum.display}}
+</script>
+<script type="text/html" id="invalidStateEnumTpl">
+    {{d.invalidStateEnum.display}}
+</script>
+
+<script>
+    //明细参数
+    var sto_invalid_itemReq = {};
+    //table和查询条件
+    var sto_invalid_tab, sto_invalid_tab_query;
+    //弹出框index
+    var sto_invalid_add_index;
+
+    layui.use(['layer', 'table', 'element', 'form', 'laydate'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0, {time: 5 * 1000});
+        var table = layui.table;
+        var laydate = layui.laydate;
+        var form = layui.form;
+
+        //权限
+//        window.transit_invalid_edit = true;
+//        window.transit_invalid_approve = true;
+
+        console.log('transit_invalid_edit:' + window.transit_invalid_edit);
+        console.log('transit_invalid_approve:' + window.transit_invalid_approve);
+        if (window.transit_invalid_edit == true) {
+            $('#sto_invalid_add').show();
+        }
+        if (window.transit_invalid_approve == true) {
+            $('#sto_invalid_auditPassBat').show();
+            $('#sto_invalid_rejectBat').show();
+        }
+
+        //转寄仓下拉
+        store_wmsId_option('sto_invalid_wms', {type: 1});
+
+        form.render();
+        sto_invalid_tab = table.render({
+            elem: '#demo'
+            , url: '/store/invalid/search' //数据接口
+            , method: 'post'
+            , height: 920 - 200
+            , page: true //开启分页
+            , even: true  //开启隔行背景
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+
+            }
+            , cols: [[ //表头
+                {checkbox: true}
+                , {field: 'id', title: '报废单号', width: 120}
+                , {field: 'stockName', title: '仓库', width: 150}
+                , {templet: '#invalidTypeEnumTpl', title: '报废类型', width: 120}
+                , {templet: '#invalidStateEnumTpl', title: '报废单状态', width: 150}
+                , {field: 'qty', title: '总数', width: 120}
+                , {field: 'invalidTotal', title: '报废总价', width: 120}
+                , {field: 'creator', title: '创建人', width: 100}
+                , {field: 'createAt', title: '创建时间', width: 120}
+                , {
+                    field: '',
+                    title: '操作',
+                    templet: '#sto_invalid_option',
+                    fixed: 'right',
+                    width: 350,
+                    align: 'center'
+                }
+            ]]
+
+        });
+        layer.close(index);
+
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#sto_invalid_createTime' //指定元素
+            , type: 'date'
+            , range: '~' //或 range: '~' 来自定义分割字符
+            , max: 'new Date()'
+            , theme: 'molv'
+        });
+
+        //搜索
+        form.on('submit(btnSearch)', function (data) {
+            sto_invalid_tab_query = setReqParam(data);
+
+            //上述方法等价于
+            sto_invalid_tab.reload({
+                method: 'post',
+                where: sto_invalid_tab_query,    //设定异步数据接口的额外参数，任意设
+                loading: true,
+                page: {
+                    page: 1 //重新从第 1 页开始
+                }
+            });
+            return false;
+        });
+
+        //新增报废单
+        form.on('submit(btnAdd)', function (data) {
+            $.get('view/store/transit/addInvalid.html', function (str) {
+                sto_invalid_add_index = layer.open({
+                    type: 1
+                    , title: '新建报废单操作'
+                    , content: str //注意，如果str是object，那么需要字符拼接。
+                    , maxmin: true
+                    , area: ['500px', '500px']
+                });
+            });
+            return false;
+        });
+
+
+        //主管审批
+        form.on('submit(sto_invalid_auditPassBat)', function (data) {
+            console.log(JSON.stringify(data.field));
+            console.log(data.field.type);
+            var checkStatus = table.checkStatus('demo'); //test即为基础参数id对应的值
+            console.log('checkStatus:' + JSON.stringify(checkStatus));
+            if (checkStatus.data.length) {
+                var ids = [];
+
+                $.each(checkStatus.data, function (i, n) {
+                    if (n.state == 'waitAudit') {
+                        ids.push(n.id);
+                    } else {
+                        layer.msg('请去掉不能勾选的单据再提交', {icon: 3});
+                        return false;
+                    }
+                });
+                postAjaxBat('store/invalid/auditPassBat', {ids: ids});
+            } else {
+                layer.msg('请勾选要操作的行', {icon: 3});
+            }
+
+            return false;
+        });
+
+        //主管审批不通过
+        form.on('submit(sto_invalid_rejectBat)', function (data) {
+            console.log(JSON.stringify(data.field));
+            console.log(data.field.type);
+            var checkStatus = table.checkStatus('demo'); //test即为基础参数id对应的值
+            console.log('checkStatus:' + JSON.stringify(checkStatus));
+            if (checkStatus.data.length) {
+                var ids = [];
+
+                $.each(checkStatus.data, function (i, n) {
+                    if (n.state == 'waitAudit') {
+                        ids.push(n.id);
+                    } else {
+                        layer.msg('请去掉不能勾选的单据再提交', {icon: 3});
+                        return false;
+                    }
+                });
+                postAjaxBat('store/invalid/rejectBat', {ids: ids});
+            } else {
+                layer.msg('请勾选要操作的行', {icon: 3});
+            }
+            return false;
+        });
+
+
+        //监听工具条
+        table.on('tool(sto_invalid_table)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+            console.log('data:' + JSON.stringify(data));
+
+            if (layEvent === 'submit') { //
+                if ((data.qty == null) || (data.qty < 1)) {
+                    layer.msg('数量没有，请点【编辑单据】导入需报废的包裹');
+                    return false;
+                }
+
+                delete data.invalidStateEnum;
+                delete data.invalidTypeEnum;
+                delete data.calculateTypeEnum;
+                $.ajax({
+                    type: 'POST',
+                    url: 'store/invalid/submit',
+                    dataType: 'json',
+                    data: data,
+                    success: function (res) {
+                        state_response(res);
+                        sto_invalid_tab.reload({
+                            where: sto_invalid_tab_query
+                        });
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        layer.msg('操作失败，请重试');
+                    }
+                });
+            } else if (layEvent === 'auditPass') { //
+                postAjax('store/invalid/auditPass', data.id);
+            } else if (layEvent === 'reject') { //
+                postAjax('store/invalid/reject', data.id);
+
+            } else if (layEvent === 'delete') {
+                console.log('into delete...');
+
+                layer.confirm('是否确定删除id['+data.id+']的报废单？', {icon: 3, title:'提示'}, function(index){
+                    postAjax('store/invalid/delete', data.id);
+                    layer.close(index);
+                });
+
+            }
+            else if (layEvent === 'detail' || layEvent === 'editDetail') {
+                console.log('into detail...');
+                sto_invalid_itemReq = data;
+                $.get('view/store/transit/invalidItem.html', function (str) {
+                    layer.open({
+                        type: 1
+                        , title: '报废单明细'
+                        , content: str //注意，如果str是object，那么需要字符拼接。
+                        , maxmin: true
+                        , area: ['60%', '80%']
+                    });
+                });
+            }
+        });
+
+        function setReqParam(data) {
+            var new_obj = data.field;
+
+            var createTime = data.field.createTime.split("~");
+            new_obj.createAtStartTime = $.trim(createTime[0]);//创建时间开始时间
+
+            if (createTime[1] != undefined && createTime[1] != '') {
+                new_obj.createAtEndTime = $.trim(createTime[1]) + ' 23:59:59';  //创建时间结束时间
+            } else {
+                new_obj.createAtEndTime = '';
+            }
+
+            console.log("search入参：", JSON.stringify(new_obj));
+            return new_obj;
+
+        }
+
+        function postAjax(url, data) {
+            $.ajax({
+                type: 'POST',
+                url: url,
+                dataType: 'json',
+                data: {id: data},
+                success: function (res) {
+                    state_response(res);
+                    sto_invalid_tab.reload({
+                        where: sto_invalid_tab_query
+                    });
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    layer.msg('操作失败，请重试');
+                }
+            });
+        }
+
+    });
+
+
+    function invalidAddTrack() {
+        $.get('view/store/transit/invalidAddTracking.html', function (str) {
+            sto_invalid_add_index = layer.open({
+                type: 1
+                , title: '导入运单操作'
+                , content: str //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , area: ['800px', '500px']
+            });
+
+        });
+    }
+
+</script>
+
+
+
+

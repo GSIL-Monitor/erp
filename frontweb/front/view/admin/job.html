@@ -1,0 +1,125 @@
+<br>
+<div class="layui-form">
+  <div class="layui-form-item">
+	    <label class="layui-form-label">职位</label>
+	    <div class="layui-input-inline">
+			      <select name="jobName" lay-verify="required" lay-search id="position_queryselect">
+					  <option value="">输入自动完成</option>
+					  
+				  </select>  
+	    </div>
+	    <div class="layui-input-inline">
+	      <button class="layui-btn" lay-submit lay-filter="position_search">搜索</button>
+	    </div>
+  </div>  
+</div>
+<table id="demo" lay-filter="test"></table>
+<script>
+	var _query_id,job_index,job_index2,_flag = false;
+    layui.use(['layer', 'table', 'element', 'form'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0,{time:5*1000});
+        var table = layui.table;
+        var form = layui.form;
+        $.ajax({
+            type: 'GET',
+            url: "/admin/job/getNameBySearch?search="+"",
+            dataType: 'json',
+            success: function (res) {
+                console.log("获取模糊匹配下拉框数据", res);
+                state_response(res);
+                $("#position_queryselect").append(template('option-tpl1', res));
+                form.render('select'); //刷新select选择框渲染
+            }
+        });
+        //第一个实例
+        table.render({
+            elem: '#demo'
+            , id: 'demo'
+            , url: '/admin/job/query' //数据接口
+            , method: 'post'
+            , request: {
+                pageName: 'start' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , done: function (res, curr, count) {
+                var element = layui.element;
+                element.init();
+                layer.close(index);
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , page: true //开启分页
+            , cols: [[ //表头
+                 {field: 'id', title: 'id',fixed: 'left',width:100}
+                , {field: 'name', title: '职位'}
+                , {field: 'remark', title: '描述'}
+                , {field: '', title: '操作', templet: '#barDemo', align: 'center',fixed: 'right',width:300}
+            ]]
+        });
+
+        //监听工具条
+        table.on('tool(test)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+            _query_id = data.id;
+            if (layEvent === 'position-authority') { //职位授权
+                    $.get('view/admin/menu_authorization.html', function (str) {
+                            job_index2 = layer.open({
+                                type: 1
+                                ,title: '操作菜单树'
+                                , content: str //注意，如果str是object，那么需要字符拼接。
+                                , maxmin: true
+                                , area: ['80%','80%']
+                            });
+                    });
+            } else if (layEvent === 'data-permissions') { //数据权限
+                	$.get('view/admin/job_edit.html', function (str) {
+		                	job_index = layer.open({
+			                    type: 1
+			                    ,title: '数据权限'
+			                    , content: str //注意，如果str是object，那么需要字符拼接。
+			                    , maxmin: true
+			                    , area: '50%'
+			                });
+	                });
+            }
+        });
+        form.on('submit(position_search)', function(data){		  
+			  console.log(data.field) //当前容器的全部表单字段，名值对形式：{name: value}
+			  table.reload('demo', {
+	                where: {
+	                    name:data.field.jobName,
+                        page: 1
+	                }    //设定异步数据接口的额外参数，任意设
+	                , page: {
+	                    start: 1 //重新从第 1 页开始
+	                }
+	          });
+			  return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+		});
+               
+    });
+</script>
+
+<script type="text/html" id="barDemo">
+  
+  {{#  if(_flag){ }}
+            <span>aaa</span>
+  {{#  } else { }}
+            <a class="layui-btn layui-btn-xs" lay-event="position-authority">职位授权</a>
+            <a class="layui-btn layui-btn-xs" lay-event="data-permissions">数据权限</a>  
+  {{#  } }}
+</script>
+
+<script id="option-tpl1" type="text/html">
+    {{each item value index}}
+    <option value="{{value.name}}">{{value.name}}</option>
+    {{/each}}
+</script>

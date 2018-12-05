@@ -1,0 +1,79 @@
+<style>
+    .stock_title{
+        text-align: center;
+        font-weight: bolder;
+    }
+    .sto-track-value{
+        margin-top: 10px;
+    }
+    .remark_icon{
+        color: red;
+    }
+</style>
+<br>
+<form class="layui-form ">
+    <div class="layui-form-item">
+        <h3 class="stock_title">是否确定盘亏，并提交主管审核？</h3>
+        <div class="layui-form-item sto-track-value">
+            <label class="layui-form-label">运单号</label>
+            <div class="sto-tracking-tpl layui-input-inline sto-track-value"></div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="remark_icon">*</span>备注</label>
+            <div class="layui-input-inline sto-track-value">
+                <textarea class="" name="memo"
+                          style="height: 200px;width:250px"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="submit">确定</button>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+    layui.use(['form', 'layer'], function () {
+        var layer = layui.layer;
+        var addTakeStockForm = layui.form;
+
+        console.log("track:"+JSON.stringify(sto_takeStock_addTakeStockReq));
+        $(".sto-tracking-tpl").html(sto_takeStock_addTakeStockReq.trackings.toString());  //.append(template('sto-tracking-tpl', sto_takeStock_tracking));
+        addTakeStockForm.render();
+
+        //监听提交
+        addTakeStockForm.on('submit(submit)', function (data) {
+            sto_takeStock_addTakeStockReq.memo=data.field.memo;
+            console.log("入参:", JSON.stringify(data.field));
+            $.ajax({
+                type: 'POST',
+                url: "/store/transitStock/takeStock",
+                data: JSON.stringify(sto_takeStock_addTakeStockReq),
+                dataType : 'json',
+                contentType:"application/json",
+                success: function (res) {
+                    console.log("返回值:", JSON.stringify(res));
+                    if (res.code === 'OK') {
+                        layer.msg('操作成功');
+                        state_response(res);
+                        layer.closeAll();
+                    } else {
+                        layer.msg(res.desc, {icon: 2});
+                        layer.closeAll();
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    layer.msg("操作异常", {icon: 2});
+                }
+            });
+            return false;
+        });
+
+    });
+
+</script>

@@ -1,0 +1,176 @@
+<div>
+    <div class="layui-form">
+    <button class="layui-btn layui-btn-warm" lay-submit lay-filter="duplicationCheckboxEvent_test" style="text-align: center;"><i class="layui-icon">&#x1006;</i>重复</button>
+    </div>
+        <table id="product_table_test_id" lay-filter="product_table_test_filter"></table>
+</div>
+
+<script type="text/javascript">
+    layui.use(['layer', 'table', 'form'], function () {
+        var product_table = layui.table;
+        var layer = layui.layer;
+        var form_test = layui.form;
+        var objData = [ {
+            "creatorId" : null,
+            "id" : 568,
+            "name" : "银河系",
+            "ename" : "银河系 ",
+            "createAt" : "2018-01-18 21:11:00",
+            "updateAt" : "2018-01-18 21:11:00",
+            "countryCode" : null,
+            "currencyCode" : null,
+            "wordCode" : "ZX",
+            "table" : "country"
+        }, {
+            "creatorId" : null,
+            "id" : 566,
+            "name" : "扎伊尔",
+            "ename" : "ZAIRE ",
+            "createAt" : "2018-01-18 21:11:00",
+            "updateAt" : "2018-01-18 21:11:00",
+            "countryCode" : null,
+            "currencyCode" : null,
+            "wordCode" : "ZR",
+            "table" : "country"
+        }, {
+            "creatorId" : null,
+            "id" : 564,
+            "name" : "59下山了",
+            "ename" : "59下山了 ",
+            "createAt" : "2018-01-18 21:11:00",
+            "updateAt" : "2018-01-18 21:11:00",
+            "countryCode" : null,
+            "currencyCode" : null,
+            "wordCode" : "ZE",
+            "table" : "country"
+        }, {
+            "creatorId" : null,
+            "id" : 562,
+            "name" : "马约特",
+            "ename" : "MAYOTTE ",
+            "createAt" : "2018-01-18 21:11:00",
+            "updateAt" : "2018-01-18 21:11:00",
+            "countryCode" : null,
+            "currencyCode" : null,
+            "wordCode" : "YT",
+            "table" : "country"
+        }, {
+            "creatorId" : null,
+            "id" : 561,
+            "name" : "也门阿拉伯共合国",
+            "ename" : "YEMEN, REPUBLIC OF ",
+            "createAt" : "2018-01-18 21:11:00",
+            "updateAt" : "2018-01-18 21:11:00",
+            "countryCode" : null,
+            "currencyCode" : null,
+            "wordCode" : "YE",
+            "table" : "country"
+        }, {
+            "creatorId" : null,
+            "id" : 560,
+            "name" : "圣巴特勒米岛",
+            "ename" : "ST. BARTHELEMY ",
+            "createAt" : "2018-01-18 21:11:00",
+            "updateAt" : "2018-01-18 21:11:00",
+            "countryCode" : null,
+            "currencyCode" : null,
+            "wordCode" : "XY",
+            "table" : "country"
+        }, {
+            "creatorId" : null,
+            "id" : 559,
+            "name" : "钓鱼岛",
+            "ename" : "钓鱼岛 ",
+            "createAt" : "2018-01-18 21:11:00",
+            "updateAt" : "2018-01-18 21:11:00",
+            "countryCode" : null,
+            "currencyCode" : null,
+            "wordCode" : "XX",
+            "table" : "country"
+        }, {
+            "creatorId" : null,
+            "id" : 558,
+            "name" : "索马里共和国",
+            "ename" : "SOMALILAND ",
+            "createAt" : "2018-01-18 21:10:59",
+            "updateAt" : "2018-01-18 21:10:59",
+            "countryCode" : null,
+            "currencyCode" : null,
+            "wordCode" : "XS",
+            "table" : "country"
+        }, {
+            "creatorId" : null,
+            "id" : 557,
+            "name" : "尼维斯岛",
+            "ename" : "NEVIS ",
+            "createAt" : "2018-01-18 21:10:59",
+            "updateAt" : "2018-01-18 21:10:59",
+            "countryCode" : null,
+            "currencyCode" : null,
+            "wordCode" : "XN",
+            "table" : "country"
+        }, {
+            "creatorId" : null,
+            "id" : 556,
+            "name" : "圣马腾岛",
+            "ename" : "ST. MAARTEN ",
+            "createAt" : "2018-01-18 21:10:59",
+            "updateAt" : "2018-01-18 21:10:59",
+            "countryCode" : null,
+            "currencyCode" : null,
+            "wordCode" : "XM",
+            "table" : "country"
+        }];
+        for (var i = 0; i < objData.length; i++){
+            if (objData[i].id == 556){
+                objData[i].LAY_CHECKED = true;
+            }
+        }
+        product_table.render({
+            elem: '#product_table_test_id',
+            data:objData,
+            even: true,     //开启隔行背景
+            page: true,    //关闭分页
+            height: 'full-200',
+            cols: [[ //表头
+                {type:'checkbox'},
+                {field: 'id', title: 'ID' },
+                {field: 'name', title: '名称' },
+                {field: 'ename', title: '英文名' },
+                {field: 'wordCode', title: '国家二字码' },
+                {field: 'countryCode', title: '国家三字码' },
+                {field: 'currencyCode', title: '币种编码' },
+                {field: 'createAt', title: '创建时间' },
+            ]],
+            response: {
+                statusName: 'code', //数据状态的字段名称，默认：code
+                statusCode: 'OK', //成功的状态码，默认：0
+                msgName: 'desc', //状态信息的字段名称，默认：msg
+                countName: 'total', //数据总数的字段名称，默认：count
+                dataName: 'item' //数据列表的字段名称，默认：data
+            }
+        });
+
+        form_test.on('submit(duplicationCheckboxEvent_test)', function (obj) {
+            console.log("2323");
+            duplicationCheckboxEvent1(layer, product_table);
+        });
+
+    });
+
+    function duplicationCheckboxEvent1(layer, table) {
+        var checkStatus = table.checkStatus('product_table_test_id'),
+            checkData = checkStatus.data;
+        if (checkData.length === 0) {
+            layer.msg("请先勾选重复的区域", {
+                icon: 2
+            });
+            return false;
+        }else{
+            console.log(checkData);
+        }
+    }
+</script>
+
+
+

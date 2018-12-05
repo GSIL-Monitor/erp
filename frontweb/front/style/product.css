@@ -1,0 +1,25 @@
+.right-confirm{
+	float: right;
+	margin-top: 25px;
+}
+.product-span-font{
+	color: #f5334a;
+}
+.divoverflow-check{
+	margin-top: 10px;
+	margin-bottom: 15px;
+	height: 318px;
+	max-width: 450px;
+	overflow: auto;
+	word-wrap: break-word;
+}
+.element::-webkit-scrollbar {
+	display:none
+}
+.divoverflow-details{
+	margin-top: 10px;
+	/*height: 230px;*/
+	max-width: 450px;
+	overflow: auto;
+	word-wrap: break-word;
+}

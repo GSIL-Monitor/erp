@@ -1,0 +1,131 @@
+<div class="layui-form  padding30" >
+    <input type="hidden" name="id" value="">
+    <input type="hidden" name="wmsName" value="">
+    <input type="hidden" name="zoneName" value="">
+    <div class="layui-form-item">
+        <label class="layui-form-label" style="width: 100px">选择仓库:</label>
+        <div class="layui-input-inline">
+            <select name="wmsId" id="wmsIdEditSelect" lay-verify="required" lay-filter="wmsIdEditSelect" >
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label" style="width: 100px">选择物流线路:</label>
+        <div class="layui-input-inline">
+            <select name="shippingWayId" id="shippingWayIdEditSelect" lay-verify="required">
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label" style="width: 100px">货物类型:</label>
+        <div class="layui-input-inline">
+            <select name="allowedProductType" id="allowedProductTypeEditSelect" lay-search  lay-verify="required">
+                <option value="0">所有</option>
+                <option value="1">普货</option>
+                <option value="2">特货</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label" style="width: 100px">覆盖地区:</label>
+        <div class="layui-input-inline">
+            <select id="zoneIdEditSelect" name="zoneId" lay-search lay-verify="required" lay-filter="zoneIdEditSelect">
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="editElementForm">确定</button>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    layui.use(['form','table'], function () {
+        var edit_shipping_zone_store_form = layui.form;
+        var edit_shipping_zone_store_table = layui.table;
+
+        store_wmsId_option('wmsIdEditSelect',null,function(){
+            $('#wmsIdEditSelect option[value="'+shipping_zone_store_rel_data.wmsId+'"]').prop("selected", "selected");
+            wmsSelectEve();
+        });
+
+        $.ajax({
+            type: 'POST',
+            url: "/tms/base/shippingway/query",
+            data: {
+                limit:100000,
+                shippingWayName:null
+            },
+            dataType: 'json',
+            success: function (res) {
+                console.log("获取物 流公司列表数据", res);
+                state_response(res);
+                $("#shippingWayIdEditSelect").append(template('option-shippingWayId', res));
+                $('#shippingWayIdEditSelect option[value="'+shipping_zone_store_rel_data.shippingWayId+'"]').prop("selected", "selected");
+                edit_shipping_zone_store_form.render();
+            }
+        });
+
+        zone_select('zoneIdEditSelect','id',function(){
+            $('#zoneIdEditSelect option[value="'+shipping_zone_store_rel_data.zoneId+'"]').prop("selected", "selected");
+            zoneSelectEve();
+        });
+
+        edit_shipping_zone_store_form.on('select(wmsIdEditSelect)',function () {
+            wmsSelectEve();
+        });
+
+        edit_shipping_zone_store_form.on('select(zoneIdEditSelect)',function () {
+            zoneSelectEve();
+        });
+
+        //监听提交
+        edit_shipping_zone_store_form.on('submit(editElementForm)', function (data) {
+            $.ajax({
+                type: 'PUT',
+                url: "/tms/shippingZoneStoreRel",
+                data: data.field,
+                dataType: 'json',
+                success: function (res) {
+                    console.log("修改元素返回值", res);
+                    if(res.code==='NOTICE') {
+                        layer.close(edit_zone_rel_index); //此时你只需要把获得的index，轻轻地赋予layer.close即可
+                        edit_shipping_zone_store_table.reload('demo');
+                        layer.msg('修改成功', {icon: 1});
+                    }else{
+                        layer.msg(res.desc,{icon:2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                }
+            });
+            return false;
+        });
+
+        $('input[name=\'id\']').val(shipping_zone_store_rel_data.id);
+        $('#allowedProductTypeEditSelect option[value="'+shipping_zone_store_rel_data.allowedProductType+'"]').prop("selected", "selected");
+        edit_shipping_zone_store_form.render();
+    });
+
+    function zoneSelectEve(){
+        var zoneName=$("#zoneIdEditSelect").find("option:selected").text();
+        $('input[name=\'zoneName\']').val(zoneName);
+    }
+
+    function wmsSelectEve(){
+        var storeId =  $("#wmsIdEditSelect").val();
+        var name=$("#wmsIdEditSelect").find("option:selected").text();
+        $('input[name=\'wmsName\']').val(name);
+    }
+
+</script>
+
+<script id="option-shippingWayId" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.shippingWayName}}</option>
+    {{/each}}
+</script>

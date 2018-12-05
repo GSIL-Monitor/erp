@@ -1,0 +1,302 @@
+<div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+    <ul class="layui-tab-title">
+        <li class="layui-this">区间导入运单号库</li>
+        <li>批量导入运单号库</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            <div class="layui-form  padding30" >
+                <div class="layui-form-item">
+                    <label class="layui-form-label" style="color: #FF0000;width: 350px">进行添加的运单号如已存在于物流下，则会略过</label>
+                </div>
+                <input type="hidden" name="wmsName" value="" id="wmsName1">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">选择仓库:</label>
+                    <div class="layui-input-inline">
+                        <select name="wmsId" id="wmsIdAddSelect1" lay-verify="required" lay-filter="wmsIdAddSelect1" >
+                            <option value="">请选择</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">选择物流线路名:</label>
+                    <div class="layui-input-inline">
+                        <select name="shippingWayId" id="shippingWayIdAddSelect1" lay-verify="required">
+                            <option value="">请选择</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">类型:</label>
+                    <div class="layui-input-inline">
+                        <select name="productType" id="productType1" lay-verify="required">
+                            <option value="">请选择</option>
+                            <option value="0">所有</option>
+                            <option value="1">普货</option>
+                            <option value="2">特货</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label" style="width: 120px">请输入区间运单号:</label>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label" ></label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="startTrackingNo" required lay-verify="required"  autocomplete="off"
+                        class="layui-input" value="" placeholder="开始运单号">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label" >------</label>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label" ></label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="endTrackingNo" lay-verify="required"   autocomplete="off"
+                               class="layui-input" value=""  placeholder="结束运单号">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button class="layui-btn" lay-submit lay-filter="addElementForm1">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-tab-item">
+            <div class="layui-form  padding30" >
+                <div class="layui-form-item">
+                    <label class="layui-form-label" style="color: #FF0000;width: 350px">进行添加的运单号如已存在于物流方式下，则会略过</label>
+                </div>
+                <input type="hidden" name="wmsName" value="" id="wmsName2">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">选择仓库:</label>
+                    <div class="layui-input-inline">
+                        <select name="wmsId" id="wmsIdAddSelect2" lay-verify="required"  lay-filter="wmsIdAddSelect2" >
+                            <option value="">请选择</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">选择物流线路名:</label>
+                    <div class="layui-input-inline">
+                        <select name="shippingWayId" id="shippingWayIdAddSelect2" lay-verify="required">
+                            <option value="">请选择</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">类型:</label>
+                    <div class="layui-input-inline">
+                        <select name="productType" id="productType2" lay-verify="required">
+                            <option value="">请选择</option>
+                            <option value="0">所有</option>
+                            <option value="1">普货</option>
+                            <option value="2">特货</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label" style="width: 200px;">直接从Excel复制一列:运单号</label>
+                </div>
+                <div class="layui-form-item">
+                    <textarea name="trackNumbers" required lay-verify="required" placeholder="请输入" class="layui-textarea"></textarea>
+                </div>
+
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button class="layui-btn" lay-submit lay-filter="addElementForm2">确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    //注意：选项卡 依赖 element 模块，否则无法进行功能性操作
+    layui.use(['element','form','table'], function(){
+        var add_traking_no_form = layui.form;
+        var add_traking_no_table = layui.table;
+        var add_traking_no_element = layui.element;
+
+        store_wmsId_option('wmsIdAddSelect1');
+        store_wmsId_option('wmsIdAddSelect2');
+        $.ajax({
+            type: 'POST',
+            url: "/tms/base/shippingway/query",
+            data: {
+                limit:100000,
+                shippingWayName:null
+            },
+            dataType: 'json',
+            success: function (res) {
+                console.log("获取物 流公司列表数据", res);
+                state_response(res);
+                $("#shippingWayIdAddSelect1").append(template('option-shippingWayId', res));
+                $("#shippingWayIdAddSelect2").append(template('option-shippingWayId', res));
+                add_traking_no_form.render();
+            }
+        });
+
+        add_traking_no_form.on('select(wmsIdAddSelect1)',function () {
+            var storeId =  $("#wmsIdAddSelect1").val();
+            var name=$("#wmsIdAddSelect1").find("option:selected").text();
+            $('#wmsName1').val(name);
+        });
+        add_traking_no_form.on('select(wmsIdAddSelect2)',function () {
+            var storeId =  $("#wmsIdAddSelect2").val();
+            var name=$("#wmsIdAddSelect2").find("option:selected").text();
+            $('#wmsName2').val(name);
+        });
+
+        //监听提交
+        add_traking_no_form.on('submit(addElementForm1)', function (data) {
+            var params = data.field;
+
+
+            var endTrackingNo =  params.endTrackingNo;
+            var startTrackingNo = params.startTrackingNo;
+
+            if (isNaN(startTrackingNo.substr(startTrackingNo.length-1,1))){
+                layer.msg('开始运单号不是数字结尾');
+                return;
+            }
+            if (isNaN(endTrackingNo.substr(endTrackingNo.length-1,1))){
+                layer.msg('结束运单号不是数字结尾');
+                return;
+            }
+
+            var reg = /^[A-Za-z0-9]+$/;
+
+            if(startTrackingNo.match(reg) == null){
+                layer.msg('开始运单号只能是数字或英文加数字');
+                return;
+            }
+
+            if(endTrackingNo.match(reg) == null){
+                layer.msg('结束运单号只能是数字或英文加数字');
+                return;
+            }
+
+            if(isNaN(startTrackingNo) && isNaN(endTrackingNo) ){
+                var startIndex =  startTrackingNo.indexOf(startTrackingNo.match("[0-9]")[0]);
+                var endIndex =  endTrackingNo.indexOf(endTrackingNo.match("[0-9]")[0]);
+
+                if (startTrackingNo.substr(0,startIndex) != endTrackingNo.substr(0,endIndex)){
+                    layer.msg('开始运单号与结束运单号前缀必须相同');
+                    return;
+                }
+
+                var startNumber =  startTrackingNo.substr(startIndex);
+                if(isNaN(startNumber)){
+                    layer.msg('开始运单号在前缀之后不是数字');
+                    return;
+                }
+                var endNumber =  endTrackingNo.substr(endIndex);
+                if(isNaN(endNumber)){
+                    layer.msg('结束运单号在前缀之后不是数字');
+                    return;
+                }
+
+                if(endNumber <= startNumber){
+                    layer.msg('结束运单号必须比开始运单号大');
+                    return;
+                }
+            }else if(isNaN(startTrackingNo) == false  && isNaN(endTrackingNo) ==false){
+                if(params.endTrackingNo <= params.startTrackingNo){
+                    layer.msg('结束运单号必须比开始运单号大');
+                    return;
+                }
+            }else{
+                layer.msg('开始运单号与结束运单格式不一样');
+                return;
+            }
+
+
+
+            $.ajax({
+                type: 'POST',
+                url: "/tms/shippingTrackingNoList/sectionAdd",
+                data: data.field,
+                dataType: 'json',
+                success: function (res) {
+                    console.log("新增元素返回值", res);
+                    if(res.code==='NOTICE') {
+                        layer.close(add_tracking_index); //此时你只需要把获得的index，轻轻地赋予layer.close即可
+                        add_traking_no_table.reload('demo');
+                        layer.msg('新增成功', {icon: 1});
+                    }else{
+                        layer.msg(res.desc,{icon:2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                }
+            });
+            return false;
+        });
+        //监听提交
+        add_traking_no_form.on('submit(addElementForm2)', function (data) {
+            var params = data.field;
+
+            var trackNumbers =  params.trackNumbers;
+
+
+            var trackNumberArr =  trackNumbers.split("\n");
+
+            for (var i = 0 ; i <trackNumberArr.length;i++){
+               var trackNumber =  trackNumberArr[i];
+
+                if (isNaN(trackNumber.substr(trackNumber.length-1,1))){
+                    layer.msg('第'+(i+1)+'行运单号不是数字结尾');
+                    return;
+                }
+
+                var reg = /^[A-Za-z0-9]+$/;
+
+                if(trackNumber.match(reg) == null){
+                    layer.msg('第'+(i+1)+'行运单号只能是数字或英文加数字');
+                    return;
+                }
+
+                var index =  trackNumber.indexOf(trackNumber.match("[0-9]")[0]);
+
+                var number =  trackNumber.substr(index);
+                if(isNaN(number)){
+                    layer.msg('第'+(i+1)+'行运单号在前缀之后不是数字');
+                    return;
+                }
+            }
+
+            $.ajax({
+                type: 'POST',
+                url: "/tms/shippingTrackingNoList/numberListAdd",
+                data: data.field,
+                dataType: 'json',
+                success: function (res) {
+                    console.log("新增元素返回值", res);
+                    if(res.code==='NOTICE') {
+                        layer.close(add_tracking_index); //此时你只需要把获得的index，轻轻地赋予layer.close即可
+                        add_traking_no_table.reload('demo');
+                        layer.msg('新增成功', {icon: 1});
+                    }else{
+                        layer.msg(res.desc,{icon:2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                }
+            });
+            return false;
+        });
+
+
+    });
+</script>
+
+<script id="option-shippingWayId" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.shippingWayName}}</option>
+    {{/each}}
+</script>

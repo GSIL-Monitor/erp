@@ -1,0 +1,15 @@
+{
+  "exchangeName":"erp.pc.Exchange",
+  "exchangeType":"direct",
+  "queues":[
+    {"messageType":"zone","qName":["qc_olderp_zone_carter","qr_site_zone"]},
+    {"messageType":"country","qName":["qc_olderp_country_carter","qr_site_country"]},
+    {"messageType":"currency","qName":["qc_olderp_currency_carter","qr_site_currency"]},
+    {"messageType":"category","qName":["qc_olderp_category_carter","qr_site_category"]},
+    {"messageType":"orderPurchase","qName":["qc_order_purchase_carter_feiheping","qr_sise_orderPurchase"]},
+    {"messageType":"frontOrder","qName":["qc_front_order_orderImport","qr_order_front_orderStatusChange"]},
+    {"messageType":"matchLogistics","qName":["qc_match_logistics"]}
+  ]
+}
+
+

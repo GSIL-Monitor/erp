@@ -1,0 +1,341 @@
+<div>
+    <div class="layui-form padding30">
+        <div class="layui-form-item">
+            <button class="layui-btn layui-btn-normal padding30 " lay-submit lay-filter="productDeamon_1">① OA用户导入</button>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_2">① OA职位导入</button>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_3">① OA部门导入</button>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_4">① 国家信息同步</button>
+        </div>
+        <div class="layui-form-item">
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_5">① 区域信息同步</button>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_6">① 品类信息同步</button>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_7">① 属性信息同步</button>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_8">① 属性值信息同步</button>
+        </div>
+        <div class="layui-form-item">
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_9">① 产品SKU同步</button>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_10">② 老erp用户绑定</button>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_11">② 老erp部门绑定</button>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_12">③ 产品信息同步</button>
+        </div>
+        <div class="layui-form-item">
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_13">③ 排重产品同步</button>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_14">④ 产品区域同步</button>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_15">⑤ 产品部门区域域名同步</button>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_16">⑥ 产品区域库存同步</button>
+        </div>
+        <div class="layui-form-item">
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_17">⑦ 产品区域最后下单时间同步</button>
+        </div>
+    </div>
+
+    <div class="layui-form padding10">
+        <div class="layui-form-item">
+            <label class="layui-form-label">产品ID:</label>
+            <div class="layui-input-inline">
+                <input type="text" name="productIds" required lay-verify="required" placeholder="输入产品ID" class="layui-input">
+            </div>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_product">产品同步</button>
+        </div>
+    </div>
+
+
+    <div class="layui-form padding10">
+        <div class="layui-form-item">
+            <label class="layui-form-label">产品ID:</label>
+            <div class="layui-input-inline">
+                <input type="text" name="productIds" required lay-verify="required" placeholder="输入产品ID" class="layui-input">
+            </div>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_proudtcSku">产品SKU同步</button>
+        </div>
+    </div>
+
+    <div class="layui-form padding10">
+        <div class="layui-form-item">
+            <label class="layui-form-label">产品ID:</label>
+            <div class="layui-input-inline">
+                <input type="text" name="id" required lay-verify="required" placeholder="输入产品ID" class="layui-input">
+            </div>
+            <label class="layui-form-label">产品内部名:</label>
+            <div class="layui-input-inline">
+                <input type="text" name="name" required lay-verify="required" placeholder="输入产品内部名" class="layui-input">
+            </div>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_productName">产品内部名修改</button>
+        </div>
+    </div>
+
+    <div class="layui-form padding10">
+        <div class="layui-form-item">
+            <label class="layui-form-label">排重报表时间段:</label>
+            <div class="layui-input-inline">
+                <input type="text" class="layui-input" id="productDeamon_checkDate" name="productDeamon_dateName" placeholder="请选择时间">
+            </div>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_checkInfo">生成报表</button>
+        </div>
+    </div>
+
+    <div class="layui-form padding10">
+        <div class="layui-form-item">
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_18">预警邮件调度</button>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_19">消档邮件调度</button>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_20">待下架下架调度</button>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_22">未备案调度</button>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_23">老ERP品类同步</button>
+            <button class="layui-btn layui-btn-normal padding30" lay-submit lay-filter="productDeamon_21">属性值title触发</button>
+        </div>
+    </div>
+
+
+    <hr>
+
+    <h3>按照sku批量重新推送</h3>
+    <textarea cols="50" rows="30" placeholder="sku,请按照，或者换行作为分隔符号" class="skus">
+
+</textarea><br>
+    <button class="wms_repost">批量重新推送wms</button>
+
+    <button class="list_repost">查询没有推送成功的sku列表</button>
+
+    <span style="color: green"></span>
+
+
+
+</div>
+<script type="text/javascript" src="http://code.jquery.com/jquery-2.2.4.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        $(".wms_repost").bind("click", function () {
+            $.post("/product/tool/wms_repost", {"skus": $(".skus").val()}, function (data) {
+                $(".ret").empty().val(data);
+            });
+
+        });
+
+        $(".list_repost").bind("click", function () {
+            $.post("/product/tool/wms_repost_list", function (data) {
+                $(".skus").val(data);
+            });
+
+        });
+
+    });
+</script>
+
+<script type="text/javascript">
+    layui.use(['layer', 'form', 'laydate','jquery'], function () {
+        var productDeamon_layer = layui.layer;
+//        var productDeamon_index = layer.load(0,{time:5*1000});
+        var productDeamon_form = layui.form;
+        var product_productListId_date = layui.laydate;
+        var $ = layui.$;
+        product_productListId_date.render({
+            elem : '#productDeamon_checkDate',
+            range : '~'
+        });
+//        表格监听
+        productDeamon_form.on('submit(productDeamon_1)', function () {
+            productDeamon_Fun("/admin/oaSync/pullAllUser");
+        });
+        productDeamon_form.on('submit(productDeamon_2)', function () {
+            productDeamon_Fun("/admin/oaSync/pullAllJob");
+        });
+        productDeamon_form.on('submit(productDeamon_3)', function () {
+            productDeamon_Fun("/admin/oaSync/pullAllDepartment");
+        });
+        productDeamon_form.on('submit(productDeamon_4)', function () {
+            productDeamon_Fun("/product/sync/country");
+        });
+        productDeamon_form.on('submit(productDeamon_5)', function () {
+            productDeamon_Fun("/product/sync/zone");
+        });
+        productDeamon_form.on('submit(productDeamon_6)', function () {
+            productDeamon_Fun("/product/sync/category");
+        });
+        productDeamon_form.on('submit(productDeamon_7)', function () {
+            productDeamon_Fun("/product/sync/attribute");
+        });
+        productDeamon_form.on('submit(productDeamon_8)', function () {
+            productDeamon_Fun("/product/sync/attributeValue");
+        });
+        productDeamon_form.on('submit(productDeamon_9)', function () {
+            productDeamon_Fun("/product/sync/productSku");
+        });
+        productDeamon_form.on('submit(productDeamon_10)', function () {
+            productDeamon_Fun("/admin/oldErpSync/pullAllUser");
+        });
+        productDeamon_form.on('submit(productDeamon_11)', function () {
+            productDeamon_Fun("/admin/oldErpSync/pullAllDepartment");
+        });
+        productDeamon_form.on('submit(productDeamon_12)', function () {
+            productDeamon_Fun("/product/sync/product");
+        });
+        productDeamon_form.on('submit(productDeamon_13)', function () {
+            productDeamon_Fun("/product/sync/checkProductSync");
+        });
+        productDeamon_form.on('submit(productDeamon_14)', function () {
+            productDeamon_Fun("/product/sync/productZone");
+        });
+        productDeamon_form.on('submit(productDeamon_15)', function () {
+            productDeamon_Fun("/product/sync/productZoneDomain");
+        });
+        productDeamon_form.on('submit(productDeamon_16)', function () {
+            productDeamon_Fun("/product/sync/stock");
+        });
+        productDeamon_form.on('submit(productDeamon_17)', function () {
+            productDeamon_Fun("/product/sync/lastOrderAt");
+        });
+//        产品同步
+        productDeamon_form.on('submit(productDeamon_product)', function (obj) {
+            productDeamonPro(obj);
+        });
+//        产品SKU同步
+        productDeamon_form.on('submit(productDeamon_proudtcSku)', function (obj) {
+            productDeamonProSku(obj);
+        });
+//        产品内部名修改
+        productDeamon_form.on('submit(productDeamon_productName)', function (obj) {
+            productDeamonProName(obj);
+        });
+//        排重报表
+        productDeamon_form.on('submit(productDeamon_checkInfo)', function (obj) {
+            productDeamonCheck(obj);
+        });
+//        五天预警
+        productDeamon_form.on('submit(productDeamon_18)', function (obj) {
+            productDeamon_Fun("/product/deamon/warningEmail");
+        });
+//        消档(上架==>待下架)
+        productDeamon_form.on('submit(productDeamon_19)', function (obj) {
+            productDeamon_Fun("/product/deamon/doWaitoffsaleEmail");
+        });
+//        待下架下架
+        productDeamon_form.on('submit(productDeamon_20)', function (obj) {
+            productDeamon_Fun("/product/deamon/disappearedEmail");
+        });
+//        三天消档
+        productDeamon_form.on('submit(productDeamon_22)', function (obj) {
+            productDeamon_Fun("/product/deamon/noArchiveEmail");
+        });
+//        老ERP品类同步
+        productDeamon_form.on('submit(productDeamon_23)', function (obj) {
+            productDeamon_Fun("/product/deamon/oldErpCategoryNewSync");
+        });
+
+        //查询没有推送成功的sku列表
+        productDeamon_form.on('submit(list_repost)', function (obj) {
+
+            $.ajax({
+                type: 'POST',
+                url: '/product/tool/wms_repost_list',
+                type:'json',
+                success: function (res) {
+                    productDeamon_layer.msg(res.data);
+                    $(".mySkus").empty().val(res);
+                }
+            });
+
+
+        });
+
+
+    });
+    
+    function productDeamon_Fun(url) {
+        $.ajax({
+            type: 'POST',
+            url: url,
+            dataType: 'json',
+            success: function (res) {
+                state_response(res);
+            }
+        });
+    }
+//    产品同步
+    function productDeamonPro(obj) {
+        $.ajax({
+            type: 'POST',
+            url: "/product/deamon/againPushProduct",
+            dataType: 'json',
+            data: {
+                productIds: obj.field.productIds
+            },
+            success: function (res) {
+                state_response(res);
+            }
+        });
+    }
+//    产品SKU同步
+    function productDeamonProSku(obj) {
+        $.ajax({
+            type: 'POST',
+            url: "/product/deamon/againPushProductSku",
+            dataType: 'json',
+            data: {
+                productIds: obj.field.productIds
+            },
+            success: function (res) {
+                state_response(res);
+            }
+        });
+    }
+//    产品内部名修改
+    function productDeamonProName(obj) {
+        $.ajax({
+            type: 'POST',
+            url: "/product/manage/updateById",
+            dataType: 'json',
+            data: {
+                innerName: obj.field.name,
+                id: obj.field.id
+            },
+            success: function (res) {
+                state_response(res);
+            }
+        });
+    }
+//    排重报表
+    function productDeamonCheck(data) {
+        var createTimeArray = data.field.productDeamon_dateName.split("~");
+        minTime = $.trim(createTimeArray[0]);
+        maxTime = $.trim(createTimeArray[1]);
+        $.ajax({
+            type: 'POST',
+            url: "/product/deamon/checkEmail",
+            dataType: 'json',
+            data: {
+                startTime: minTime,
+                endTime: maxTime
+            },
+            success: function (res) {
+                state_response(res);
+            }
+        });
+    }
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

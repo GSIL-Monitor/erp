@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>插入数据sql</title>
+</head>
+<body>
+<div class="layui-form-item">
+    <div class="layui-input-block">
+        <textarea name="desc" placeholder="请输入内容" class="layui-textarea">
+                 + "insert into orders( "
+            + Base_Column_List
+            + " ) "
+            + "values "
+            + " <foreach collection =\"list\" item=\"o\
+                         + "( "
+            + Base_Column_Insert
+            + " )"
+
+
+
+        </textarea>
+    </div>
+</div>
+
+
+
+</body>
+</html>

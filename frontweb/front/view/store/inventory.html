@@ -1,0 +1,90 @@
+<br>
+<div class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">仓库</label>
+        <div class="layui-input-inline">
+            <select name="wmsId" lay-search id="sto_wmsId">
+                <option value=" ">不限</option>
+            </select>
+        </div>
+        <label class="layui-form-label">部门</label>
+        <div class="layui-input-inline">
+            <select id="treenode_dept" name="deptId">
+                <option value="">请选择</option>
+            </select>
+        </div>
+        <label class="layui-form-label">sku</label>
+        <div class="layui-input-inline">
+            <input type="text" name="sku" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn" lay-submit lay-filter="position_search">搜索</button>
+        </div>
+    </div>
+</div>
+<table id="demo" lay-filter="test"></table>
+<script>
+//库存报表
+
+    layui.use(['layer', 'table', 'element', 'form'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0, {time: 5 * 1000});
+        var table = layui.table;
+        var form = layui.form;
+        form.render();
+
+        //部门
+        tree_formDept("treenode_dept", "id");
+        //仓库下拉框
+        store_wmsId_option('sto_wmsId');
+
+        //第一个实例
+        table.render({
+            elem: '#demo'
+            , id: 'demo'
+            , url: '/store/stock/findList' //数据接口
+            , method: 'post'
+            , height: 970 - 200
+            , even: true  //开启隔行背景
+            , page: true //开启分页
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , done: function (res, curr, count) {
+                layer.close(index);
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , page: true //开启分页
+            , cols: [[ //表头
+                {field: 'id', title: 'id', fixed: 'left', width: 100}
+                , {field: 'wmsName', title: '仓库'}
+                , {field: 'deptName', title: '部门'}
+                , {field: 'spu', title: 'SPU'}
+                , {field: 'sku', title: 'SKU'}
+                , {field: 'instockQty', title: '库存数'}
+                , {field: 'usableQty', title: '可用数'}
+                , {field: 'occupyQty', title: '占用数'}
+                , {field: 'intransitQty', title: '在途数'}
+            ]]
+        });
+
+        //监听查询
+        form.on('submit(position_search)', function (data) {
+            //上述方法等价于
+            table.reload('demo', {
+                where: data.field    //设定异步数据接口的额外参数，任意设
+                , page: {
+                    offset: 1 //重新从第 1 页开始
+                }
+            });
+            return false;
+        });
+    });
+</script>

@@ -1,0 +1,147 @@
+<div class="layui-form border1ccc padding30">
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span style="color: red">*</span>类型</label>
+        <div class="layui-input-inline">
+            <select lay-search name="typeEnum" lay-verify="required">
+                <option value="">不限</option>
+                <option value="supplier">供应商</option>
+                <option value="shipper">发货物流商</option>
+                <option value="purchase">采购物流商</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span style="color: red">*</span>名称</label>
+        <div class="layui-input-inline">
+            <input type="text" name="name" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">联系人</label>
+        <div class="layui-input-inline">
+            <input type="text" name="contact" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">联系电话</label>
+        <div class="layui-input-inline">
+            <input type="text" name="mobile" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">联系地址</label>
+        <div class="layui-input-inline">
+            <input type="text" name="address" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">财务账号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="financialLoginid" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">财务账户名</label>
+        <div class="layui-input-inline">
+            <input type="text" name="financialAccount" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">账户类型</label>
+        <div class="layui-input-inline">
+            <select lay-search name="financialAccountType" id="">
+                <option value="0">PayPal</option>
+                <option value="1">银行账户</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">发行方</label>
+        <div class="layui-input-inline">
+            <input type="text" name="issuer" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">结算方式</label>
+        <div class="layui-input-inline">
+            <select lay-search name="settlementMethod" id="settlementMethod" lay-filter="changeSettlementMethod">
+                <option value="0">不定期</option>
+                <option value="1">按周</option>
+                <option value="2">按月</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item" style="display: none" id="settlementDay">
+        <label class="layui-form-label">结算日</label>
+        <div class="layui-input-inline">
+            <input type="text" name="settlementDay" placeholder="多个'，'隔开" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-inline">
+            <textarea name="remark" placeholder="" class="layui-textarea"></textarea>
+        </div>
+    </div>
+
+
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="addPartnerForm"><i class="layui-icon">&#xe618;</i>确认</button>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    layui.use(['form','table'], function () {
+        var product_addPartner_form = layui.form;
+        var product_addPartner_table = layui.table;
+        product_addPartner_form.render();
+
+        //监听提交
+        product_addPartner_form.on('submit(addPartnerForm)', function (data) {
+            $.ajax({
+                type: 'POST',
+                url: "/product/base/partner/add",
+                data: data.field,
+                dataType: 'json',
+                success: function (res) {
+                    if(res.code==='NOTICE') {
+                        layer.close(index);         //此时你只需要把获得的index，轻轻地赋予layer.close即可
+                        product_addPartner_table.reload('partnerId');
+                        layer.msg('新增成功', {icon: 1});
+                    }else{
+                        layer.msg(res.desc,{icon:2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                }
+            });
+            return false;
+        });
+
+        product_addPartner_form.on('select(changeSettlementMethod)',function (data) {
+                if(data.value == 1 || data.value == 2){
+                    $("#settlementDay").show();
+                }else{
+                    $("#settlementDay").hide();
+                }
+        });
+
+
+
+    });
+</script>

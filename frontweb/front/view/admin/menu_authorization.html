@@ -1,0 +1,121 @@
+<br>
+<div class="clear-float">
+			<span id="operation_menutree" class="float-l"></span>
+			<span class="float-l fix-position width-percent50">
+					<div class="layui-form">
+						<div class="layui-form-item">
+							<label class="layui-form-label">操作权限</label>
+						    <div class="layui-input-block" id="menu_operationrights">
+						      
+						    </div>
+					    </div>
+				    </div>
+			</span>	
+</div>
+		
+<br>
+<script type="text/html" id="operation_menutpl">
+		{{each children value index}}
+				{{if value.checked}}
+						<div><input class="margin-l-30 menucheckbox" type="checkbox" name="" checked="checked" data-id="{{value.id}}" data-keyword="{{value.keyword}}">{{value.name}}</div>
+				{{else}}
+						<div><input class="margin-l-30 menucheckbox" type="checkbox" name="" data-id="{{value.id}}" data-keyword="{{value.keyword}}">{{value.name}}</div>
+				{{/if}}
+				{{each value.children val idx}}
+						{{if val.leaf == false}}
+								{{if val.checked}}
+										<div><input class="margin-l-50 menucheckbox" type="checkbox" name="" checked="checked" data-id="{{val.id}}" data-keyword="{{val.keyword}}">{{val.name}}</div>
+								{{else}}
+										<div><input class="margin-l-50 menucheckbox" type="checkbox" name="" data-id="{{val.id}}" data-keyword="{{val.keyword}}">{{val.name}}</div>
+								{{/if}}
+								{{each val.children val2 idx2}}
+										{{if val2.checked}}
+												<div><input class="margin-l-70 menucheckbox" type="checkbox" name="" checked="checked" data-id="{{val2.id}}" data-keyword="{{val2.keyword}}"><span class="click_span">{{val2.name}}</span></div>
+										{{else}}
+												<div><input class="margin-l-70 menucheckbox" type="checkbox" name="" data-id="{{val2.id}}" data-keyword="{{val2.keyword}}"><span class="click_span">{{val2.name}}</span></div>
+										{{/if}}
+								{{/each}}
+						{{else}}
+								{{if val.checked}}
+										<div><input class="margin-l-50 menucheckbox" type="checkbox" name="" checked="checked" data-id="{{val.id}}" data-keyword="{{val.keyword}}"><span class="click_span">{{val.name}}</span></div>
+								{{else}}
+										<div><input class="margin-l-50 menucheckbox" type="checkbox" name="" data-id="{{val.id}}" data-keyword="{{val.keyword}}"><span class="click_span">{{val.name}}</span></div>
+								{{/if}}
+						{{/if}}
+				{{/each}}
+		{{/each}}
+</script>
+
+<script type="text/html" id="operation_rightstpl">	
+		{{each elements value index}}
+				{{if value.checked}}
+		      		<input lay-filter="edit_operation_rights" type="checkbox" name="" value="{{value.id}}" title="{{value.name}}" checked>
+				{{else}}
+					<input lay-filter="edit_operation_rights" type="checkbox" name="" value="{{value.id}}" title="{{value.name}}">
+		  		{{/if}}
+  		{{/each}}
+</script>
+
+<script type="text/javascript">
+layui.use('form', function(){
+    var form = layui.form;
+	$.ajax({
+        type : 'GET',
+        url : "/admin/job/getPermission?jobId="+_query_id,
+        dataType : 'json',
+        success : function(res){
+                console.log("根据职位获取菜单树",res);
+                state_response(res);
+                $("#operation_menutree").html(template('operation_menutpl', res.item));
+                $("body").on('change','.menucheckbox',function(){  
+			            var _id = $(this).attr("data-id");
+			            var _ischecked = $(this).is(':checked');
+			            console.log(_id,_ischecked);
+			            $.ajax({
+					        type : 'POST',
+					        url : "/admin/job/updateJobMenu",
+					        data:{jobId:_query_id,menuId:_id,isChecked:_ischecked},
+					        dataType : 'json',
+					        success : function(res){
+					                state_response(res);					                
+					                
+					        }
+						});
+			    }); 
+			    $("body").on('click','.click_span',function(){ 
+			    		$(".click_span").removeClass("text-red");
+			    		$(this).addClass("text-red");
+			    		var _keyword = $(this).prev(".menucheckbox").attr("data-keyword");
+			    		var _id = $(this).prev(".menucheckbox").attr("data-id");
+					    $.ajax({
+						        type : 'POST',
+						        url : "/admin/element/findElementPermissionByMenuKey",
+						        data:{menuKeyword:_keyword,jobId:_query_id},
+						        dataType : 'json',
+						        success : function(res){
+						                console.log("查询该职位该菜单的所有元素",res);
+						                state_response(res);
+						                $("#menu_operationrights").html(template('operation_rightstpl', res.item));
+						                form.render('checkbox'); //刷新checkbox选择框渲染
+						                form.on('checkbox(edit_operation_rights)', function(data){
+												//console.log(data.elem); //得到radio原始DOM对象
+												console.log(data.value); //被点击的radio的value值
+												 $.ajax({
+												        type : 'POST',
+												        url : "/admin/job/updateJobMenuElement",
+												        data:{jobId:_query_id,menuId:_id,elementId:data.value,isChecked:data.elem.checked},
+												        dataType : 'json',
+												        success : function(res){
+												                console.log("绑定或者解绑该职位所拥有的该菜单的元素",res);
+												                state_response(res);
+											                	
+												        }
+												});
+										}); 
+						        }
+						});
+				}); 
+        }
+	});
+});
+</script>

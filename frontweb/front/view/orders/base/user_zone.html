@@ -1,0 +1,335 @@
+<style type="text/css">
+    .form-item-model{
+        width: 90%;
+        margin-top: 20px;
+    }
+</style>
+</br>
+<form class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户</label>
+            <div class="layui-input-inline">
+            <input type="text" name="" class="auto_matchinput layui-input"   style="width: 196px"
+                   oninput="input_match(this)"  onblur="blur_event(this)" />
+            <input hidden = 'true' type="" name="userId" class="auto_complateval" >
+            <div class="auto_matchwrap layui-anim layui-anim-upbit layui-select-group" style="display: none; position: absolute;background-color: #fff;z-index: 999; ">
+            </div>
+        </div>
+<!--         <div class="layui-input-inline">
+            <input type="text" name="userId" placeholder="" autocomplete="off" class="layui-input">
+        </div> -->
+
+        <label class="layui-form-label">地区</label>
+        <div class="layui-input-inline">
+             <select name="zoneId" id="zoneIdSelect" lay-search>
+                <option value="">不限</option>
+            </select>
+        </div>
+
+
+        <label class="layui-form-label">是否有效</label>
+        <div class="layui-input-inline">
+            <select name="useStatus" id="useStatus">
+                <option value="other" selected>不限</option>
+                <option value="use">是</option>
+                <option value="unuse">否</option>
+            </select>
+        </div>
+
+
+        <div id="authority_add_div">
+         
+        </div>
+        
+    </div>
+</form>
+<br>
+
+
+
+<table id="demo" lay-filter="test"></table>
+<script>
+    var addFormIndex = "";
+    var searchParam = {};
+
+    $("#authority_add_div").html(template('authority_add_tpl'));
+
+    
+    layui.use(['table','form','layer'], function(){
+        var table = layui.table;
+        var form = layui.form;
+        var layer = layui.layer;
+        form.render(); //更新全部
+
+
+        //地区
+        $.ajax({
+            type: 'GET',
+            url: "/product/base/zone/findAll",
+            dataType: 'json',
+            success: function (res) {
+                state_response(res);
+                // $("#zoneIdSelect").append(template('deptZoneRel_option_tpl3', res));
+                $("select[name='zoneId']").append(template('deptZoneRel_option_tpl3', res));
+                form.render(); //更新全部
+            }
+        });
+
+        //第一个实例
+        table.render({
+            elem: '#demo'
+            ,id: 'demo'
+            ,height: 'full-200'
+            ,url: '/orders/user_zone/find' //数据接口
+            ,method: 'post'
+//            ,request: {
+//                pageName: 'offset' //页码的参数名称，默认：page
+//                ,limitName: 'limit' //每页数据量的参数名，默认：limit
+//            }
+            ,done: function(res, curr, count){
+                layui.use('element', function(){
+                    var element = layui.element;
+                    element.init();
+                });
+            }
+            ,response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                ,statusCode: 'OK' //成功的状态码，默认：0
+                ,msgName: 'desc' //状态信息的字段名称，默认：msg
+                ,countName: 'total' //数据总数的字段名称，默认：count
+                ,dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            ,page: true //开启分页
+            ,cols: [[ //表头
+                {field: 'userName', title: '用户', width:'10%'}
+                ,{field: 'zoneName', title: '地区', width:'20%'}
+                ,{title: '是否有效',templet:'#useStatusTemplet', width:'10%'}
+                ,{field: 'creator', title: '创建人', width:'15%'}
+                ,{field: 'createAt', title: '创建时间', width:'20%'}
+                ,{field: '', title: '操作', templet: '#barDemo', width:'24%',align: 'center'}
+            ]]
+        });
+
+        //监听工具条
+        table.on('tool(test)', function(obj){ //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+            if(layEvent === 'enable'){ //查看
+                $.ajax({
+                    type: 'POST',
+                    url : "/orders/user_zone/enable",
+                    data: {
+                        "id": data.id
+                    },
+                    dataType: 'json',
+                    success: function(data){
+                        state_response(data);
+                        table.reload('demo', {
+                             where: searchParam    //设定异步数据接口的额外参数，任意设
+                            ,page: 1
+                        });
+                    },
+                    error: function(data){
+                        layer.msg(data.desc);
+                    }
+                })
+            } else if(layEvent === 'delete'){ //删除
+                layer.confirm('真的删除行么', function(index){
+                    $.ajax({
+                        type: 'POST',
+                        url : "/orders/user_zone/delete",
+                        data: {
+                            "id": data.id
+                        },
+                        dataType: 'json',
+                        success: function(data){
+                            state_response(data);
+                            layer.close(index);
+                            table.reload('demo', {
+                                where: searchParam    //设定异步数据接口的额外参数，任意设
+                                ,page: 1
+                            });
+                        },
+                        error: function(data){
+                            layer.close(index);
+                            layer.msg(data.desc);
+                        }
+                    })
+                });
+            } else if(layEvent === 'disable'){ //编辑
+                    $.ajax({
+                        type: 'POST',
+                        url : "/orders/user_zone/disable",
+                        data: {
+                            "id": data.id
+                        },
+                        dataType: 'json',
+                        success: function(data){
+                            state_response(data);
+                            table.reload('demo', {
+                                where: searchParam    //设定异步数据接口的额外参数，任意设
+                                ,page: 1
+                            });
+                        },
+                        error: function(data){
+                            layer.msg(data.desc);
+                        }
+                    })
+            }
+
+        });
+
+
+        $('#add').on('click',function () {
+
+            // var tpl = $('#userZoneAdd').html(template('userZoneAddTpl'));
+            addFormIndex = layer.open({
+                            type:1,
+                            area: ['800px', '500px'],
+                            resize:false,
+                            content: $("#userZoneAddForm").html()
+                        });               
+            form.render();
+        })
+
+
+        //监听提交
+        form.on('submit(formDemo1)', function(data){
+            searchParam = data.field;
+            //上述方法等价于
+            table.reload('demo', {
+                where: searchParam    //设定异步数据接口的额外参数，任意设
+                ,page: {
+                    curr: 1 
+                }
+            });
+            return false;
+        });
+
+
+        //添加监听提交
+        form.on('submit(formAdd)', function(data){
+            $('button').addClass("layui-disabled");
+            $('button').attr("disabled","disabled")
+
+            var filed = data.field;
+            // var zoneIds =  $("#zoneIdsSelect").attr("data-id");
+            var zoneIds = $("input[name='zoneIdsSelect']")[1].getAttribute("data-id");
+            //调用添加接口
+            $.ajax({
+                type: 'POST',
+                url : "/orders/user_zone/add",
+                data: {
+                    "userId": filed.userId,
+                    "zoneIds": zoneIds
+                },
+                dataType: 'json',
+                success: function(data){
+                    $('button').removeAttr("disabled");
+                    $('button').removeClass("layui-disabled");
+
+                    if(data.code == "FAIL"){
+                        layer.msg(data.desc);
+                        return;
+                    }
+
+                    layer.close(addFormIndex);
+                    table.reload('demo', {
+                        where: searchParam    //设定异步数据接口的额外参数，任意设
+                        ,page: {
+                            curr: 1 //重新从第 1 页开始
+                        }
+                    });
+                },
+                error: function(data){
+                    $('button').removeAttr("disabled");
+                    $('button').removeClass("layui-disabled");
+                    layer.msg(data.desc);
+                }
+            })
+            return false;
+        });
+
+    });
+
+    function closeAddFormModel() {
+        layer.close(addFormIndex);
+    }
+</script>
+
+<script type="text/html" id="barDemo">
+    <div class="layui-form">
+        {{# if(window.order_write){ }}
+        {{#  if(d.useStatus.name == "unuse"){ }}
+            <button class="layui-btn layui-btn-xs layui-btn-danger "  lay-event="delete">删除</button>
+            <button class="layui-btn layui-btn-xs right-" lay-event="enable" >开启</button>
+        {{#  } else { }}
+            <button class="layui-btn layui-btn-xs layui-btn-warm " lay-event="disable">关闭</button>
+        {{#  } }}
+        {{#  } }}
+    </div>
+</script>
+
+<script id="authority_add_tpl" type="text/html">
+    <div>
+        <button class="layui-btn" lay-submit lay-filter="formDemo1">搜索</button>
+        <button class="layui-btn" type="reset">重置</button>
+        {{ if $imports.$window.order_write }}
+            <button class="layui-btn" type="button" id="add">新增</button>
+        {{ /if }}
+    </div>
+</script>
+
+<script id="deptZoneRel_option_tpl3" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.title}}</option>
+    {{/each}}
+</script>
+
+<script id="useStatusTemplet" type="text/html">
+    <span
+            {{# if(d.useStatus.display ==  '否') { }}
+            style='color:red;'
+           {{#  } else { }}
+            style='color:green;'
+            {{#  }}}
+    >{{d.useStatus.display}}</span>
+
+</script>
+
+<div style="display:none">
+<div id="userZoneAddForm">
+    <div>
+      <form class="layui-form form-item-model" action="">
+      <div class="layui-form-item">
+        <label class="layui-form-label">用户</label>
+        <div class="layui-input-block">
+            <input type="text" name="" class="auto_matchinput layui-input"
+                   oninput="input_match(this)"  onblur="blur_event(this)" />
+            <input hidden = 'true' type=""  lay-verify="required" name="userId" class="auto_complateval">
+            <div class="auto_matchwrap layui-anim layui-anim-upbit layui-select-group" style="display: none; position: absolute;background-color: #fff;z-index: 999; ">
+        </div>
+      </div>
+
+     <div class="layui-form-item ">
+        <label class="layui-form-label">地区</label>
+        <div class="layui-input-inline">
+            <input readonly="readonly" name="zoneIdsSelect" type="text" class="layui-input component_input" />
+            <span class="layui-btn layui-btn-xs componentchoose_btn" onclick="start_multiselect('/product/base/zone/findAll',this,'title','id');">选择</span>
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <div class="layui-input-block">
+          <button type="button" onclick="closeAddFormModel()" class="layui-btn layui-btn-primary">取消</button>
+          <button class="layui-btn" lay-submit lay-filter="formAdd">立即提交</button>
+        </div>
+      </div>
+    </form>
+    </div>
+</div>
+</div>
+
+

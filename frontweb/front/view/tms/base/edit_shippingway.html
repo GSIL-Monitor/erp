@@ -1,0 +1,217 @@
+<div class="layui-form border1ccc padding30" id="store_update">
+    <input type="hidden" name="id" value="">
+    <input type="hidden" name="state" value="">
+    <div class="layui-form-item">
+        <label class="layui-form-label">物流线路代码*</label>
+        <div class="layui-input-inline">
+            <input  type="text" name="shippingWayCode" required lay-verify="required" autocomplete="off"
+                    class="layui-input" disabled>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">名称*</label>
+        <div class="layui-input-inline">
+            <input  type="text" name="shippingWayName"  maxlength="50"   required lay-verify="required" autocomplete="off"
+                    class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">物流商*</label>
+        <div class="layui-input-inline">
+            <select name="shippingId" id="shippingIdEditSelect" lay-verify="required" >
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">公司地址</label>
+        <div class="layui-input-inline">
+            <input  type="text" name="address"    maxlength="200"   autocomplete="off"
+                    class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">联系电话</label>
+        <div class="layui-input-inline">
+            <input  type="text" name="telphone"  maxlength="50"   autocomplete="off"
+                    class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">网络渠道</label>
+        <div class="layui-input-inline">
+            <input  type="text" name="channel"  autocomplete="off"
+                    class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">物流注册账号</label>
+        <div class="layui-input-inline">
+            <input  type="text" name="account"  autocomplete="off"
+                    class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">是否需要推送订单</label>
+        <div class="layui-input-block">
+            <input type="radio" name="needSendOrder" value="0" title="不需要" checked>
+            <input type="radio" name="needSendOrder" value="1" title="需要" >
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">是否需要预先导入运单号</label>
+        <div class="layui-input-block">
+            <input type="radio" name="needTrackNum" value="0" title="不需要" checked>
+            <input type="radio" name="needTrackNum" value="1" title="需要" >
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">是否开启运单号的预警</label>
+        <div class="layui-input-block">
+            <input type="radio" name="trackNoWaringEnable" value="0" title="不需要" checked>
+            <input type="radio" name="trackNoWaringEnable" value="1" title="需要" >
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">运单号预警数值</label>
+        <div class="layui-input-block">
+            <input type="text" name="trackNoWarningNum" lay-verify="number"  placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">物流轨迹接口:</label>
+        <div class="layui-input-block">
+            <div class="layui-input-inline">
+            <select name="apiId" id="trackApiIdSelect" lay-verify="required" >
+                <option value="">请选择</option>
+            </select>
+        </div>
+        </div>
+    </div>
+    
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="addElementForm">确定</button>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+
+    layui.use(['form', 'table'], function () {
+        var layer = layui.layer;
+        var table = layui.table;
+        var edit_from = layui.form;
+
+
+        $('input[name=\'id\']').val(shipping_data.id);
+        $('input[name=\'state\']').val(shipping_data.state);
+        $('input[name=\'shippingWayCode\']').val(shipping_data.shippingWayCode);
+        $('input[name=\'shippingWayName\']').val(shipping_data.shippingWayName);
+        $('input[name=\'address\']').val(shipping_data.address);
+        $('input[name=\'telphone\']').val(shipping_data.telphone);
+        $('input[name=\'channel\']').val(shipping_data.channel);
+        $('input[name=\'account\']').val(shipping_data.account);
+        $('input[name=\'needSendOrder\'][value="'+shipping_data.needSendOrder+'"]').prop("checked", "checked");
+        $('input[name=\'needTrackNum\'][value="'+shipping_data.needTrackNum+'"]').prop("checked", "checked");
+        $('input[name=\'trackNoWaringEnable\'][value="'+shipping_data.trackNoWaringEnable+'"]').prop("checked", "checked");
+        $('input[name=\'trackNoWarningNum\']').val(shipping_data.trackNoWarningNum);
+        $('input[name=\'waybilltrackType\'][value="'+shipping_data.waybilltrackType+'"]').prop("checked", "checked");
+        $('input[name=\'waybilltrackUrl\']').val(shipping_data.waybilltrackUrl);
+
+        $.ajax({
+            type: 'GET',
+            url: "/tms/shipping",
+            data: {
+                start:0,
+                limit:100000
+            },
+            dataType: 'json',
+            success: function (res) {
+                console.log("获取物 流公司列表数据", res);
+                state_response(res);
+                res['shippingIdExist'] = shipping_data.shippingId;
+                $("#shippingIdEditSelect").append(template('option-way-edit-shippingId', res));
+                edit_from.render();
+            }
+        });
+        
+        $.ajax({
+            type: 'post',
+            url: "/tms/trackApi",
+            data: {
+                start:0,
+                limit:100000
+            },
+            dataType: 'json',
+            success: function (res) {
+                state_response(res);
+                res['apiIdExist'] = shipping_data.apiId;
+                $("#trackApiIdSelect").append(template('option-edit-trackApiid', res));
+                edit_from.render();
+            }
+        });
+        
+        //监听提交
+        edit_from.on('submit(addElementForm)', function (data) {
+            var params = data.field;
+           if(params.trackNoWaringEnable == 1 && !params.trackNoWarningNum){
+                layer.msg('需要告警请输入告警数值');
+                return;
+            }
+            if(params.waybilltrackType == 1 && !params.waybilltrackUrl){
+                layer.msg('从物流商抓取物流轨迹请输入物流估计抓取地址');
+                return;
+            }
+
+            $.ajax({
+                type: 'PUT',
+                url: "/tms/base/shippingway",
+                data: data.field,
+                dataType: 'json',
+                success: function (res) {
+                    console.log("修改元素返回值", res);
+                    if (res.code === 'NOTICE') {
+                        layer.close(edit_shippingway_index); //此时你只需要把获得的index，轻轻地赋予layer.close即可
+                        table.reload('demo');
+                        layer.msg('修改成功', {icon: 1});
+                    } else {
+                        layer.msg(res.desc, {icon: 2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                }
+            });
+            return false;
+        });
+
+    });
+</script>
+
+<script id="option-way-edit-shippingId" type="text/html">
+    {{each item value index}}
+        {{if value.id == shippingIdExist}}
+             <option value="{{value.id}}" selected="selected">{{value.shippingName}}</option>
+        {{/if}}
+        {{if value.id != shippingIdExist}}
+            <option value="{{value.id}}" >{{value.shippingName}}</option>
+        {{/if}}
+    {{/each}}
+</script>
+
+<script id="option-edit-trackApiid" type="text/html">
+    {{each item value index}}
+         {{if value.id == apiIdExist}}
+             <option value="{{value.id}}" selected="selected">{{value.apiName}}</option>
+        {{/if}}
+        {{if value.id != apiIdExist}}
+            <option value="{{value.id}}" >{{value.apiName}}</option>
+        {{/if}}
+    {{/each}}
+</script>

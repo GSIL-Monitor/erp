@@ -1,0 +1,335 @@
+<style type="text/css">
+    .form-item-model{
+        width: 90%;
+        margin-top: 20px;
+    }
+</style>
+</br>
+<form class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">客户等级</label>
+        <div class="layui-input-inline">
+            <select name="levelEnum" id="levelEnum">
+                <option value="" selected>不限</option>
+            </select>
+        </div>
+
+        <!-- <label class="layui-form-label">地区</label>
+        <div class="layui-input-inline">
+             <select name="zoneId" id="zoneIdQuery" lay-search>
+                <option value="">不限</option>
+            </select>
+        </div> -->
+
+        <!-- <label class="layui-form-label">地址</label>
+        <div class="layui-input-inline">
+            <input type="text" name="address" placeholder="" autocomplete="off" class="layui-input">
+        </div> -->
+
+        <label class="layui-form-label">签收次数</label>
+        <div class="layui-input-inline">
+            <input type="text" name="acceptQty" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+
+        <label class="layui-form-label">拒收次数</label>
+        <div class="layui-input-inline">
+            <input type="text" name="rejectQty" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+    </div>    
+
+    <div class="layui-form-item">
+
+        <!-- <label class="layui-form-label">验证码类型</label>
+        <div class="layui-input-inline">
+            <select name="codeType" id="codeTypeQuery">
+                <option value="" selected>不限</option>
+            </select>
+        </div> -->
+
+        <label class="layui-form-label">关键字</label>
+        <div class="layui-input-inline">
+            <input type="text" name="keyWord" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+
+
+        <label class="layui-form-label">添加时间</label>
+        <div class="layui-input-inline">
+            <input name="time_zone" type="text" class="layui-input" id="test1">
+        </div>
+
+
+        <div id="authority_add_div">
+         
+        </div>
+        
+    </div>
+</form>
+<br>
+
+
+
+<table id="demo" lay-filter="test"></table>
+<script>
+    var addFormIndex = "";
+    var searchParam = {};
+
+    $("#authority_add_div").html(template('authority_add_tpl'));
+
+    
+    layui.use(['table','form','layer','laydate'], function(){
+        var table = layui.table;
+        var form = layui.form;
+        var layer = layui.layer;
+        var laydate = layui.laydate;
+
+        laydate.render({
+            elem: '#test1' //指定元素
+            , type: 'datetime'
+            , range: '~' //或 range: '~' 来自定义分割字符
+            , max: 'new Date()'
+            , theme: 'molv'
+            , ready: function (date) {
+            }
+            , change: function (value, date) { //监听日期被切换
+            }
+            , done: function (value, date, endDate) {
+
+            }
+        });
+
+
+        //地区
+        $.ajax({
+            type: 'GET',
+            url: "/product/base/zone/findAll",
+            dataType: 'json',
+            success: function (res) {
+                $("select[name='zoneId']").append(template('deptZoneRel_option_tpl3', res));
+                form.render(); //更新全部
+            }
+        });
+
+        $.ajax({
+            type: 'GET',
+            url: "orders/crm/customers/enumList",
+            dataType: 'json',
+            success: function (res) {
+                var obj = new Object;
+                obj.item = res.item.codeType;
+                $("select[name='codeType']").append(template('option-enum-tpl', obj));
+                obj.item = res.item.customerCredit;
+                $("select[name='levelEnum'").append(template('option-enum-tpl', obj));
+                form.render(); //更新全部
+            }
+        });
+
+        //第一个实例
+        table.render({
+            elem: '#demo'
+            ,id: 'demo'
+            ,height: 'full-230'
+            ,url: '/orders/crm/customers/find' //数据接口
+            ,method: 'post'
+            ,done: function(res, curr, count){
+                layui.use('element', function(){
+                    var element = layui.element;
+                    element.init();
+                });
+            }
+            ,response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                ,statusCode: 'OK' //成功的状态码，默认：0
+                ,msgName: 'desc' //状态信息的字段名称，默认：msg
+                ,countName: 'total' //数据总数的字段名称，默认：count
+                ,dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            ,page: true //开启分页
+            ,cols: [[ //表头
+                {field: 'id', title: 'ID', width:'5%'}
+                ,{templet:'#customerNameTpl', title: '客户姓名', width:'5%'}
+                ,{field: 'telphone',title: '电话', width:'8%'}
+                ,{field: 'email', title: '邮箱', width:'12%'}
+                ,{field: 'address', title: '地址', width:'15%'}
+                // ,{field: 'codeType', title: '验证码类型', width:'5%'}
+                ,{field: 'customerCreditEnum', title: '客户等级', width:'5%'}
+                ,{field: 'acceptQty', title: '签收次数', width:'5%'}
+                ,{field: 'rejectQty', title: '拒签次数', width:'5%'}
+                ,{field: 'createAt', title: '添加时间', width:'10%'}
+                ,{field: 'memo', title: '备注', width:'10%'}
+                ,{field: 'stateDisplay', title: '状态', width:'7%'}
+                ,{field: '', title: '操作', templet: '#barDemo', width:'12%',align: 'center'}
+            ]]
+        });
+
+        //监听工具条
+        table.on('tool(test)', function(obj){ //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+            if(layEvent === 'detail'){ //查看
+                customerId = data.id;
+                openDetailPage("详情");
+            } else if(layEvent === 'delete'){ //删除
+                // openAddOrEditPage(null,'add','添加客户');
+            } else if(layEvent === 'edit'){ //编辑
+                customerId = data.id;
+                openAddOrEditPage(customerId,'edit','编辑客户');
+            }
+
+        });
+
+
+        $('#add').on('click',function () {
+            openAddOrEditPage(null,'add','添加客户');
+        });
+
+
+        //监听提交
+        form.on('submit(formDemo1)', function(data){
+            searchParam = data.field;
+            var showTimearray = data.field.time_zone.split("~");
+            searchParam.minCreateAt = $.trim(showTimearray[0]);
+            searchParam.maxCreateAt = $.trim(showTimearray[1]);
+
+            //上述方法等价于
+            table.reload('demo', {
+                where: searchParam    //设定异步数据接口的额外参数，任意设
+                ,height: 'full-230'
+                ,page: {
+                    curr: 1 
+                }
+            });
+            return false;
+        });
+
+
+        //添加监听提交
+        form.on('submit(formAdd)', function(data){
+            $('button').addClass("layui-disabled");
+            $('button').attr("disabled","disabled")
+
+            var filed = data.field;
+            // var zoneIds =  $("#zoneIdsSelect").attr("data-id");
+            var zoneIds = $("input[name='zoneIdsSelect']")[1].getAttribute("data-id");
+            //调用添加接口
+            $.ajax({
+                type: 'POST',
+                url : "/orders/user_zone/add",
+                data: {
+                    "userId": filed.userId,
+                    "zoneIds": zoneIds
+                },
+                dataType: 'json',
+                success: function(data){
+                    $('button').removeAttr("disabled");
+                    $('button').removeClass("layui-disabled");
+
+                    if(data.code == "FAIL"){
+                        layer.msg(data.desc);
+                        return;
+                    }
+
+                    layer.close(addFormIndex);
+                    table.reload('demo', {
+                        where: searchParam    //设定异步数据接口的额外参数，任意设
+                        ,page: {
+                            curr: 1 //重新从第 1 页开始
+                        }
+                    });
+                },
+                error: function(data){
+                    $('button').removeAttr("disabled");
+                    $('button').removeClass("layui-disabled");
+                    layer.msg(data.desc);
+                }
+            })
+            return false;
+        });
+
+    });
+
+
+    function openDetailPage(title) {
+        $.get('view/crm/component/customer_detail_comp.html', function (str) {
+            applyModelIndex = layer.open({
+                type: 1
+                , title: title
+                , content: str //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , shadeClose: true
+                , area: ['70%', '80%']
+            });
+        });
+    }
+
+
+    /**
+    * id:
+    * type: 'add', 'edit'
+    * title: 编辑 或者 添加
+    */
+    function openAddOrEditPage(id, type,title) {
+        customerId = id;
+        customerShowType = type;
+        $.get('view/crm/component/customer_edit_comp.html', function (str) {
+            applyModelIndex = layer.open({
+                type: 1
+                , title: title
+                , content: str //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , shadeClose: true
+                , area: ['70%', '80%']
+            });
+        });
+    }
+
+
+</script>
+
+<script type="text/html" id="barDemo">
+    <div class="layui-form">
+            <button class="layui-btn layui-btn-xs " lay-event="detail">详情</button>
+        {{# if(window.order_write){ }}
+            <button class="layui-btn layui-btn-xs  layui-btn-warm" lay-event="edit" >编辑</button>
+            <!-- <button class="layui-btn layui-btn-xs layui-btn-danger "  lay-event="delete">删除</button> -->
+        {{#  } }}
+           
+    </div>
+</script>
+
+<script id="deptZoneRel_option_tpl3" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.title}}</option>
+    {{/each}}
+</script>
+
+<script id="authority_add_tpl" type="text/html">
+    <div>
+        <button class="layui-btn" lay-submit lay-filter="formDemo1">搜索</button>
+        <button class="layui-btn" type="reset">重置</button>
+        {{ if $imports.$window.order_write }}
+            <button class="layui-btn" type="button" id="add">新增</button>
+        {{ /if }}
+    </div>
+</script>
+
+<!--枚举下拉框 -->
+<script id="option-enum-tpl" type="text/html">
+    {{each item value index}}
+    <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<script id="customerNameTpl" type="text/html">
+    {{d.firstName}}{{d.lastName}}
+</script>
+
+
+<script id="option-enum-ordinal-tpl" type="text/html">
+    {{each item value index}}
+        <option value="{{value.ordinal}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+

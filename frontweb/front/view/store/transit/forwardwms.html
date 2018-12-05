@@ -1,0 +1,592 @@
+<style type="text/css">
+    td > .layui-table-cell {
+        height: 100px;
+        line-height: 28px;
+        padding: 0 15px;
+        position: relative;
+        overflow-y: auto;
+    }
+
+    .layui-form-select {
+        text-align: left;
+    }
+
+    .more_btngroup {
+        display: inline-block;
+        padding: 0;
+    }
+
+    .more_btngroup > .layui-nav-item {
+        line-height: 30px;
+    }
+
+    .more_btngroup > .layui-nav-item > .layui-nav-child {
+        top: 32px;
+    }
+
+    .layui-table-link {
+        cursor: pointer;
+    }
+</style>
+<br>
+
+<div class="layui-form">
+
+    <div class="layui-form-item">
+
+        <label class="layui-form-label">部门</label>
+        <div class="layui-input-inline">
+            <select id="treenode_dept" name="deptId">
+                <option value="">请选择</option>
+            </select>
+        </div>
+
+        <label class="layui-form-label">仓库</label>
+        <div class="layui-input-inline">
+            <select name="wmsId" id="warehouseId">
+                <option value="">不限</option>
+            </select>
+        </div>
+
+        <label class="layui-form-label">状态</label>
+        <div class="layui-input-inline">
+            <select name="state" id="transitState">
+                <option value="">不限</option>
+            </select>
+        </div>
+
+
+        <label class="layui-form-label">入库日期</label>
+        <div class="layui-input-inline">
+            <input name="inStockDate" type="text" class="layui-input" id="inStockDate">
+        </div>
+
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">下单日期</label>
+        <div class="layui-input-inline">
+            <input name="orderDate" type="text" class="layui-input" id="orderDate">
+        </div>
+        <label class="layui-form-label">拣货导出日期</label>
+        <div class="layui-input-inline">
+            <input name="exportDate" type="text" class="layui-input" id="exportDate">
+        </div>
+
+        <label class="layui-form-label">新订单号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="orderIdNew" lay-verify="" placeholder="请输新订单号" autocomplete="off"
+                   class="layui-input">
+        </div>
+
+        <label class="layui-form-label">内部名</label>
+        <div class="layui-input-inline">
+            <input type="text" name="innerName" lay-verify="" placeholder="请输内部名" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+
+
+        <label class="layui-form-label">SKU</label>
+        <div class="layui-input-inline">
+            <input type="text" name="sku" lay-verify="" placeholder="请输SKU" autocomplete="off" class="layui-input">
+        </div>
+
+
+        <label class="layui-form-label">库龄大于</label>
+        <div class="layui-input-inline">
+            <input type="text" name="storageAge" required lay-verify="" placeholder="1" autocomplete="off"
+                   class="layui-input">
+        </div>
+
+        <label class="layui-form-label">原运单号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="trackingNoOld" lay-verify="" placeholder="请输原运单号" autocomplete="off"
+                   class="layui-input">
+        </div>
+
+        <label class="layui-form-label">发货运单号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="trackingNoNew" lay-verify="" placeholder="请输发货运单号" autocomplete="off"
+                   class="layui-input">
+        </div>
+
+        <label class="layui-form-label">批量运单查询</label>
+        <div class="layui-input-inline">
+            <textarea name="trackingNoOldBat" placeholder="请输原运单号，换行相隔" class="layui-textarea"></textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="btnSearch">搜索</button>
+            <button class="layui-btn layui-btn-normal" onclick="sto_btnInStock()">转寄入库</button>
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="btnPickExport">拣货导出</button>
+
+            <button class="layui-btn layui-btn-normal" onclick="sto_btnDeliver()">发货导入</button>
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="btnExportExcel">导出</button>
+
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="sto_btnTakeStock">申请盘亏</button>
+        </div>
+    </div>
+
+</div>
+
+<br>
+<table id="demo" lay-filter="sto_trans_table"></table>
+
+<script id="transitState-option-tpl" type="text/html">
+    {{each transitStateEnum value index}}
+    <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<script type="text/html" id="transit-barOption">
+    <form class="layui-form">
+        {{# if(window.transit_order_cancel == true){ }}
+        <button type="button" class="layui-btn layui-btn-xs" lay-event="sto_btnCancel">取消订单</button>
+        {{# } }}
+    </form>
+</script>
+
+<script type="text/html" id="tra-proTitle-tpl">
+    {{#  layui.each(d.spuList, function(index, item){ }}
+    <div><a href="javascript:;" class="layui-table-link">{{item.spu}}&nbsp;&nbsp;{{item.title}}</a></div>
+    {{#  layui.each(item.skuList, function(index, item){ }}
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;{{item.sku}}&nbsp;&nbsp;{{item.attr}}&nbsp;<span class="text-red">x</span>&nbsp;{{item.qty}}
+    </div>
+    {{#  }); }}
+    {{#  }); }}
+</script>
+
+<script type="text/html" id="tra-innerName-tpl">
+    {{#  layui.each(d.spuList, function(index, item){ }}
+    <div><a href="javascript:;" class="layui-table-link">{{item.innerTitle}}</a></div>
+    {{#  layui.each(item.skuList, function(index, item){ }}
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;{{item.sku}}&nbsp;&nbsp;{{item.attr}}&nbsp;<span class="text-red">x</span>&nbsp;{{item.qty}}
+    </div>
+    {{#  }); }}
+    {{#  }); }}
+</script>
+
+<script type="text/html" id="tra-foreignTitle-tpl">
+    {{#  layui.each(d.spuList, function(index, item){ }}
+    <div><a href="javascript:;" class="layui-table-link">{{item.foreignTitle}}</a></div>
+    {{#  layui.each(item.skuList, function(index, item){ }}
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;{{item.sku}}&nbsp;&nbsp;{{item.attr}}&nbsp;<span class="text-red">x</span>&nbsp;{{item.qty}}
+    </div>
+    {{#  }); }}
+    {{#  }); }}
+</script>
+
+
+<script>
+
+    //新增盘点参数
+    var sto_takeStock_addTakeStockReq = {};
+
+    layui.use(['layer', 'table', 'element', 'form', 'laydate'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0, {time: 5 * 1000});
+        var table = layui.table;
+        var laydate = layui.laydate;
+        var form = layui.form;
+
+        window.transit_order_cancel = true;
+
+        //部门
+        tree_formDept("treenode_dept", "id");
+
+        form.render('select');
+
+        //转寄仓下拉
+        store_wmsId_option('warehouseId', {type: 1});
+
+        $.ajax({
+            type: 'GET',
+            url: "/store/common/enumList",
+            dataType: 'json',
+            success: function (res) {
+                console.log("请求-下拉框数据", res);
+                state_response(res);
+                $("#transitState").append(template('transitState-option-tpl', res.item));
+                form.render('select'); //刷新select选择框渲染
+            }
+        });
+
+
+        form.render();
+
+        table.render({
+            elem: '#demo'
+            , url: '/store/transitStock/search' //数据接口
+            , method: 'post'
+            , height: 520
+            , page: true //开启分页
+            , even: true  //开启隔行背景
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+
+            }
+            , cols: [[ //表头
+                {type: 'checkbox', fixed: 'left'}
+                , {field: 'id', title: 'ID', width: 80}
+                , {field: 'trackingNoOld', title: '原运单号', width: 120}
+                , {field: 'zoneName', title: '地区', width: 80}
+                , {field: 'transitStateName', title: '状态', width: 80}
+                , {field: 'logisticsNameOld', title: '物流线路', width: 80}
+                , {field: 'deptName', title: '部门', width: 80}
+                , {field: 'stockName', title: '当前仓库', width: 120}
+//                , {field: 'productTitle', title: '产品信息', width: 150}
+                , {templet: '#tra-proTitle-tpl', title: '产品信息', width: 200, height: 200}
+                , {templet: '#tra-innerName-tpl', title: '内部名', width: 200, height: 200}
+//                , {field: 'innerName', title: '内部名', width: 100}
+//                , {field: 'foreignTitle', title: '外文名', width: 100}
+                , {templet: '#tra-foreignTitle-tpl', title: '外文名', width: 200, height: 200}
+                , {field: 'sku', title: 'SKU', width: 80}
+                , {field: 'orderIdOld', title: '原订单号', width: 100}
+                , {field: 'storageLocal', title: '库位', width: 80}
+//                , {field: 'inStorageType', title: '入库方式', width: 120}
+                , {field: 'createAt', title: '入库时间', width: 100}
+                , {field: 'storageAge', title: '库龄（天）', width: 100}
+                , {field: 'orderIdNew', title: '已匹配订单号', width: 150}
+                , {field: 'orderAt', title: '下单时间', width: 100}
+                , {field: 'exportAt', title: '拣货导出时间', width: 150}
+                , {field: 'exporter', title: '拣货导出人', width: 150}
+                , {field: 'trackingNoNew', title: '发货运单号', width: 120}
+                , {field: 'logisticsNameNew', title: '发货物流', width: 100}
+                , {field: 'trackingStatus', title: '物流状态', width: 100}
+                , {field: 'trackingTime', title: '发货时间', width: 100}
+                , {field: '', title: '操作', templet: '#transit-barOption', fixed: 'right', width: 200, align: 'center'}
+            ]]
+        });
+        layer.close(index);
+
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#inStockDate' //指定元素
+            , type: 'date'
+            , range: '~' //或 range: '~' 来自定义分割字符
+            , max: 'new Date()'
+            , theme: 'molv'
+            , ready: function (date) {
+            }
+            , change: function (value, date) { //监听日期被切换
+            }
+            , done: function (value, date, endDate) {
+
+            }
+        });
+        laydate.render({
+            elem: '#orderDate' //指定元素
+            , type: 'date'
+            , range: '~' //或 range: '~' 来自定义分割字符
+            , max: 'new Date()'
+            , theme: 'molv'
+        });
+        laydate.render({
+            elem: '#exportDate' //指定元素
+            , type: 'date'
+            , range: '~' //或 range: '~' 来自定义分割字符
+            , max: 'new Date()'
+            , theme: 'molv'
+        });
+
+        //搜索
+        form.on('submit(btnSearch)', function (data) {
+
+            console.log('data:' + JSON.stringify(data.field));
+
+            var operation_choice = data.field.deptId;
+            console.log('operation_choice:' + operation_choice);
+
+            console.log('warehouseId text:' + $("#warehouseId").find("option:selected").text());
+
+            console.log('text:' + $("#treenode_select").find("option:selected").text());
+            console.log('val:' + $('#treenode_select').find("option:selected").val());
+
+            var param = setReqParam(data);
+
+            //上述方法等价于
+            table.reload('demo', {
+                method: 'post',
+                where: param,    //设定异步数据接口的额外参数，任意设
+                page: {
+                    page: 1 //重新从第 1 页开始
+                }
+            });
+            return false;
+        });
+
+        //拣货导出
+        form.on('submit(btnPickExport)', function (data) {
+            console.log('拣货导出：' + JSON.stringify(data));
+            if (data.field.wmsId == undefined || data.field.wmsId == '') {
+                layer.msg('请选择需要拣货导出的仓库');
+                return false;
+            }
+            if (!(data.field.state == 'matched' || data.field.state == 'transferring')) {
+                layer.msg('只能导出拣货已匹配或者调拨审核通过的数据');
+                return false;
+            }
+            //仓库对应名
+            var wmsName = $("#warehouseId").find("option:selected").text();
+
+            layer.confirm('是否确定导出[' + wmsName + ']查询条件下的所有数据用于拣货？'
+                , function (index, layero) {
+                    //按钮【按钮一】的回调
+                    layer.close(index);
+                    pickExport(data);
+                }, function (index) {
+                    //按钮【按钮二】的回调
+                });
+
+            return false;
+        })
+
+
+        form.on('submit(btnExportExcel)', function (data) {
+            console.log("data:", data);
+            index = layer.load();
+            var exportExcelParam = setReqParam(data);
+
+            $.ajax({
+                type: 'POST',
+                url: 'store/transitStock/preExportExcel',
+                dataType: 'json',
+                data: exportExcelParam,
+                success: function (res) {
+                    console.log("res:", res);
+                    layer.close(index);
+                    //location.href = 'store/transitStock/exportExcel';
+                    window.open('store/transitStock/exportExcel');
+                    layer.msg('导出成功');
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    layer.msg('导出失败，请重试')
+                    console.log("ajax.  err:...");
+                    layer.close(index);
+                }
+            });
+            return false;
+        });
+
+        //盘点
+        form.on('submit(sto_btnTakeStock)', function (data) {
+            console.log(JSON.stringify(data));
+
+            if (data.field.wmsId == undefined || data.field.wmsId == '') {
+                layer.msg('请选择单个仓库下筛选操作');
+                return false;
+            }
+
+            var checkStatus = table.checkStatus('demo'); //test即为基础参数id对应的值
+            var stockName = $("#warehouseId").find("option:selected").text();
+            console.log('checkStatus:' + JSON.stringify(checkStatus));
+            if (checkStatus.data.length) {
+                var ids = [];
+                var err = 0;
+                $.each(checkStatus.data, function (i, n) {
+                    ids.push(n.trackingNoOld);
+                    if (data.field.wmsId != n.wmsId) {
+                        layer.msg('运单号[' + n.trackingNoOld + ']的包裹不在[' + stockName + ']中不能勾选', {icon: 3});
+                        err++;
+                        return false;
+                    }
+                    if (!(n.state == 'inTransit' || n.state == 'matched' || n.state == 'picking' || n.state == 'transferring')) {
+                        layer.msg('运单号[' + n.trackingNoOld + ']的包裹状态不能盘点操作', {icon: 3});
+                        err++;
+                        return false;
+                    }
+                });
+                if (err > 0) {
+                    return false;
+                }
+                sto_takeStock_addTakeStockReq.wmsId = data.field.wmsId;
+                sto_takeStock_addTakeStockReq.stockName = stockName;
+                sto_takeStock_addTakeStockReq.trackings = ids;
+                $.get('view/store/transit/addTakeStock.html', function (str) {
+                    var addTakeStockIndex = layer.open({
+                        type: 1
+                        , title: '盘点操作'
+                        , content: str //注意，如果str是object，那么需要字符拼接。
+                        , maxmin: true
+                        , area: ['500px', '500px']
+                    });
+                });
+            } else {
+                layer.msg('请勾选要操作的行', {icon: 3});
+            }
+            return false;
+        });
+
+        table.on('tool(sto_trans_table)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+            console.log('obj:' + JSON.stringify(data));
+
+            if (layEvent === 'sto_btnCancel') { //
+                orderId = data.orderIdNew;
+                console.log('orderId:' + orderId);
+                $.get('view/orders/manage/component/order_cancel.html', function (str) {
+                    applyIndex = layer.open({
+                        type: 1
+                        , title: '取消订单'
+                        , content: str //注意，如果str是object，那么需要字符拼接。
+                        , maxmin: true
+                        , area: ['500px', '500px']
+                    });
+                });
+            }
+        });
+
+        function setReqParam(data) {
+            var new_obj = data.field;
+            new_obj.deptId = $.trim(data.field.deptId);
+            new_obj.wmsId = $.trim(data.field.wmsId);
+
+            new_obj.orderIdNew = $.trim(data.field.orderIdNew);
+            new_obj.state = $.trim(data.field.state);
+
+            var inStorageTime = data.field.inStockDate.split("~");
+            var orderTime = data.field.orderDate.split("~");
+            var pickingTime = data.field.exportDate.split("~");
+
+            new_obj.inStorageStartTime = $.trim(inStorageTime[0]);//入库日期开始时间
+
+            if (inStorageTime[1] != undefined && inStorageTime[1] != '') {
+                new_obj.inStorageEndTime = $.trim(inStorageTime[1]) + ' 23:59:59';  //入库日期结束时间
+            } else {
+                new_obj.inStorageEndTime = '';
+            }
+            new_obj.orderStartTime = $.trim(orderTime[0]);//下单日期开始时间
+            if (orderTime[1] != undefined && orderTime[1] != '') {
+                new_obj.orderEndTime = $.trim(orderTime[1]) + ' 23:59:59';  //下单日期结束时间
+            } else {
+                new_obj.orderEndTime = '';
+            }
+            new_obj.pickingStartTime = $.trim(pickingTime[0]);//拣货导出日期开始时间
+            if (pickingTime[1] != undefined && pickingTime[1] != '') {
+                new_obj.pickingEndTime = $.trim(pickingTime[1]) + ' 23:59:59';  //拣货导出日期结束时间
+            } else {
+                new_obj.pickingEndTime = '';
+            }
+            new_obj.orderIdNew = $.trim(data.field.orderIdNew); //新订单号id
+            new_obj.innerName = $.trim(data.field.innerName); //内部名  模糊查
+            new_obj.sku = $.trim(data.field.sku); //sku
+            new_obj.storageAge = $.trim(data.field.storageAge); // 库龄  >=
+            new_obj.trackingNoOld = $.trim(data.field.trackingNoOld); //原运单号
+            new_obj.trackingNoNew = $.trim(data.field.trackingNoNew); //发货运单号
+
+            new_obj.trackingNoOldBat = $.trim(data.field.trackingNoOldBat).replace(/\n/g, ","); //发货运单号批量
+            console.log("search入参：", JSON.stringify(new_obj));
+            return new_obj;
+
+        }
+
+        /**
+         *  导出查询条件数据
+         * @param data
+         */
+        function pickExport(data) {
+            var pickExportIndex = layer.open({
+                type: 0,
+                content: '导出中...'
+            });
+            index = layer.load(0, {time: 5 * 1000});
+            var param = setReqParam(data);
+            $.ajax({
+                type: 'POST',
+                url: 'store/transitStock/preExportPack',
+                dataType: 'json',
+                data: param,
+                success: function (res) {
+                    console.log("res:", res);
+                    layer.close(index);
+                    layer.close(pickExportIndex);
+
+                    var pickExportedIndex = layer.open({
+                        title: '拣货导出',
+                        content: '导出成功',
+                        btn: '下载导出结果',
+                        yes: function (index, layero) {
+//                            location.href = 'store/transitStock/exportPack';
+                            window.open('store/transitStock/exportPack');
+                            layer.msg('导出成功');
+                            layer.close(index); //如果设定了yes回调，需进行手工关闭
+                        }
+                    });
+
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    layer.msg('导出失败，请重试')
+                    console.log("ajax.  err:...");
+                    layer.close(index);
+                    layer.close(pickExportIndex);
+                }
+            });
+        }
+    });
+
+    function postAjax(url, data) {
+        $.ajax({
+            type: 'POST',
+            url: url,
+            dataType: 'json',
+            data: data,
+            success: function (res) {
+                state_response(res);
+//                layer.msg('操作成功');
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                layer.msg('操作失败，请重试');
+            }
+        });
+    }
+
+    //拣货导入
+    function sto_btnInStock() {
+        $.get('view/store/transit/importTracking.html', function (str) {
+            var importTrackingIndex = layer.open({
+                type: 1
+                , title: '转寄入库操作'
+                , content: str //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , area: ['800px', '500px']
+            });
+        });
+    }
+
+    //发货导入
+    function sto_btnDeliver() {
+        $.get('view/store/transit/importDeliver.html', function (str) {
+            var importDeliverIndex = layer.open({
+                type: 1
+                , title: '发货导入操作'
+                , content: str //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , area: ['800px', '500px']
+            });
+        });
+    }
+
+
+</script>
+
+
+
+

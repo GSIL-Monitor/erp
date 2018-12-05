@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo" xmlns:dobbo="http://code.alibabatech.com/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+    <dubbo:application name="admin-provider"  logger="log4j" />
+    <dobbo:provider delay="-1"/>
+    <dubbo:registry address="zookeeper://127.0.0.1:2181"/>
+    <!--  dispatcher="all" 所有的调用都启用线程池   threadpool="fixed" 固定大小线程池-->
+    <dubbo:protocol name="dubbo" port="20880" dispatcher="all" threadpool="fixed" accesslog="true" />
+    <!--按照扫描的形式注入-->
+    <dubbo:annotation package="com.stosz.admin.service"/>
+
+</beans>

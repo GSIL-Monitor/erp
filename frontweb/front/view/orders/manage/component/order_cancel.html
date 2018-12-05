@@ -1,0 +1,115 @@
+<style type="text/css">
+    .form-item-model{
+        width: 90%;
+        margin-top: 20px;
+    }
+    .star-cls{
+        color:#FF0000;
+    }
+</style>
+</br>
+
+<form class="layui-form ">
+    <div class="layui-form-item">
+        <label class="layui-form-label">取消原因</label>
+        <div class="layui-input-inline">
+            <select name="reasonType">
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <div class="layui-input-block">
+                <textarea name="memo"  lay-verify="required" placeholder="" class="layui-textarea"
+                          style="height: 300px;width:350px"></textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" type="button" name="cancelBtn">取消</button>
+            <button class="layui-btn" lay-submit lay-filter="comfirm">确认</button>
+        </div>
+    </div>
+</form>
+
+<script id="option-enum-tpl" type="text/html">
+    {{each item value index}}
+    <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<script type="text/javascript">
+    layui.use(['form',  'layer'], function () {
+        var layer = layui.layer;
+        var formImp = layui.form;
+
+        $.ajax({
+            type: 'GET',
+            url: "/orders/common/enumList",
+            dataType: 'json',
+            success: function (res) {
+                state_response(res);
+                var obj = new Object;
+                obj.item = res.item.orderCancelReasonEnum;
+                $("select[name='reasonType']").append(template('option-enum-tpl', obj));
+                formImp.render();
+            }
+        });
+
+
+        //监听提交
+        formImp.on('submit(comfirm)', function (data) {
+            $('button').addClass("layui-disabled");
+            $('button').attr("disabled","disabled")
+
+            data.field.orderId = orderId;
+            $.ajax({
+                type: 'POST',
+                url: "/orders/orders/orderCancel",
+                data: data.field,
+                dataType: 'json',
+                success: function (res) {
+                    $('button').removeAttr("disabled");
+                    $('button').removeClass("layui-disabled");
+                    if (res.code == 'FAIL') {
+                        layer.msg(res.desc);
+                        return ;
+                    } 
+                    layer.close(applyIndex);
+                     $.ajax({
+                                type: 'POST',
+                                dataType: "json",
+                                url: "/orders/orders/find",
+                                method: 'post',
+                                data:searchParam,
+                                success: function (res) {
+                                    state_response(res);
+                                    page_len=res.item.length;
+                                    if(page_len!=0){
+                                        $("#get_null").hide();
+                                        $('#table_tb').html(template('orderTableTpl', res));
+                                    }else{
+                                        $('#table_tb').html("");
+                                        $("#get_null").show();
+                                    }
+                                    done_render(res);
+                                }
+                        });
+                    layer.msg(res.desc);
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    layer.msg("服务异常");
+                    $('button').removeAttr("disabled");
+                    $('button').removeClass("layui-disabled");
+                }
+            });
+            return false;
+        });
+
+        $("button[name='cancelBtn']").on('click',function(){
+            layer.close(applyIndex);
+        });
+
+    });
+
+</script>

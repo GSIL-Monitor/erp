@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FSM EntityName="TransitStock" EntityDao="TransitStockMapper" ParentEntityName="">
+
+	<States>
+		<State Name="start" Description="开始">
+			<Event Name="create" Description="新建" DstState="wait_inTransit" After="transitCreateAfter"/>
+		</State>
+
+		<State Name="wait_inTransit" Description="待入转寄仓">
+			<Event Name="inStock" Description="转寄入库" DstState="inTransit" Before="transitInStockBefore"/>
+		</State>
+
+		<State Name="inTransit" Description="已入转寄仓">
+			<!--<Event Name="match" Description="配货" DstState="matched" After="transitMatchAfter"/>-->
+			<!--<Event Name="transfer" Description="调拨" DstState="transferring" After="transitTransferAfter"/>-->
+			<Event Name="invalid" Description="报废" DstState="invaliding" After="transitInvalidAfter"/>
+			<Event Name="takeStock" Description="盘点" DstState="takingStock" After="transitTakeStockAfter"/>
+		</State>
+
+		<State Name="matched" Description="转寄已匹配">
+			<Event Name="exportPack" Description="拣货导出" DstState="picking" After="transitExportPackAfter"/>
+			<Event Name="invalid" Description="报废" DstState="invaliding" After="transitInvalidAfter"/>
+			<Event Name="takeStock" Description="盘点" DstState="takingStock" After="transitTakeStockAfter"/>
+		</State>
+
+		<State Name="picking" Description="转寄拣货中">
+			<Event Name="importDeliver" Description="发货导入" DstState="delivered" After="transitImportDeliverAfter"/>
+			<Event Name="invalid" Description="报废" DstState="invaliding" After="transitInvalidAfter"/>
+			<Event Name="takeStock" Description="盘点" DstState="takingStock" After="transitTakeStockAfter"/>
+		</State>
+
+		<State Name="delivered" Description="已发货">
+			<Event Name="inStock" Description="调拨入库" DstState="inTransit" Before="transitInStockBefore"/>
+		</State>
+
+		<State Name="transferring" Description="调拨中">
+			<Event Name="inStock" Description="调拨入库" DstState="inTransit" Before="transitInStockBefore"/>
+			<Event Name="transferDept" Description="转寄同仓调拨" DstState="inTransit" After="transitTransferDeptAfter"/>
+			<Event Name="exportPack" Description="拣货导出" DstState="picking" After="transitExportPackAfter"/>
+			<Event Name="invalid" Description="报废" DstState="invaliding" After="transitInvalidAfter"/>
+			<Event Name="takeStock" Description="盘点" DstState="takingStock" After="transitTakeStockAfter"/>
+		</State>
+
+		<State Name="invaliding" Description="报废中">
+			<Event Name="invalidPass" Description="报废审核通过" DstState="invalided" After="transitInvalidPassAfter"/>
+		</State>
+
+		<State Name="invalided" Description="已报废">
+		</State>
+
+		<State Name="takingStock" Description="盘亏中">
+			<Event Name="takeStockPass" Description="盘点审核通过" DstState="tookStock" After="transitTakeStockPassAfter"/>
+		</State>
+
+		<State Name="tookStock" Description="已盘亏">
+
+		</State>
+
+
+	</States>
+
+</FSM>

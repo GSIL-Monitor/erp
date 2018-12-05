@@ -1,0 +1,94 @@
+<br><br>
+<div class="layui-row">
+        <div class="layui-col-md7">
+            <form class="layui-form ">
+                <label class="layui-form-label">*报废库存</label>
+                <div class="layui-form-item layui-form-text">
+
+                    <div class="layui-input-block">
+                    <textarea name="track"  lay-verify="required" placeholder="请复制运单号" class="layui-textarea"
+                              style="height: 300px;width:350px"></textarea>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button class="layui-btn" lay-submit lay-filter="import">导入</button>
+                        <button class="layui-btn" lay-submit lay-filter="duplicate">复制错误信息</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="layui-col-md5">
+            <p class="imp_track_resMeg" >结果：</p>
+            <br>
+            <br>
+            <textarea class="inv_item_track_resDetail" name="inv_item_track_resDetail" style="height: 300px;width:250px"></textarea>
+        </div>
+</div>
+
+<script type="text/javascript">
+    layui.use(['form',  'layer'], function () {
+        var layer = layui.layer;
+        var inv_addTrack_form = layui.form;
+        inv_addTrack_form.render();
+
+        //监听提交
+        inv_addTrack_form.on('submit(import)', function (data) {
+            console.log("入参:", JSON.stringify(data.field));
+
+            sto_invalid_itemReq.tracks = $.trim(data.field.track).replace(/\n/g, "|");
+
+            delete sto_invalid_itemReq.invalidTypeEnum;
+            delete sto_invalid_itemReq.calculateTypeEnum;
+            delete sto_invalid_itemReq.invalidStateEnum;
+            console.log("入参替代后:", JSON.stringify(sto_invalid_itemReq));
+
+            $.ajax({
+                type: 'POST',
+                url: "/store/invalid/addItem",
+                data: sto_invalid_itemReq,
+                dataType: 'json',
+                success: function (res) {
+                    console.log("返回值:", JSON.stringify(res));
+                    if (res.code === 'OK') {
+                        var obj = res.item;
+                        var resMsg = '共导入：' + obj.total + '  成功：' + obj.success + '  失败：' + obj.error;
+                        $(".imp_track_resMeg").html(resMsg);
+                        var resObj='';
+
+                        var err = obj.errDetail;
+
+                        for (var key in err) {
+                            resObj += key;
+                            resObj += '\t';
+                            resObj += err[key];
+                            resObj += '\n';
+                        }
+                        console.log("item:" + resObj);
+                        $(".inv_item_track_resDetail").html(resObj);
+
+                    } else {
+                        layer.msg(res.desc, {icon: 2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                }
+            });
+            return false;
+        });
+
+        //监听提交
+        inv_addTrack_form.on('submit(duplicate)', function (data) {
+
+            var copyObj=$("textarea[name='inv_item_track_resDetail']");
+            copyObj.select(); // 选择对象
+            document.execCommand("Copy"); // 执行浏览器复制命令
+
+            layer.msg('错误信息已复制到粘贴板。');
+            return false;
+        });
+    });
+
+</script>

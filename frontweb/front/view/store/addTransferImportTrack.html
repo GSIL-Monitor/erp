@@ -1,0 +1,76 @@
+<div id="addTransfer-import-view"></div>
+<script id="addTransfer-import-tpl" type="text/html">
+    <form class="layui-form ">
+
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">{{ label }}</label>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <div class="layui-input-block">
+                    <textarea name="track" lay-verify="required" placeholder="{{ placeholder }}" class="layui-textarea"
+                              style="height: 300px;width:350px"></textarea>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="import">确定</button>
+            </div>
+        </div>
+    </form>
+</script>
+<script type="text/javascript">
+    layui.use(['form', 'layer', 'laytpl'], function () {
+        var layer = layui.layer;
+        var formImpTrack = layui.form;
+
+        var tpl_data = { //数据
+            label: "运单号"
+            , placeholder: "请复制运单号进行调拨,换行隔开"
+        }
+
+        if (storeAddTransferReq.outType == 0) { //0-普通仓
+            tpl_data.label = 'SKU';
+            tpl_data.placeholder = '请复制SKU、数量进行调拨，格式：sku1   3';
+        }
+        console.log('tpl AF:' + JSON.stringify(tpl_data));
+        $("#addTransfer-import-view").append(template('addTransfer-import-tpl', tpl_data));
+        formImpTrack.render();
+
+        //监听提交
+        formImpTrack.on('submit(import)', function (data) {
+
+            console.log("入参:", JSON.stringify(data.field));
+
+            storeAddTransferReq.trackingNo = $.trim(data.field.track).replace(/\n/g, "|").replace(/\t/g, ",");
+            console.log("入参替代后:", JSON.stringify(storeAddTransferReq));
+
+            $.ajax({
+                type: 'POST',
+                url: "/store/transfer/addTransfer",
+                data: storeAddTransferReq,
+                dataType: 'json',
+                success: function (res) {
+                    console.log("返回值:", JSON.stringify(res));
+                    state_response(res);
+                    if (res.code == "OK") {
+                        layer.msg('操作成功');
+                        sto_transfer_tab.reload({
+                            where: sto_transfer_tab_query
+                        });
+                        layer.closeAll();
+                    }
+                },
+                error:
+
+                    function (XMLHttpRequest, textStatus, errorThrown) {
+                        layer.msg('操作失败');
+                    }
+            });
+            return false;
+        });
+
+    })
+    ;
+
+</script>

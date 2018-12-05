@@ -1,0 +1,304 @@
+<br>
+<div class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">创建时间:</label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" id="createDate" name="createDate" >
+        </div>
+        <label class="layui-form-label">物流线路:</label>
+        <div class="layui-input-inline" >
+            <input readonly="readonly" type="text" class="layui-input component_input" id="shippingWayIdSelect" />
+            <span class="layui-btn layui-btn-xs componentchoose_btn" onclick="start_multiselect('/tms/base/shippingway/query',this,'shippingWayName','id');">选择</span>
+        </div>
+        <label class="layui-form-label">包裹状态:</label>
+        <div class="layui-input-inline">
+            <select name="parcelState" >
+                <option value="">请选择</option>
+                <option value="1">已创建</option>
+                <option value="2">指派成功</option>
+                <option value="3">指派失败</option>
+                <option value="4">推送oms成功</option>
+                <option value="5">推送oms失败</option>
+                <option value="6">单据取消</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label" >订单号:</label>
+        <div class="layui-input-inline">
+            <input  type="text" name="orderNo" autocomplete="off"
+                    class="layui-input">
+        </div>
+        <label class="layui-form-label" >运单号:</label>
+        <div class="layui-input-inline">
+            <input  type="text" name="trackNo" autocomplete="off"
+                    class="layui-input">
+        </div>
+        <label class="layui-form-label">同步状态:</label>
+        <div class="layui-input-inline">
+            <select name="syncStatus" id="syncStatusSelect">
+                <option value="">请选择</option>
+                <option value="1">待同步</option>
+                <option value="2">成功</option>
+                <option value="3">失败</option>
+            </select>
+        </div>
+        <label class="layui-form-label" >发货单号:</label>
+        <div class="layui-input-inline">
+            <input  type="text" name="parcelNo" autocomplete="off"
+                    class="layui-input">
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn" lay-submit lay-filter="position_search">搜索</button>
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn" onclick="batchAssignShipping()"  >批量重新指派</button>
+        </div>
+    </div>
+</div>
+<table id="demo" lay-filter="test"></table>
+
+<script>
+    var parcel_data,task_index,detail_index,window_index  = false;
+    layui.use(['layer', 'table', 'element', 'form','laydate'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0,{time:5*1000});
+        var table = layui.table;
+        var form = layui.form;
+        var laydate = layui.laydate;
+
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#createDate'//指定元素
+        });
+
+
+        form.render();
+        table.render({
+            elem: '#demo'
+            , id: 'demo'
+            , url: '/tms/shippingParcel/query' //数据接口
+            , method: 'post'
+            ,height: 'full-210' //高度最大化减去差值
+            , done: function (res, curr, count) {
+                disabled_checkbox(res);
+                var element = layui.element;
+                element.init();
+                layer.close(index);
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , page: true //开启分页
+            , cols: [[ //表头
+                  {type: 'checkbox', fixed: 'left'}
+                , {field: 'trackNo', title: '运单号',width:100}
+                , {field: 'shippingWayName', title: '物流线路',width:120}
+                , {field: 'orderNo', title: '订单号',width:100}
+                , {field: 'parcelNo', title: '发货单号',width:100}
+                , {field: 'createAt', title: '创建时间',width:170}
+                , {field: 'syncTime', title: '同步时间',width:170}
+                , {field: 'lastSyncTime', title: '最后同步时间',width:170}
+                , {field: 'lastName', title: '收货人',width:100}
+                , {field: 'syncStatus', title: '同步状态',templet:'#syncStatusRender',width:100}
+                , {field: 'syncInfo', title: '同步信息',width:100}
+                , {field: 'trackStatus', title: '物流状态',width:100}
+                , {field: 'classifyStatus', title: '物流归类状态',width:120}
+                , {field: 'state', title: '发货单状态',templet:'#statusRender',width:120}
+                , {field: 'parcelState', title: '包裹状态',templet:'#parcelStateRender',width:120}
+                , {field: 'assignErrorMsg', title: '指派失败原因',width:120}
+                , {field: 'lastTrackTime', title: '最新获取时间',width:170}
+                , {field: '', title: '操作', templet: '#operationDemo', align: 'center',fixed: 'right',width:220}
+            ]]
+        });
+
+        table.on('tool(test)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+            parcel_data = data;
+            if (layEvent === 'position-task') {
+                $.get('view/tms/parcel/parcelTaskList.html', function (str) {
+                    task_index = layer.open({
+                        type: 1
+                        ,title: '包裹轨迹'
+                        , content: str //注意，如果str是object，那么需要字符拼接。
+                        , maxmin: true
+                        ,area: ['50%','80%']
+                    });
+                });
+            }else if (layEvent === 'position-detail') {
+                $.get('view/tms/parcel/shippingParcelDetail.html', function (str) {
+                    detail_index = layer.open({
+                        type: 1
+                        ,title: '包裹明细'
+                        , content: str //注意，如果str是object，那么需要字符拼接。
+                        , maxmin: true
+                        ,area: ['80%','80%']
+                    });
+                });
+            } else if (layEvent === 'position-onceAgain') {
+                layer.confirm('你确定要重新指派该包裹吗?', {icon: 3, title:'提示'}, function(index){
+                    //do something
+                    window_index = index;
+                    $.ajax({
+                        type: 'PUT',
+                        url: "/tms/shippingParcel/onceAgainAssignShipping/"+parcel_data.id,
+                        dataType: 'json',
+                        success: function (res) {
+                            console.log("重新指派包裹返回值", res);
+                            if(res.code==='NOTICE') {
+                                table.reload('demo');
+                                layer.msg('重新指派包裹成功', {icon: 1});
+                            }else{
+                                layer.msg(res.desc,{icon:2});
+                            }
+                            layer.close(window_index);
+                        },
+                        error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        }
+                    });
+
+                },function(index){
+                    layer.close(index);
+                });
+            }
+        });
+
+        form.on('submit(position_search)', function(data){
+            var minCreateAt = null;
+            var maxCreateAt = null;
+            var createDate =  data.field.createDate;
+            if(createDate != ""){
+                minCreateAt = createDate + " 00:00:00";
+                maxCreateAt = createDate + " 23:59:59";
+            }
+            table.reload('demo', {
+                where: {
+                    minCreateAt:minCreateAt ,
+                    // shippingWayId:data.field.shippingWayId,
+                    maxCreateAt:maxCreateAt,
+                    orderNo:data.field.orderNo,
+                    trackNo:data.field.trackNo,
+                    syncStatus:data.field.syncStatus,
+                    parcelNo:data.field.parcelNo,
+                    shippingWayIdStr:$("#shippingWayIdSelect").attr("data-id"),
+                    parcelState:data.field.parcelState,
+                }    //设定异步数据接口的额外参数，任意设
+                , page: {
+                    page: 1 //重新从第 1 页开始
+                }
+            });
+            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+        });
+    });
+
+    function disabled_checkbox(res){
+        $(".layui-table-fixed-l input").eq(0).removeAttr("lay-filter").attr("disabled",true);
+        $.each(res.item,function(i,n){
+            if(n.parcelState!=3){
+                $(".layui-table-fixed-l input").eq(i+1).prop('disabled', true);
+            }
+        });
+        layui.form.render('checkbox');
+    }
+
+    function batchAssignShipping(){
+        var table = layui.table;
+        var checkStatus = table.checkStatus('demo'); //test即为基础参数id对应的值
+        if(checkStatus.data.length <= 0){
+            layer.msg('请选择需要重新指派的包裹');
+            return;
+        }
+
+        var idList = eval("[]");
+        var data = checkStatus.data;
+        for(var i = 0 ; i <data.length;i++ ){
+            idList.splice(idList.length, 0,data[i].id);
+        }
+        var index = layer.load(1);
+
+        $.ajax({
+            type: 'POST',
+            url: "/tms/shippingParcel/batchAssignShipping",
+            data:JSON.stringify(idList),
+            contentType:"application/json;charset=utf-8",
+            dataType: 'json',
+            success: function (res) {
+                console.log("批量重新指派返回值", res);
+                if(res.code==='NOTICE') {
+                    layer.msg(res.desc);
+                }else{
+                    layer.msg(res.desc,{icon:2});
+                }
+
+                layer.close(index);
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                layer.msg("重新指派物流失败");
+                layer.close(index);
+            }
+        });
+
+    }
+
+</script>
+
+
+
+<script type="text/html" id="syncStatusRender">
+    {{#  if(d.syncStatus==1){ }}
+    待同步
+    {{#  } else if(d.syncStatus==0) { }}
+          无须同步
+    {{#  } else if(d.syncStatus==2) { }}
+    成功
+    {{#  } else if(d.syncStatus==3){ }}
+    失败
+    {{#  } }}
+</script>
+
+<script type="text/html" id="statusRender">
+    {{#  if(d.state==1){ }}
+    已创建
+    {{#  } else if(d.state==2) { }}
+    已发货
+    {{#  } else if(d.state==3){ }}
+    拒收
+    {{#  } else if(d.state==4){ }}
+    取消
+    {{#  } else if(d.state==5){ }}
+    确认收货
+    {{#  } }}
+</script>
+<script type="text/html" id="parcelStateRender">
+    {{#  if(d.parcelState==1){ }}
+    已创建
+    {{#  } else if(d.parcelState==2) { }}
+    指派成功
+    {{#  } else if(d.parcelState==3){ }}
+    指派失败
+    {{#  } }}
+</script>
+
+
+
+<script id="option-shippingWayId" type="text/html">
+    {{each item value index}}
+        <option value="{{value.id}}">{{value.shippingWayName}}</option>
+    {{/each}}
+</script>
+
+<script type="text/html" id="operationDemo">
+    <a class="layui-btn layui-btn-xs" lay-event="position-task">轨迹</a>
+    <a class="layui-btn layui-btn-xs" lay-event="position-detail">明细查看</a>
+    {{#  if(d.parcelState==3 || d.parcelState==5){ }}
+         <a class="layui-btn layui-btn-xs" lay-event="position-onceAgain">重新指派</a>
+    {{#  } }}
+</script>
+

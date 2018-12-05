@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FSM EntityName="Orders" EntityDao="OrdersMapper" ParentEntityName="">
+
+    <States>
+        <State Name="start" Description="开始">
+            <Event Name="create" Description="订单导入" DstState="waitAudit"/>
+            <Event Name="innerCreate" Description="内部下单" DstState="auditPass"  After="checkValidAfter"  />
+        </State>
+
+        <State Name="waitAudit" Description="待审核">
+            <Event Name="checkLinkInfo" Description="检查联系方式" DstState="waitContact" After="checkLinkInfoAfter"/>
+            <Event Name="checkInvalid" Description="检查无效" DstState="invalidOrder" After="checkInvalidAfter"/>
+            <Event Name="checkValid" Description="检查有效" DstState="auditPass" After="checkValidAfter"/>
+            <Event Name="cancel" Description="客户取消" DstState="orderCancel" Before="customerCancelBefore"/>
+        </State>
+
+        <State Name="waitContact" Description="待联系">
+            <Event Name="checkValid" Description="检查有效" DstState="auditPass" After="checkValidAfter"/>
+            <Event Name="checkInvalid" Description="检查无效" DstState="invalidOrder" After="checkInvalidAfter"/>
+            <Event Name="cancel" Description="客户取消" DstState="orderCancel" Before="customerCancelBefore"/>
+        </State>
+
+        <State Name="orderCancel" Description="订单取消">
+            <!-- todo 变为结束状态的时间待定，可能定时任务扫描，改变为结束状态-->
+        </State>
+
+        <State Name="invalidOrder" Description="无效订单">
+            <!-- todo 变为结束状态的时间待定，可能定时任务扫描，改变为结束状态-->
+            <Event Name="revoke" Description="撤回" DstState="waitAudit" After="revokeAfter"/>
+        </State>
+
+        <State Name="auditPass" Description="审核通过">
+            <!--异步执行审核任务-->
+            <Event Name="lockStockSuccess" Description="锁定库存成功" DstState="waitSpecifyLogistic" After="lockStockSuccessAfter"/>
+            <Event Name="lockStockFail" Description="锁定库存失败" DstState="waitPurchase" After="lockStockFailAfter"/>
+            <!--<Event Name="cancel" Description="客户取消" DstState="orderCancel" Before="customerCancelBefore"/>-->
+        </State>
+
+        <State Name="waitPurchase" Description="待采购">
+            <Event Name="lockStockSuccess" Description="锁定库存成功" DstState="waitSpecifyLogistic" After="lockStockSuccessAfter"/>
+            <Event Name="lockStockFail" Description="锁定库存失败" DstState="waitPurchase" After="lockStockFailAfter"/>
+            <!--<Event Name="stockChange" Description="库存变化" DstState="waitSpecifyLogistic" After="stockChangeAfter"/>-->
+            <Event Name="cancel" Description="客户取消" DstState="orderCancel" Before="customerCancelBefore"/>
+        </State>
+
+        <State Name="waitSpecifyLogistic" Description="待指派物流">
+            <Event Name="logisticResponseOk" Description="自建仓物流系统指派物流成功" DstState="waitDeliver"
+                   After="logisticResponseOkAfter"/>
+            <!--转寄仓待定-->
+            <Event Name="forwardResponseOk" Description="转寄仓物操作成功" DstState="waitDeliver"
+                   After="forwardResponseOkAfter"/>
+            <Event Name="cancel" Description="客户取消" DstState="orderCancel" Before="customerCancelBefore"/>
+        </State>
+
+
+        <State Name="waitDeliver" Description="待发货">
+            <Event Name="wmsOutCallback" Description="wms出库完成" DstState="deliver" After="wmsPushAfter"/>
+            <!--<Event Name="pushForward" Description="推送转寄仓" DstState="deliver" After="pushForwardAfter"/>-->
+            <Event Name="forwardImportOk" Description="转寄仓发货导入成功" DstState="deliver" After="forwardImportOkAfter"/>
+            <Event Name="cancel" Description="客户取消" DstState="orderCancel" Before="customerCancelBefore"/>
+            <Event Name="transferCancel" Description="转寄仓库盘亏" DstState="auditPass"/>
+        </State>
+
+        <State Name="deliver" Description="已发货">
+            <Event Name="matchSign" Description="匹配物流签收" DstState="sign" After="matchSignAfter"/>
+            <Event Name="matchNotSign" Description="匹配物流拒收" DstState="rejection" After="matchNotSignAfter"/>
+            <!--<Event Name="matchLost" Description="匹配物流丢件" DstState="rejection" After="matchLostAfter"/>-->
+        </State>
+
+
+        <State Name="sign" Description="签收">
+        </State>
+
+        <State Name="rejection" Description="拒收">
+            <Event Name="matchSign" Description="匹配物流签收" DstState="sign"/>
+        </State>
+
+
+    </States>
+
+</FSM>

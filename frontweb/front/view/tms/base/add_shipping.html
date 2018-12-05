@@ -1,0 +1,123 @@
+<div class="layui-form border1ccc padding30">
+    <div class="layui-form-item">
+        <label class="layui-form-label">物流商*</label>
+        <div class="layui-input-inline">
+            <select name="shippingCode" id="shippingCodeSelect" lay-filter="shippingCodeSelect" lay-verify="required"  >
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+    <input type="hidden" name="shippingName" required lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input" value="" >
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">运单号API</label>
+        <div class="layui-input-block">
+            <input type="text" name="shipmentNumberUrl"  placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">推送订单API</label>
+        <div class="layui-input-block">
+            <input type="text" name="interfaceUrl" maxlength="500"  placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">物流轨迹API</label>
+        <div class="layui-input-block">
+            <input type="text" name="waybilltrackUrl"  placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">key</label>
+        <div class="layui-input-block">
+            <input type="text" name="md5Key"   maxlength="50"  placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">账号</label>
+        <div class="layui-input-block">
+            <input type="text" name="account"  maxlength="50"  placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">token</label>
+        <div class="layui-input-block">
+            <input type="text" name="token"   maxlength="50"  placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">tag</label>
+        <div class="layui-input-block">
+            <input type="text" name="tag"  maxlength="50"   placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="addShipping">确定</button>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    layui.use(['form','table'], function () {
+        var add_shipping_form = layui.form;
+        var add_shipping_table = layui.table;
+        //监听提交
+
+        $.ajax({
+            type: 'GET',
+            url: "/tms/shipping/codeList",
+            dataType: 'json',
+            success: function (res) {
+                console.log("获取物流公司code列表数据", res);
+                state_response(res);
+                $("#shippingCodeSelect").append(template('option-shippingCode', res));
+                add_shipping_form.render();
+            }
+        });
+
+        add_shipping_form.on('select(shippingCodeSelect)',function () {
+            console.log("ss");
+            var name=$("#shippingCodeSelect").find("option:selected").text();
+            $('input[name=\'shippingName\']').val(name);
+        });
+
+
+        add_shipping_form.on('submit(addShipping)', function (data) {
+        	debugger;
+            $.ajax({
+                type: 'POST',
+                url: "/tms/shipping",
+                data: data.field,
+                dataType: 'json',
+                success: function (res) {
+                    console.log("新增元素返回值", res);
+                    if(res.code==='NOTICE') {
+                        layer.close(add_shipping_index); //此时你只需要把获得的index，轻轻地赋予layer.close即可
+                        add_shipping_table.reload('shippingTable');
+                        layer.msg('新增成功', {icon: 1});
+                    }else{
+                        layer.msg(res.desc,{icon:2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                }
+            });
+            return false;
+        });
+    });
+    
+</script>
+
+<script id="option-shippingCode" type="text/html">
+    {{each item value index}}
+    <option value="{{value.code}}">{{value.name}}</option>
+    {{/each}}
+</script>

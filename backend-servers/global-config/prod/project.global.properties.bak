@@ -1,0 +1,116 @@
+
+#文件下载前缀
+project.erp.image.http.prefix=http://luckydog-img.stosz.com
+
+#系统加密、解密密钥
+system.secretKey=ads5a888a
+
+
+project.rest.secret=WkUCdKeVKJHPDF8uROisFnNrOHJcFgIs
+
+project.id={{ PROJECT_ID }}
+
+
+#数据库相关
+mysql.jdbc.driver=com.mysql.jdbc.Driver
+mssql.jdbc.driver=com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+oldErp.jdbc.username={{ DB_OLDERP_USERNAME }}
+oldErp.jdbc.password={{ DB_OLDERP_PASSWORD }}
+oldErp.jdbc.url=jdbc:mysql://{{ DB_OLDERP_HOST }}:3306/new_erp?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull
+
+oa.jdbc.username={{ DB_OA_USERNAME }}
+oa.jdbc.password={{ DB_OA_PASSWORD }}
+oa.jdbc.url=jdbc:sqlserver://{{DB_OA_HOST}}:1433;DatabaseName=ecology
+
+
+admin.jdbc.username={{ DB_ADMIN_USERNAME }}
+admin.jdbc.password={{ DB_ADMIN_PASSWORD }}
+admin.jdbc.url=jdbc:mysql://{{DB_ADMIN_HOST}}:3306/{{ SITE }}?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&autoReconnect=true
+
+
+order.jdbc.username={{ DB_ORDERS_USERNAME }}
+order.jdbc.password={{ DB_ORDERS_PASSWORD }}
+order.jdbc.url=jdbc:mysql://{{DB_ORDERS_HOST}}:3306/{{ SITE }}?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&autoReconnect=true
+
+pc.jdbc.username={{ DB_PRODUCT_USERNAME }}
+pc.jdbc.password={{ DB_PRODUCT_PASSWORD }}
+pc.jdbc.url=jdbc:mysql://{{DB_PRODUCT_HOST}}:3306/{{ SITE }}?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&autoReconnect=true
+
+tms.jdbc.username={{ SITE }}
+tms.jdbc.password={{ DB_PRODUCT_PASSWORD }}
+tms.jdbc.url=jdbc:mysql://192.168.105.168:3306/{{ SITE }}?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&autoReconnect=true
+
+
+#建站后台的地址
+closeStationUrl=http://{{ FRONT_END_ADMIN_HOST }}/api_product.php?act=deleteProduct
+
+
+##rabbitmq的消费者配置信息
+rabbitmq.consumer.host={{ ERP_INNER_MQ_HOST }}
+rabbitmq.consumer.port={{ ERP_INNER_MQ_PORT }}
+rabbitmq.consumer.username={{ ERP_INNER_MQ_USERNAME }}
+rabbitmq.consumer.password={{ ERP_INNER_MQ_PASSWORD }}
+rabbitmq.consumer.virtualHost=/
+rabbitmq.consumer.connectionCacheSize=2
+rabbitmq.consumer.publisherConfirm=true
+##消费者监听的队列名称,如果有监听多个队列以 | 分割开；
+#rabbitmq.consumer.listen.qnames=queue
+
+#rabbitmq的生产者配置
+rabbitmq.publisher.host={{ ERP_INNER_MQ_HOST }}
+rabbitmq.publisher.port={{ ERP_INNER_MQ_PORT }}
+rabbitmq.publisher.username={{ ERP_INNER_MQ_USERNAME }}
+rabbitmq.publisher.password={{ ERP_INNER_MQ_PASSWORD }}
+rabbitmq.publisher.virtualHost=/
+rabbitmq.publisher.connectionCacheSize=2
+rabbitmq.publisher.publisherConfirm=true
+#生产者处理的消息类型,如果有多个，以 | 分隔开；
+#rabbitmq.publisher.message.type.list=queue
+#配置messageType跟产生消息的队列之间的关系；
+#rabbitmq.publisher.message.occupyStock.queue.names=order_order_occupyStock
+
+
+
+#wms系统配置
+SERVICE_URL=http://{{ WMS_HOST }}:{{ WMS_PORT }}/GwallServices/httpService
+APPKEY=app_wms
+APPSECRET=test-7ae4339e-2561-4c63-b3ca-47237ac7ef6a
+FORMAT=JSON
+ENCRYPT=0
+
+
+#####################
+# redis
+#####################
+# Redis database index ,default 0
+redis.host={{ ERP_REDIS_HOST }}
+redis.port={{ ERP_REDIS_PORT }}
+redis.database=0
+# Redis password
+redis.password={{ REDIS_AUTH }}
+redis.pool.max.active=8
+redis.pool.max.wait=-1
+redis.pool.max.idle=8
+redis.pool.min.idle=0
+redis.pool.timeout=0
+redis.pool.testOnBorrow=true
+#for 10 minutes
+redis.pool.maxIdle=1800000
+
+
+#####################微服务消费者的host,port信息配置
+admin.host=http://{{ ERP_SYS_ADMIN_HOST }}
+admin.port={{ ERP_SYS_ADMIN_PORT }}
+product.host=http://{{ ERP_SYS_PRODUCT_HOST }}
+product.port={{ ERP_SYS_PRODUCT_PORT }}
+orders.host=http://{{ ERP_SYS_ORDERS_HOST }}
+orders.port={{ ERP_SYS_PRODUCT_PORT }}
+purchase.host=http://{{ ERP_SYS_PURCHASE_HOST }}
+purchase.port={{ ERP_SYS_PRODUCT_PORT }}
+store.host=http://{{ ERP_SYS_STORE_HOST }}
+store.port={{ ERP_SYS_PRODUCT_PORT }}
+tms.host=http://{{ ERP_SYS_TMS_HOST }}
+tms.port={{ ERP_SYS_PRODUCT_PORT }}
+deamon.host=http://{{ ERP_SYS_TMS_HOST }}
+deamon.port={{ ERP_SYS_PRODUCT_PORT }}

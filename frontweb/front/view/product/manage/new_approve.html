@@ -1,0 +1,329 @@
+<style>
+    .layui-table-cell {
+        height: 100%;
+        width: 100%;
+    }
+    .layui-table img {
+        max-width: none;
+        max-height: none;
+    }
+    .right-confirm{
+        float: right;
+        margin-top: 25px;
+    }
+    .product-span-font{
+        color: #f5334a;
+    }
+</style>
+<div class="layui-fluid">
+    </br>
+    <div class="layui-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label">创建人</label>
+            <div class="layui-input-inline">
+                <input type="text" name="" class="auto_matchinput layui-input" style="width: 196px"
+                       oninput="input_match(this)"  onblur="blur_event(this)" />
+                <input type="hidden" name="creatorId" class="auto_complateval" >
+                <div class="auto_matchwrap layui-anim layui-anim-upbit layui-select-group" style="display: none; position: absolute;background-color: #fff;z-index: 999; ">
+                </div>
+            </div>
+            <label class="layui-form-label">创建时间</label>
+            <div class="layui-input-inline">
+                <input type="text" class="layui-input" id="approveCreateAtId" name="approveCreateAt" placeholder="请选择时间">
+            </div>
+            <label class="layui-form-label">新品标题</label>
+            <div class="layui-input-inline">
+                <input type="text" name="title" placeholder="" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-inline">
+                <select name="state" >
+                    <option value="">不限</option>
+                    <option value="checkWarn" selected>有风险</option>
+                    <option value="waitApprove" >待审批</option>
+                    <option value="checkOk">通过</option>
+                    <option value="archived">已建档</option>
+                    <option value="waitCheck">待排查</option>
+                    <option value="duplication">重复产品</option>
+                    <option value="waitAssign" >待细化分类</option>
+                    <option value="disappeared">已销档</option>
+                    <option value="cancel">取消</option>
+                    <option value="draft" >草稿</option>
+                </select>
+            </div>
+            <label class="layui-form-label">新品ID</label>
+            <div class="layui-input-inline">
+                <input type="text" name="id" placeholder="" autocomplete="off" class="layui-input">
+            </div>
+            <label class="layui-form-label">SPU</label>
+            <div class="layui-input-inline">
+                <input type="text" name="spu" placeholder="" autocomplete="off" class="layui-input">
+            </div>
+
+            <button class="layui-btn" lay-submit lay-filter="searchProductNewApprove"><i class="layui-icon">&#xe615;</i>搜索</button>
+        </div>
+    </div>
+    <table id="productNewApproveId" lay-filter="productNewApproveFilter"></table>
+
+    <script>
+        layui.use(['layer', 'table', 'element', 'form', 'laydate'], function () {
+            var crrentNewApproveEntity;
+            var productNew_approve_layer = layui.layer;
+            var productNew_approve_index = layer.load(0,{time:5*1000});;
+            var productNew_approve_form = layui.form;
+            var productNew_approve_table = layui.table;
+            productNew_approve_form.render();
+
+            var product_productNewCheck_date = layui.laydate;
+            product_productNewCheck_date.render({
+                elem : '#approveCreateAtId',
+                range : '~'
+            });
+            //一级品类
+            $.ajax({
+                type: 'GET',
+                url: "/product/base/category/leafSearch?name=",
+                dataType: 'json',
+                success: function (res) {
+                    $("#productNewChe_leafCategory").append(template('proNew_approve_topCate_tpl', res));
+                    productNew_approve_form.render(); //刷新select选择框渲染
+                }
+            });
+            productNew_approve_table.render({
+                elem: '#productNewApproveId',
+                url: "/product/productNewManage/new_approve",
+                even: true,     //开启隔行背景
+                page: true,    //关闭分页
+                height: 'full-200',
+                where : {
+                    state : 'checkWarn'
+                },
+                done: function (res, curr, count) {
+                    var element = layui.element;
+                    element.init();
+                    productNew_approve_layer.close(productNew_approve_index);
+                },
+                cols: [[ //表头
+                    {field: 'topCategoryName', title: '一级分类' },
+                    {field: 'mainImageUrl', title: '图片', toolbar: '#newImgTpl' },
+                    {field: '', title: '新品信息', templet: '#productNewTpl' },
+                    {field: '', title: '区域', toolbar: '#approve_newZoneTpl' },
+                    {field: '', title: '来源', templet: '#approve_newSourceTpl' },
+                    {field: 'checker', title: '审核人' },
+                    {field: '', title: '状态', templet: '#approve_newStateTpl' },
+                    {field: 'submitTime', title: '提交时间' },
+                    {field: 'memo', title: '备注' },
+                    {field:'',fixed: 'right',title:'操作', align:'center', toolbar: '#barProductNewApprove'}  //这里的toolbar值是模板元素的选择器
+                ]],
+                response: {
+                    statusName: 'code', //数据状态的字段名称，默认：code
+                    statusCode: 'OK', //成功的状态码，默认：0
+                    msgName: 'desc', //状态信息的字段名称，默认：msg
+                    countName: 'total', //数据总数的字段名称，默认：count
+                    dataName: 'item' //数据列表的字段名称，默认：data
+                }
+            });
+
+            //搜索条件
+            productNew_approve_form.on('submit(searchProductNewApprove)', function(data){
+                var createTimeArray = data.field.approveCreateAt.split("~");
+                minTime = $.trim(createTimeArray[0]);
+                maxTime = $.trim(createTimeArray[1]);
+                if (minTime != '') minTime = minTime + " 00:00:00";
+                if (maxTime != '') maxTime = maxTime + " 23:59:59";
+                productNew_approve_table.reload('productNewApproveId', {
+                    where: {
+                        id : data.field.id,
+                        spu : data.field.spu,
+                        title : data.field.title,
+                        state : data.field.state,
+                        creatorId : data.field.creatorId,
+                        minCreateAt: minTime,
+                        maxCreateAt: maxTime
+                    } ,
+                    page: {
+                        curr: 1 //重新从第 1 页开始
+                    }
+                });
+                return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+            });
+            
+            productNew_approve_form.on('submit(newApprove_momoNoReqFilter)', function (obj) {
+                proNewApproveFun(productNew_approve_layer, productNew_approve_table, crrentNewApproveEntity,obj);
+            });
+
+            //新品主管页面操作监控
+            productNew_approve_table.on('tool(productNewApproveFilter)', function (obj) {
+                crrentNewApproveEntity = obj.data;
+                var layEvent = obj.event;
+                if (layEvent === 'newVerifyEvent'){
+                    crrentNewApproveEntity.event = "verify";
+                    new_app_index = productNew_approve_layer.open({
+                        type: 1,
+                        title: "新品[" + crrentNewApproveEntity.title +"]有风险审批通过",
+                        content: template('newApprove_noRequiredMemoTpl', crrentNewApproveEntity),
+                        area: ['30%', '25%'],
+                        success: function (res) {
+                        }
+                    });
+                }
+                if (layEvent === 'newCancelEvent'){
+                    crrentNewApproveEntity.event = "giveUp";
+                    new_app_index = productNew_approve_layer.open({
+                        type: 1,
+                        title: "新品[" + crrentNewApproveEntity.title +"]有风险放弃",
+                        content: template('newApprove_noRequiredMemoTpl', crrentNewApproveEntity),
+                        area: ['30%', '25%'],
+                        success: function (res) {
+                        }
+                    });
+                }
+            });
+
+        });
+        //新品流程处理
+        function proNewApproveFun(productNew_approve_layer, productNew_approve_table, crrentNewApproveEntity, obj){
+            crrentNewApproveEntity.currentMemo = obj.field.memo;
+            console.log(crrentNewApproveEntity);
+            $.ajax({
+                type: 'POST',
+                url: "product/productNewManage/processEvent",
+                dataType: 'json',
+                data: {
+                    id: crrentNewApproveEntity.id,
+                    state: crrentNewApproveEntity.state,
+                    event: crrentNewApproveEntity.event,
+                    memo: obj.field.memo
+                },
+                success: function (result) {
+                    state_response(result);
+                    productNew_approve_layer.close(new_app_index);
+                    productNew_approve_table.reload('productNewApproveId');
+                }
+            });
+        }
+        //状态机历史
+        function approve_fsmHistory(id, title){
+            productCenter_fsmHistory(id, title, "ProductNew");
+        }
+
+    </script>
+</div>
+
+<script type="text/html" id="barProductNewApprove">
+    {{#  if(d.state === 'checkWarn'){ }}
+    <div>
+        <button class="layui-btn layui-btn-xs" lay-event="newVerifyEvent" style="text-align: center;"><i class="layui-icon">&#xe609;</i>审批通过</button>
+    </div>
+    <div>
+        <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="newCancelEvent" style="text-align: center;"><i class="layui-icon">&#x1006;</i>放弃</button>
+    </div>
+    {{#  } else { }}
+    {{#  }  }}
+</script>
+<script id="proNew_approve_topCate_tpl" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.name}}</option>
+    {{/each}}
+</script>
+<script type="text/html" id="productNewTpl">
+    <div>
+        <span style="color: #1c29f5;">新品ID:{{ d.id }}</span>
+    </div>
+    <div>
+        <span>新品名称:{{ d.title }}</span>
+    </div>
+    <div>
+        {{# if(d.spu !== null){ }}
+        <span style="color: #2cf522;">SPU:{{ d.spu }}</span>
+        {{# } }}
+    </div>
+    <div>
+        {{# if(d.classifyEnumName !== null && d.classifyEnumName !== ''){ }}
+        <span>特性:{{ d.classifyEnumName }}</span>
+        {{# } }}
+    </div>
+    <div>
+        {{# if(d.goalEnumName !== null && d.goalEnumName !== ''){ }}
+        <span>目标:{{ d.goalEnumName }}</span>
+        {{# } }}
+    </div>
+    <div>
+        {{# if(d.customEnumName !== null && d.customEnumName !== ''){ }}
+        <span>类别:{{ d.customEnumName }}</span>
+        {{# } }}
+    </div>
+</script>
+<script type="text/html" id="approve_newZoneTpl">
+    <ul>
+        {{#  layui.each(d.productNewZones, function(index, item){ }}
+        <li>
+            <span>{{ item.zoneName }}</span>
+        </li>
+        {{#  }); }}
+    </ul>
+</script>
+<script type="text/html" id="approve_newSourceTpl">
+    <div>
+        <span>{{ d.sourceEnumName }}</span>
+    </div>
+    <div>
+        <a href="{{ d.sourceUrl }}" class="layui-table-link" target="_Blank">来源链接</a>
+    </div>
+</script>
+<script type="text/html" id="approve_newStateTpl">
+    <div>
+        {{#  if(d.state === 'draft'){ }}
+        <span>草稿</span>
+        {{# } else if(d.state === 'waitAssign'){ }}
+        <span>待细化分类</span>
+        {{# } else if(d.state === 'waitCheck'){ }}
+        <span style="color: #f54ee2;">待排查</span>
+        {{# } else if(d.state === 'checkOk'){ }}
+        <span style="color: #12f54b;">通过</span>
+        {{# } else if(d.state === 'checkWarn'){ }}
+        <span style="color: #f5334a;">有风险</span>
+        {{# } else if(d.state === 'duplication'){ }}
+        <span style="color: #f5334a;">重复产品</span>
+        {{# } else if(d.state === 'waitApprove'){ }}
+        <span style="color: #ffe73c;">待审批</span>
+        {{# } else if(d.state === 'disappeared'){ }}
+        <span>已销档</span>
+        {{# } else if(d.state === 'archived'){ }}
+        <span style="color: #48ffb5;">已建档</span>
+        {{# } else if(d.state === 'cancel'){ }}
+        <span style="color: rgba(27,41,59,0.53);">取消</span>
+        {{# } else { }}
+        {{# d.state }}
+        {{#  } }}
+    </div>
+    <div>
+        <a>{{ d.stateTime }}</a>
+    </div>
+    <div class="layui-form">
+        <a style="color: #1c16f7" onclick="approve_fsmHistory({{d.id}}, '{{d.title}}')">查看历史</a>
+    </div>
+</script>
+<script type="text/html" id="newImgTpl">
+    <div style="width: 100%;height: 100%">
+        <img src="{{window.product_img_host}}/{{d.mainImageUrl}}" class="clickamplify_img" style="height: 150px;width: 150px"/>
+    </div>
+</script>
+<!--备注模板(非必填)-->
+<script type="text/html" id="newApprove_noRequiredMemoTpl">
+    <div class="layui-form padding30">
+        <div class="layui-form-item">
+            <label class="layui-form-label">备注</label>
+            <div class="layui-input-block">
+                <input value="" type="text" name="memo" placeholder="" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="right-confirm" >
+                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="newApprove_momoNoReqFilter"><i class="layui-icon">&#xe618;</i>确认</button>
+            </div>
+        </div>
+    </div>
+</script>

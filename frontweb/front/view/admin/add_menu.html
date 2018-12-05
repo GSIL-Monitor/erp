@@ -1,0 +1,72 @@
+<div class="layui-form border1ccc padding30">
+    <div class="layui-form-item">
+        <label class="layui-form-label">名称</label>
+        <div class="layui-input-inline">
+            <input value="" type="text" name="name" required lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input">
+        </div>
+        <label class="layui-form-label">父节点</label>
+        <div class="layui-input-inline">
+            <select id="parentnodeselect2" name="parentId" lay-verify="required" value="">
+                <option value="">请选择</option>
+                <option value="0">根</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">关键词</label>
+        <div class="layui-input-inline">
+            <input type="text" name="keyword" required lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+        <!--<label class="layui-form-label">排序</label>-->
+        <!--<div class="layui-input-inline">-->
+        <!--</div>-->
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">地址</label>
+        <div class="layui-input-block">
+            <input type="" name="url" required lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            <textarea name="remark" placeholder="请输入内容" class="layui-textarea" value=""></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="addmenuform">确定</button>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    layui.use('form', function () {
+        var form = layui.form;
+        $("#parentnodeselect2").append(template('parentnode_tpl', parentnode_list));
+        form.render('select'); //刷新select选择框渲染
+        //监听提交
+        form.on('submit(addmenuform)', function (data) {
+            //layer.msg(JSON.stringify(data.field));
+            $.ajax({
+                type: 'POST',
+                url: "/admin/menu/save",
+                data: data.field,
+                dataType: 'json',
+                success: function (res) {
+                    console.log("新增菜单返回值", res);
+                    update_menutree(form);
+                    state_response(res);
+                    //$("#view_container").load("admin/menu.html");
+                    layer.close(index); //此时你只需要把获得的index，轻轻地赋予layer.close即可
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                }
+            });
+            return false;
+        });
+    });
+</script>

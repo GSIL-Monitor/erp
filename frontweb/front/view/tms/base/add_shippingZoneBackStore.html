@@ -1,0 +1,161 @@
+<div class="layui-form  padding30" >
+    <input type="hidden" name="wmsName" value="">
+    <input type="hidden" name="backWmsName" value="">
+    <input type="hidden" name="zoneName" value="">
+    <div class="layui-form-item">
+        <label class="layui-form-label" style="width: 100px">选择仓库:</label>
+        <div class="layui-input-inline">
+            <select name="wmsId" id="wmsIdAddSelect" lay-verify="required" lay-filter="wmsIdAddSelect" >
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label" style="width: 100px">选择物流线路:</label>
+        <div class="layui-input-inline">
+            <select name="shippingWayId" id="shippingWayIdAddSelect" lay-filter="shippingWayIdAddSelect" lay-verify="required">
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label" style="width: 100px">覆盖地区:</label>
+        <div class="layui-input-inline">
+            <select id="zoneIdAddSelect" name="zoneId" lay-search lay-verify="required" lay-filter="zoneIdAddSelect">
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label" style="width: 100px">退回仓库:</label>
+        <div class="layui-input-inline">
+            <select name="backWmsId" id="backWmsIdAddSelect" lay-verify="required" lay-filter="backWmsIdAddSelect" >
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="addElementForm">确定</button>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    layui.use(['form','table'], function () {
+        var add_shipping_zone_back_store_form = layui.form;
+        var add_shipping_zone_back_store_table = layui.table;
+
+        store_wmsId_option('wmsIdAddSelect');
+        store_wmsId_option('backWmsIdAddSelect');
+
+        add_shipping_zone_back_store_form.on('select(wmsIdAddSelect)',function (data) {
+            var name=$("#wmsIdAddSelect").find("option:selected").text();
+            $('input[name=\'wmsName\']').val(name);
+
+            var wmsId = data.value;
+            var shippingWayId = $("#shippingWayIdAddSelect").find("option:selected").val();
+            if(wmsId != "" && shippingWayId != ""){
+                selectZoneData(wmsId,shippingWayId,add_shipping_zone_back_store_form);
+            }
+        });
+
+        add_shipping_zone_back_store_form.on('select(shippingWayIdAddSelect)', function(data){
+            var shippingWayId =  data.value;
+            var wmsId=$("#wmsIdAddSelect").find("option:selected").val();
+            if(wmsId != "" && shippingWayId != ""){
+                selectZoneData(wmsId,shippingWayId,add_shipping_zone_back_store_form);
+            }
+        });
+
+        add_shipping_zone_back_store_form.on('select(backWmsIdAddSelect)',function () {
+            var name=$("#backWmsIdAddSelect").find("option:selected").text();
+            $('input[name=\'backWmsName\']').val(name);
+
+        });
+
+
+        add_shipping_zone_back_store_form.on('select(zoneIdAddSelect)',function () {
+            var zoneName=$("#zoneIdAddSelect").find("option:selected").text();
+            $('input[name=\'zoneName\']').val(zoneName);
+        });
+
+        $.ajax({
+            type: 'POST',
+            url: "/tms/base/shippingway/query",
+            data: {
+                limit:100000,
+                shippingWayName:null
+            },
+            dataType: 'json',
+            success: function (res) {
+                console.log("获取物 流公司列表数据", res);
+                state_response(res);
+                $("#shippingWayIdAddSelect").append(template('option-shippingWayId', res));
+                add_shipping_zone_back_store_form.render();
+            }
+        });
+
+
+
+        //监听提交
+        add_shipping_zone_back_store_form.on('submit(addElementForm)', function (data) {
+            $.ajax({
+                type: 'POST',
+                url: "/tms/shippingZoneBackStore/add",
+                data: data.field,
+                dataType: 'json',
+                success: function (res) {
+                    console.log("新增元素返回值", res);
+                    if(res.code==='NOTICE') {
+                        layer.close(add_zone_back_store_index); //此时你只需要把获得的index，轻轻地赋予layer.close即可
+                        add_shipping_zone_back_store_table.reload('demo');
+                        layer.msg('新增成功', {icon: 1});
+                    }else{
+                        layer.msg(res.desc,{icon:2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                }
+            });
+            return false;
+        });
+        zone_select
+        // zone_select('zoneIdAddSelect','id');
+
+        // add_shipping_zone_back_store_form.render();
+    });
+
+    function selectZoneData(wmsId,shippingWayId,form){
+        $.ajax({
+            type: 'POST',
+            url: "/tms/shippingZoneStoreRel/query",
+            dataType: 'json',
+            data:{
+                shippingWayId:shippingWayId,
+                wmsIdStr:wmsId
+            },
+            success: function (res) {
+                console.log("物流区域仓库管理数据", res);
+                state_response(res);
+                $("#zoneIdAddSelect").empty();
+                $("#zoneIdAddSelect").append(' <option value="">请选择</option>');
+                $("#zoneIdAddSelect").append(template('option-zoneId-back', res));
+                form.render();
+            }
+        });
+    }
+
+</script>
+
+<script id="option-shippingWayId" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.shippingWayName}}</option>
+    {{/each}}
+</script>
+<script id="option-zoneId-back" type="text/html">
+    {{each item value index}}
+    <option value="{{value.zoneId}}">{{value.zoneName}}</option>
+    {{/each}}
+</script>

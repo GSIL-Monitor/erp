@@ -1,0 +1,61 @@
+<div class="layui-form border1ccc padding30">
+    <div class="layui-form-item">
+        <label class="layui-form-label">名称</label>
+        <div class="layui-input-inline">
+            <input value="" type="text" name="name" required lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">关键词</label>
+        <div class="layui-input-inline">
+            <input type="text" name="keyword" required lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            <textarea name="remark" placeholder="请输入内容" class="layui-textarea" value=""></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="addElementForm">确定</button>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    layui.use(['form', 'table'], function () {
+        var add_element_form = layui.form;
+        var add_element_table = layui.table;
+        //监听提交
+        add_element_form.on('submit(addElementForm)', function (data) {
+
+                preventRepeat(data);
+                $.ajax({
+                    type: 'POST',
+                    url: "/admin/element/saveElement",
+                    data: data.field,
+                    dataType: 'json',
+                    success: function (res) {
+                        console.log("新增元素返回值", res);
+                        state_response(res,data);
+                        if (res.code === 'NOTICE') {
+                            layer.close(add_element_index); //此时你只需要把获得的index，轻轻地赋予layer.close即可
+                            add_element_table.reload('demo');
+                            layer.msg('新增成功', {icon: 1});
+
+                        } else {
+                            layer.msg(res.desc, {icon: 2});
+                        }
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                    }
+                });
+                return false;
+        });
+    });
+
+</script>

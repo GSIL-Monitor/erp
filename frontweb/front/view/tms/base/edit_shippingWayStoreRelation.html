@@ -1,0 +1,392 @@
+<div class="layui-form  padding30" id="shippingWayStoreEditForm"  >
+    <input type="hidden" name="id" value="">
+    <input type="hidden" name="wmsName" value="">
+    <div class="layui-form-item">
+        <label class="layui-form-label">选择仓库:</label>
+        <div class="layui-input-inline">
+            <select name="wmsId" id="wmsIdEditSelect" lay-verify="required" lay-filter="wmsIdEditSelect" >
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">选择物流线路名:</label>
+        <div class="layui-input-inline">
+            <select name="shippingWayId" id="shippingWayIdEditSelect" lay-verify="required">
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item" >
+        <label class="layui-form-label">是否为退回仓:</label>
+        <div class="layui-input-inline">
+            <input type="radio" value="0" name="isBackChoice" title="否" checked>
+            <input type="radio" value="1" name="isBackChoice" title="是" >
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">货物类型*</label>
+        <div class="layui-input-block">
+            <input type="radio" value="0" name="expressSheetType" title="不区分" lay-filter="expressSheetTypeFilter">
+            <input  type="text" name="aliasName" style="width:30%;height:30px;display: inline;" maxlength="50"
+                    placeholder="物流别名,打面单时需要"  class="layui-input" disabled>
+            <input  type="text" name="aliasCode" style="width:30%;height:30px;display: inline;" maxlength="20"
+                    placeholder="物流别名code,打面单时需要"  class="layui-input" disabled>
+            <br/>
+            <input type="radio" value="1" name="expressSheetType" title="区分" lay-filter="expressSheetTypeFilter">
+            <div style="margin-left: 20px">
+                <input value="1" type="checkbox" name="general" title="普货" lay-filter="productTypeFilter" disabled>
+                <input  type="text"  name="shippingGeneralName" style="width:30%;height:30px;display: inline;" maxlength="50"
+                        placeholder="物流别名,打面单时需要"  class="layui-input" disabled>
+                <input  type="text"  name="shippingGeneralCode" style="width:30%;height:30px;display: inline;" maxlength="20"
+                        placeholder="物流别名code,打面单时需要"  class="layui-input" disabled>
+                <br/>
+                <br/>
+                <input value="1" type="checkbox" name="specia"  title="特货" lay-filter="productTypeFilter" disabled>
+                <input  type="text" name="shippingSpeciaName" style="width:30%;height:30px;display: inline;" maxlength="50"
+                        placeholder="物流别名,打面单时需要"  class="layui-input" disabled>
+                <input  type="text" name="shippingSpeciaCode" style="width:30%;height:30px;display: inline;" maxlength="20"
+                        placeholder="物流别名code,打面单时需要"  class="layui-input" disabled>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    layui.use(['form','table'], function () {
+        var edit_shipping_store_form = layui.form;
+        var edit_shipping_store_table = layui.table;
+
+        store_wmsId_option('wmsIdEditSelect',null,function(){
+            $('#wmsIdEditSelect option[value="'+shipping_store_rel_data.wmsId+'"]').prop("selected", "selected");
+            wmsSelectEve();
+        });
+
+
+        $.ajax({
+            type: 'GET',
+            url: "/tms/shippingStoreRel/getLableRelList?shippingWayStoreRelId="+shipping_store_rel_data.id,
+            dataType: 'json',
+            success: function (res) {
+                console.log("获取关联标签列表数据", res);
+                state_response(res);
+                $("#shippingWayStoreEditForm").append(template('option-lable', res));
+                checkAllCheckboxSelected();
+                edit_shipping_store_form.render();
+                edit_shipping_store_form.on('checkbox(shippingWayCheckboxFilter)', function(data){
+                    var lableName =  $(data.elem).prop("name");
+                    var lableId =  data.value
+                    var lableType =  lableName.split("-")[1];
+                    for(var j = 0 ;j < 3 ; j++){
+                        if(j != lableType){
+                            if (data.elem.checked){
+                                $('input[name=\'lable-'+j+'\'][value=\''+lableId+'\']').prop('disabled','disabled');
+                            }else{
+                                $('input[name=\'lable-'+j+'\'][value=\''+lableId+'\']').prop('disabled',null);
+                            }
+                        }
+                    }
+                    edit_shipping_store_form.render();
+                });
+
+                $("div[id='lable-item-0']").show();
+                if ($('input[name=\'specia\']').prop("checked")){
+                    $("div[id='lable-item-2']").show();
+                }
+                if ($('input[name=\'general\']').prop("checked")){
+                    $("div[id='lable-item-1']").show();
+                }
+
+            }
+        });
+
+        $.ajax({
+            type: 'POST',
+            url: "/tms/base/shippingway/query",
+            data: {
+                limit:100000,
+                shippingWayName:null
+            },
+            dataType: 'json',
+            success: function (res) {
+                console.log("获取物 流公司列表数据", res);
+                state_response(res);
+                $("#shippingWayIdEditSelect").append(template('option-shippingWayId', res));
+                $('#shippingWayIdEditSelect option[value="'+shipping_store_rel_data.shippingWayId+'"]').prop("selected", "selected");
+                edit_shipping_store_form.render();
+            }
+        });
+
+
+        edit_shipping_store_form.on('select(wmsIdEditSelect)',function () {
+            wmsSelectEve();
+        });
+
+        edit_shipping_store_form.on('radio(expressSheetTypeFilter)', function(data) {
+            $("div[id='lable-item-0']").show();
+            if(data.value == 1){
+                $("input[name='specia']").prop('disabled',null);
+                $("input[name='general']").prop('disabled',null);
+                $("input[name='aliasName']").prop("disabled",'disabled');
+                $("input[name='aliasCode']").prop("disabled",'disabled');
+                $("input[name='aliasName']").val(null);
+                $("input[name='aliasCode']").val(null);
+            }else{
+                $("input[name='aliasName']").prop("disabled",null);
+                $("input[name='aliasCode']").prop("disabled",null);
+                $("input[name='specia']").prop('checked',null);
+                $("input[name='general']").prop('checked',null);
+                $("input[name='specia']").prop('disabled','disabled');
+                $("input[name='general']").prop('disabled','disabled');
+                $("input[name='lable-1']").each(function(){
+                    if (this.checked == true) {
+                        var value =  $(this).val();
+                        console.log( $("input[name='lable-0'][value='"+value+"']"));
+                        $("input[name='lable-0'][value='"+value+"']").prop("disabled",null);
+                        $("input[name='lable-2'][value='"+value+"']").prop("disabled",null);
+                    }
+                    this.checked=false;
+                });
+                $("input[name='lable-2']").each(function(){
+                    if (this.checked == true) {
+                        var value =  $(this).val();
+                        $("input[name='lable-0'][value='"+value+"']").prop("disabled",null);
+                        $("input[name='lable-1'][value='"+value+"']").prop("disabled",null);
+                    }
+                    this.checked=false;
+                });
+                $("input[name='shippingGeneralName']").val(null);
+                $("input[name='shippingGeneralCode']").val(null);
+                $("input[name='shippingSpeciaName']").val(null);
+                $("input[name='shippingSpeciaCode']").val(null);
+                $("input[name='shippingGeneralName']").prop("disabled",'disabled');
+                $("input[name='shippingGeneralCode']").prop("disabled",'disabled');
+                $("input[name='shippingSpeciaName']").prop("disabled",'disabled');
+                $("input[name='shippingSpeciaCode']").prop("disabled",'disabled');
+                $("div[id='lable-item-1']").hide();
+                $("div[id='lable-item-2']").hide();
+            }
+            edit_shipping_store_form.render();
+        });
+
+        edit_shipping_store_form.on('checkbox(productTypeFilter)', function(data) {
+            var typeName =  $(this).prop("name");
+            if(typeName == "specia"){
+                if (data.elem.checked){
+                    $("div[id='lable-item-2']").show();
+                    $("input[name='shippingSpeciaName']").prop("disabled",null);
+                    $("input[name='shippingSpeciaCode']").prop("disabled",null);
+                }else{
+                    $("input[name='shippingSpeciaName']").prop("disabled",'disabled');
+                    $("input[name='shippingSpeciaCode']").prop("disabled",'disabled');
+                    $("input[name='shippingSpeciaName']").val(null);
+                    $("input[name='shippingSpeciaCode']").val(null);
+                    $("div[id='lable-item-2']").hide();
+                }
+            }else if(typeName == "general" ){
+                if (data.elem.checked){
+                    $("div[id='lable-item-1']").show();
+                    $("input[name='shippingGeneralName']").prop("disabled",null);
+                    $("input[name='shippingGeneralCode']").prop("disabled",null);
+                }else{
+                    $("input[name='shippingGeneralName']").prop("disabled",'disabled');
+                    $("input[name='shippingGeneralCode']").prop("disabled",'disabled');
+                    $("input[name='shippingGeneralName']").val(null);
+                    $("input[name='shippingGeneralCode']").val(null);
+                    $("div[id='lable-item-1']").hide();
+                }
+            }
+        });
+
+        //监听提交
+        edit_shipping_store_form.on('submit(editElementForm)', function (data) {
+            var params = data.field;
+            var lableDataList = eval("[]");
+
+            var lableDivArr =  $("div[id^='lable-item']");
+
+            for (var i = 0; i < lableDivArr.length ;i++ ){
+                var lableType =  $(lableDivArr[i]).prop("id").split("-")[2];
+                var lableData = {};
+                lableData.type = lableType;
+                var lableList = eval("[]");
+
+                $('input[name=\'lable-'+lableType+'\']').each(function() {
+                    if($(this).prop("checked"))
+                        lableList.splice(lableList.length, 0,$(this).val());
+                });
+
+                if (params.general == 1 && lableList.length == 0 && lableType == 1) {
+                    layer.msg('请选择至少一项普货可配选项');
+                    return;
+                }
+                if (params.specia == 1 && lableList.length == 0 && lableType == 2) {
+                    layer.msg('请选择至少一项特货可配选项');
+                    return;
+                }
+
+                lableData.lableList = lableList;
+
+                if(lableList.length > 0){
+                    lableDataList.splice(lableDataList.length, 0,lableData);
+                }
+            }
+
+            if(!params.expressSheetType){
+                layer.msg('请选择货物类型');
+                return;
+            }
+            if(params.expressSheetType==0 && !params.aliasName&& !params.aliasCode){
+                layer.msg('请输入物流别名和code,打面单时需要');
+                return;
+            }else if(params.expressSheetType==1) {
+                if(params.general != 1 && params.specia != 1 ){
+                    layer.msg('请选择普货或者特货中最少一项');
+                    return;
+                }
+                if (params.general == 1 && !params.shippingGeneralName && !params.shippingGeneralCode) {
+                    layer.msg('请输入物流别名和code,打面单时需要');
+                    return;
+                }
+                if (params.specia == 1 && !params.shippingSpeciaName && !params.shippingSpeciaCode) {
+                    layer.msg('请输入物流别名和code,打面单时需要');
+                    return;
+                }
+            }
+            params.lableDataList = lableDataList;
+
+
+            $.ajax({
+                type: 'PUT',
+                url: "/tms/shippingStoreRel",
+                data: JSON.stringify(params),
+                dataType: 'json'
+                ,contentType:"application/json;charset=utf-8"
+                ,success: function (res) {
+                    console.log("更新元素返回值", res);
+                    if(res.code==='NOTICE') {
+                        layer.close(edit_rel_index); //此时你只需要把获得的index，轻轻地赋予layer.close即可
+                        edit_shipping_store_table.reload('demo');
+                        layer.msg('修改成功', {icon: 1});
+                    }else{
+                        layer.msg(res.desc,{icon:2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                }
+            });
+            return false;
+        });
+        $('input[name=\'id\']').val(shipping_store_rel_data.id);
+
+        $('input[name=\'expressSheetType\'][value="'+shipping_store_rel_data.expressSheetType+'"]').prop("checked", "checked");
+        $('input[name=\'isBackChoice\'][value="'+shipping_store_rel_data.isBackChoice+'"]').prop("checked", "checked");
+
+
+        if (shipping_store_rel_data.expressSheetType == 0){
+            $("input[name='aliasName']").prop("disabled",null);
+            $("input[name='aliasCode']").prop("disabled",null);
+            $('input[name=\'aliasName\']').val(shipping_store_rel_data.shippingGeneralName);
+            $('input[name=\'aliasCode\']').val(shipping_store_rel_data.shippingGeneralCode);
+        }else{
+            if(shipping_store_rel_data.allowedProductType == 0){
+                $('input[name=\'general\']').prop("checked", "checked");
+                $('input[name=\'specia\']').prop("checked", "checked");
+                $('input[name=\'shippingGeneralName\']').val(shipping_store_rel_data.shippingGeneralName);
+                $('input[name=\'shippingSpeciaName\']').val(shipping_store_rel_data.shippingSpeciaName);
+                $('input[name=\'shippingGeneralCode\']').val(shipping_store_rel_data.shippingGeneralCode);
+                $('input[name=\'shippingSpeciaCode\']').val(shipping_store_rel_data.shippingSpeciaCode);
+                $("input[name='shippingGeneralName']").prop("disabled",null);
+                $("input[name='shippingGeneralCode']").prop("disabled",null);
+                $("input[name='shippingSpeciaName']").prop("disabled",null);
+                $("input[name='shippingSpeciaCode']").prop("disabled",null);
+                $("input[name='specia']").prop('disabled',null);
+                $("input[name='general']").prop('disabled',null);
+            }else if(shipping_store_rel_data.allowedProductType == 1){
+                $('input[name=\'general\']').prop("checked", "checked");
+                $("input[name='general']").prop('disabled',null);
+                $('input[name=\'shippingGeneralName\']').val(shipping_store_rel_data.shippingGeneralName);
+                $('input[name=\'shippingGeneralCode\']').val(shipping_store_rel_data.shippingGeneralCode);
+                $("input[name='shippingGeneralName']").prop("disabled",null);
+                $("input[name='shippingGeneralCode']").prop("disabled",null);
+            }else if(shipping_store_rel_data.allowedProductType == 2){
+                $('input[name=\'specia\']').prop("checked", "checked");
+                $("input[name='specia']").prop('disabled',null);
+                $('input[name=\'shippingSpeciaName\']').val(shipping_store_rel_data.shippingSpeciaName);
+                $('input[name=\'shippingSpeciaCode\']').val(shipping_store_rel_data.shippingSpeciaCode);
+                $("input[name='shippingSpeciaName']").prop("disabled",null);
+                $("input[name='shippingSpeciaCode']").prop("disabled",null);
+            }
+        }
+
+        edit_shipping_store_form.render();
+    });
+
+    function wmsSelectEve(){
+        var edit_shipping_store_form = layui.form;
+        var storeId =  $("#wmsIdEditSelect").val();
+        var name=$("#wmsIdEditSelect").find("option:selected").text();
+        $('input[name=\'wmsName\']').val(name);
+        // $.ajax({
+        //     type: 'GET',
+        //     url: "/tms/base/shippingway/queryExceptStoreExist?storeId="+storeId+"&type=1",
+        //     dataType: 'json',
+        //     success: function (res) {
+        //         console.log("获取物流公司code列表数据", res);
+        //         state_response(res);
+        //         $("#shippingWayIdEditSelect").empty();
+        //         $("#shippingWayIdEditSelect").append(' <option value="">请选择</option>');
+        //         $("#shippingWayIdEditSelect").append(template('option-shippingWayId', res));
+        //         edit_shipping_store_form.render();
+        //     }
+        // });
+    }
+
+    function checkAllCheckboxSelected() {
+        var checkboxArr =  $('input[type=checkbox]:checked');
+        for(var i = 0; i<checkboxArr.length;i++ ){
+            var checkBoxObj  = $(checkboxArr[i]);
+            var lableName =  checkBoxObj.prop("name");
+            var lableId =  checkBoxObj.prop("value");
+            var lableType =  lableName.split("-")[1];
+            for(var j = 0 ;j < 3 ; j++){
+                if(j != lableType){
+                    $('input[name=\'lable-'+j+'\'][value=\''+lableId+'\']').prop('disabled','disabled');
+                }
+            }
+        }
+    }
+
+</script>
+
+<script id="option-shippingWayId" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.shippingWayName}}</option>
+    {{/each}}
+</script>
+
+
+
+<script id="option-lable" type="text/html">
+    {{each item value index}}
+    <div class="layui-form-item" hidden id="lable-item-{{value.type}}">
+        <blockquote class="layui-elem-quote layui-quote-nm">
+            <span>{{value.typeName}}:</span>
+            <div class="layui-input-block " id="lable-checkbox-{{value.type}}">
+                {{each value.lableRelationVos lableValue lableIndex}}
+                {{if lableValue.selected == true}}
+                <input type="checkbox"  name="lable-{{value.type}}" title="{{lableValue.name}}" value="{{lableValue.id}}" checked lay-filter="shippingWayCheckboxFilter">
+                {{/if}}
+                {{if lableValue.selected == false}}
+                <input type="checkbox" name="lable-{{value.type}}" title="{{lableValue.name}}" value="{{lableValue.id}}" lay-filter="shippingWayCheckboxFilter">
+                {{/if}}
+                {{/each}}
+            </div>
+        </blockquote>
+    </div>
+    {{/each}}
+    <div class="layui-form-item" >
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="editElementForm">确定</button>
+        </div>
+    </div>
+</script>

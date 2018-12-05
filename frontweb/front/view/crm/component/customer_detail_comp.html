@@ -1,0 +1,258 @@
+<style>
+    #container {
+        padding: 25px;
+    }
+
+    .label {
+        text-align: right;
+    }
+
+    #container img {
+        width: 120px;
+        height: 120px;
+        margin-bottom: 5px;
+    }
+
+    #container h3 {
+        padding: 0 30px;
+    }
+
+    #historyList {
+        float: right;
+    }
+
+    #cancelInfo {
+        text-align: center;
+        margin: 50px 0;
+    }
+
+    #updateLog .product_hide {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap !important;
+    }
+
+</style>
+
+<div id="container">
+    <div id="customerInfo"></div>
+    <div id="customerLog"></div>
+</div>
+
+
+<script>
+
+    layui.use(['layer', 'table', 'form'], function () {
+        var layer = layui.layer;
+        var table = layui.table;
+        var form = layui.form;
+
+        $.ajax({
+            type: 'GET',
+            url: "orders/crm/customers/detail",
+            dataType: 'json',
+            data: {
+                'id': customerId
+            },
+            success: function (res) {
+                $("#customerInfo").html(template('customerInfoTpl', res));
+                $("#customerLog").html(template('customerLogTpl', res));
+                initOrderLog(table,res.item.telphone);
+                initUpdateLog(table,customerId)
+                              
+            }, error: function (data) {
+                layer.msg("获取详情失败");
+            }
+        });
+
+    });
+
+
+    // table.render({
+    //         elem: '#demo'
+    //         ,id: 'demo'
+    //         ,height: 'full-230'
+    //         ,url: '/orders/crm/customers/find' //数据接口
+    //         ,method: 'post'
+    //         ,done: function(res, curr, count){
+    //             layui.use('element', function(){
+    //                 var element = layui.element;
+    //                 element.init();
+    //             });
+    //         }
+    //         ,response: {
+    //             statusName: 'code' //数据状态的字段名称，默认：code
+    //             ,statusCode: 'OK' //成功的状态码，默认：0
+    //             ,msgName: 'desc' //状态信息的字段名称，默认：msg
+    //             ,countName: 'total' //数据总数的字段名称，默认：count
+    //             ,dataName: 'item' //数据列表的字段名称，默认：data
+    //         }
+    //         ,page: true //开启分页
+    //         ,cols: [[ //表头
+    //             {field: 'id', title: 'ID', width:'5%'}
+    //             ,{templet:'#customerNameTpl', title: '客户姓名', width:'5%'}
+    //             ,{field: 'telphone',title: '电话', width:'8%'}
+    //             ,{field: 'email', title: '邮箱', width:'12%'}
+    //             ,{field: 'address', title: '地址', width:'15%'}
+    //             // ,{field: 'codeType', title: '验证码类型', width:'5%'}
+    //             ,{field: 'customerCreditEnum', title: '客户等级', width:'5%'}
+    //             ,{field: 'acceptQty', title: '签收次数', width:'5%'}
+    //             ,{field: 'rejectQty', title: '拒签次数', width:'5%'}
+    //             ,{field: 'updateAt', title: '客户添加时间', width:'10%'}
+    //             ,{field: 'memo', title: '备注', width:'10%'}
+    //             ,{field: '', title: '操作', templet: '#barDemo', width:'14%',align: 'center'}
+    //         ]]
+    //     });
+
+
+
+
+        function initOrderLog(table,tel){
+      
+            //第一个实例
+            table.render({
+                elem: '#orderLog'
+                ,id: 'orderLog'
+                ,url: '/orders/crm/customers/order_log' //数据接口
+                ,where:  {
+                    "tel": tel
+                } 
+                ,method: 'post'
+                ,done: function(res, curr, count){
+                    layui.use('element', function(){
+                        var element = layui.element;
+                        element.init();
+                    });
+                }
+                ,response: {
+                    statusName: 'code' //数据状态的字段名称，默认：code
+                    ,statusCode: 'OK' //成功的状态码，默认：0
+                    ,msgName: 'desc' //状态信息的字段名称，默认：msg
+                    ,countName: 'total' //数据总数的字段名称，默认：count
+                    ,dataName: 'item' //数据列表的字段名称，默认：data
+                }
+                ,page: true //开启分页
+                ,cols: [[ //表头
+                    {field: 'orderId', title: '订单编号'}
+                    ,{templet:'#customerNameTpl', title: '客户名称'}
+                    ,{field: 'telphone',title:'电话号码'}
+                    ,{field: 'address', title: '地址'}
+                    ,{field: 'codeType', title: '验证码'}
+                    ,{field: 'state', title: '状态',align: 'center'}
+                ]]
+            });  
+         }
+
+
+         function initUpdateLog(table, id){
+            //第一个实例
+            table.render({
+                elem: '#updateLog'
+                ,id: 'updateLog'
+                ,url: '/orders/crm/customers/udpateLog' //数据接口
+                ,where:  {
+                    "id": id
+                } 
+                ,method: 'post'
+                ,done: function(res, curr, count){
+                    layui.use('element', function(){
+                        var element = layui.element;
+                        element.init();
+                    });
+                    $(".layui-table-cell.laytable-cell-4-memo").addClass("product_hide").attr("title",$(".layui-table-cell.laytable-cell-4-memo").text());
+                }
+                ,response: {
+                    statusName: 'code' //数据状态的字段名称，默认：code
+                    ,statusCode: 'OK' //成功的状态码，默认：0
+                    ,msgName: 'desc' //状态信息的字段名称，默认：msg
+                    ,countName: 'total' //数据总数的字段名称，默认：count
+                    ,dataName: 'item' //数据列表的字段名称，默认：data
+                }
+                ,page: true //开启分页
+                ,cols: [[ //表头
+                    {field: 'id', title: '编号'}
+                    ,{field: 'content',title:'修改内容', width: 400}
+                    ,{field: 'creator', title: '修改人'}
+                    ,{field: 'createAt', title: '修改时间'}
+                ]]
+            });  
+
+         }
+
+
+         
+    
+
+</script>
+
+
+
+
+
+
+
+<script type="text/html" id="customerInfoTpl">
+    <div class="layui-form">
+              <label class="layui-form-label">客户姓名:</label>
+              <div class="layui-input-block">
+                <input type="text"  style="border:none" value="{{item.firstName}}{{item.lastName}}" lay-verify="title" autocomplete="off" placeholder="请输入标题" class="layui-input">
+              </div>
+
+              <label class="layui-form-label">客户手机号:</label>
+              <div class="layui-input-block">
+                <input type="text"  style="border:none" value="{{item.telphone}}" lay-verify="required"   autocomplete="off" class="layui-input">
+              </div>
+
+             <label class="layui-form-label">客户邮箱:</label>
+             <div class="layui-input-block">
+                <input type="text"  style="border:none" value="{{item.email}}" lay-verify="required"   autocomplete="off" class="layui-input">
+             </div>
+
+              <label class="layui-form-label">签收次数:</label>
+              <div class="layui-input-block">
+                <input type="text"  style="border:none" value="{{item.acceptQty}}" lay-verify="required"   autocomplete="off" class="layui-input">
+              </div>
+
+             <label class="layui-form-label">拒收次数:</label>
+             <div class="layui-input-block">
+                <input type="text"  style="border:none" value="{{item.rejectQty}}" lay-verify="required"   autocomplete="off" class="layui-input">
+             </div>
+
+            <label class="layui-form-label">添加时间:</label>
+            <div class="layui-input-block">
+                <input type="text"  style="border:none" value="{{item.updateAt}}" lay-verify="required"   autocomplete="off" class="layui-input">
+            </div>
+
+            <label class="layui-form-label">备注:</label>
+            <div class="layui-input-block">
+                <input type="text"  style="border:none" value="{{item.memo}}" lay-verify="required"  autocomplete="off" class="layui-input">
+            </div>     
+    <div>
+</script>
+
+
+<script type="text/html" id="customerLogTpl">
+    <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+            <ul class="layui-tab-title">
+              <li class="layui-this">客户订单信息</li>
+              <li>客户修改记录</li>
+            </ul>
+            <div class="layui-tab-content" style="height: 100px;">
+              <div class="layui-tab-item layui-show"><div id="orderLog"></div></div>
+              <div class="layui-tab-item"><div id="updateLog"></div></div>
+            </div>
+    </div> 
+
+</script>
+
+<script type="text/html" id="customerLogTpl">
+    <div>
+        <table id="orderLog" lay-filter="orderLogFilter"></table>
+    </div>
+</script>
+
+<script type="text/html" id="customerNameTpl">
+    {{d.firstName}}{{d.lastName}}
+</script>
+
+

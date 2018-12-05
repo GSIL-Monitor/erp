@@ -1,0 +1,36 @@
+*{
+	margin: 0;
+	padding: 0;
+}
+html{height:100%;}
+body{height:100%;margin:0px;}
+.login-area-wrap{
+	background: rgba(0,0,0,.9);
+	color: white;
+	height: 100%;
+	position: relative;
+}
+.login-area{
+    width: 380px;
+    margin: auto;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    height: 250px;
+    border: 1px solid #ccc;
+    border-radius: 30px;
+}
+.hide{
+	visibility: hidden;
+}
+.margin-t-30{
+	margin-top:30px;
+}
+.text-center{
+	text-align: center;
+}
+.layui-form-item{
+	margin-bottom: 0px !important;
+}

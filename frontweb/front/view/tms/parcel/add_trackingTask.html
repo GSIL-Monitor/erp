@@ -1,0 +1,137 @@
+<div class="layui-form  padding30" >
+    <div class="layui-form-item">
+        <label class="layui-form-label" style="color: #FF0000;width: 350px">数据请先按运单号，状态变化时间顺序排序，再上传。</label>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">物流商*</label>
+        <div class="layui-input-inline">
+            <select name="shippingId" id="shippingIdAddSelect" lay-filter="shippingIdAddSelect" lay-verify="required" >
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">物流线路*</label>
+        <div class="layui-input-inline">
+            <select name="shippingWayId" id="shippingWayIdAddSelect" lay-filter="shippingWayIdAddSelect" lay-verify="required" >
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <a href="/tms/trackingTask/exportTemplate" class="layui-btn">下载模板</a>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button type="button" class="layui-btn" id="upload"  disabled>
+                <i class="layui-icon">&#xe67c;</i>上传
+            </button>
+        </div>
+    </div>
+</div>
+
+<form method="post" action="/tms/trackingTask/exportFailExecl" hidden id="exportFailExcelForm">
+    <input name="key" type="hidden" value="">
+</form>
+
+
+<script>
+    var shippingWayId_task_val;
+    layui.use('upload', function(){
+        var upload = layui.upload;
+        var add_task_table = layui.table;
+        var add_task_from = layui.form;
+
+
+        //执行实例
+        var uploadInst  =  upload.render({
+            elem: '#upload' //绑定元素
+            ,url: '/tms/trackingTask/upload' //上传接口
+            ,accept:"files"
+            ,exts:"xls|xlsx"
+            ,before: function(obj){ //obj参数包含的信息，跟 choose回调完全一致，可参见上文。
+                layer.load(); //上传loading
+            }
+            ,done: function(res){
+                console.log("导入execl返回值", res);
+                if(res.code==='NOTICE') {
+                    if(res.item != null && res.item != ''){
+                        $("input[name=\'key\']").val(res.item);
+                        $("#exportFailExcelForm").submit();
+                    }
+                    add_task_table.reload("demo");
+                    layer.close(add_tasl_index);
+                }else{
+                    layer.msg(res.desc,{icon:2});
+                }
+                layer.closeAll('loading'); //关闭loading
+            }
+            ,error: function(res){
+                console.log(res.desc);
+                layer.closeAll('loading'); //关闭loading
+            }
+        });
+
+        $.ajax({
+            type: 'GET',
+            url: "/tms/shipping",
+            data: {
+                start:0,
+                limit:100000
+            },
+            dataType: 'json',
+            success: function (res) {
+                console.log("获取物 流公司列表数据", res);
+                state_response(res);
+                $("#shippingIdAddSelect").append(template('option-shippingId', res));
+                add_task_from.render();
+            }
+        });
+
+        add_task_from.on('select(shippingIdAddSelect)', function(data){
+            var shippingId =  data.value;
+            $("#upload").prop("disabled","disabled");
+            $('#shippingWayIdAddSelect option[value=""]').prop("selected", "selected");
+            $.ajax({
+                type: 'POST',
+                url: "/tms/base/shippingway/query",
+                data: {
+                    limit:100000,
+                    shippingId:shippingId
+                },
+                dataType: 'json',
+                success: function (res) {
+                    console.log("获取物流公司列表数据", res);
+                    state_response(res);
+                    $("#shippingWayIdAddSelect").empty();
+                    $("#shippingWayIdAddSelect").append(" <option value=\"\">请选择</option>");
+                    $("#shippingWayIdAddSelect").append(template('option-shippingWayId', res));
+                    add_task_from.render();
+                }
+            });
+        });
+        add_task_from.on('select(shippingWayIdAddSelect)', function(data){
+            $("#upload").prop("disabled",null);
+            uploadInst.config["data"]={"shippingWayId": $("#shippingWayIdAddSelect").val()};
+        });
+
+
+
+
+    });
+</script>
+
+<script id="option-shippingId" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.shippingName}}</option>
+    {{/each}}
+</script>
+
+
+<script id="option-shippingWayId" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.shippingWayName}}</option>
+    {{/each}}
+</script>

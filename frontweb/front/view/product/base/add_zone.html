@@ -1,0 +1,132 @@
+<div class="layui-form border1ccc padding30">
+    <div class="layui-form-item">
+        <label class="layui-form-label">名称</label>
+        <div class="layui-input-inline">
+            <input value="" type="text" name="title" lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">国家</label>
+        <div class="layui-input-inline" >
+            <select name="countryId" lay-search lay-filter="add_zoen_countryId" lay-verify="required" id="zone_countryId_add">
+                <option value="">不限</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">上级区域</label>
+        <div class="layui-input-inline" >
+            <select lay-search name="parentId" id="zone_parentAddId">
+
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">区域编码</label>
+        <div class="layui-input-inline">
+            <input type="text" name="code" lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">币种</label>
+        <div class="layui-input-inline" >
+            <select lay-search name="currency" lay-verify="required" id="zone_currency_add">
+                <option value="">不限</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">排序</label>
+        <div class="layui-input-inline">
+            <input type="text" name="sort" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="addZoneForm"><i class="layui-icon">&#xe618;</i>确认</button>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    layui.use(['form','table'], function () {
+        var product_addZone_form = layui.form;
+        var product_addZone_table = layui.table;
+        //国家
+        $.ajax({
+            type: 'GET',
+            url: "/product/base/country/findList",
+            dataType: 'json',
+            success: function (res) {
+                $("#zone_countryId_add").append(template('zone_countryAddTpl3', res));
+                product_addZone_form.render();
+            }
+        });
+        //币种
+        $.ajax({
+            type: 'GET',
+            url: "/product/base/currency/findAll",
+            dataType: 'json',
+            success: function (res) {
+                $("#zone_currency_add").append(template('zone_currencyAddTpl3', res));
+                product_addZone_form.render();
+            }
+        });
+        //监听提交
+        product_addZone_form.on('submit(addZoneForm)', function (data) {
+            $.ajax({
+                type: 'POST',
+                url: "/product/base/zone/add",
+                data: data.field,
+                dataType: 'json',
+                success: function (res) {
+                    if(res.code==='NOTICE') {
+                        layer.close(index);         //此时你只需要把获得的index，轻轻地赋予layer.close即可
+                        product_addZone_table.reload('zoneId');
+                        layer.msg('新增成功', {icon: 1});
+                    }else{
+                        layer.msg(res.desc,{icon:2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                }
+            });
+            return false;
+        });
+
+        product_addZone_form.on('select(add_zoen_countryId)',function (data) {
+            //区域
+            $.ajax({
+                type: 'GET',
+                url: "/product/base/zone/findByCountryId",
+                dataType: 'json',
+                data: {
+                    countryId: data.value
+                },
+                success: function (res) {
+                    $("#zone_parentAddId").html("<option value=''>请选择</option>");
+                    $("#zone_parentAddId").append(template('zone_parentAddTpl3', res));
+                    product_addZone_form.render();
+                }
+            });
+        });
+
+    });
+</script>
+<script id="zone_countryAddTpl3" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.name}}</option>
+    {{/each}}
+</script>
+<script id="zone_currencyAddTpl3" type="text/html">
+    {{each item value index}}
+    <option value="{{value.currencyCode}}">{{value.name}}</option>
+    {{/each}}
+</script>
+<script id="zone_parentAddTpl3" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.title}}</option>
+    {{/each}}
+</script>

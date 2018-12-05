@@ -1,0 +1,92 @@
+<script id="finAdjustItemTpl" type="text/html">
+
+
+
+    <form class="layui-form ">
+        <label class="">调整表详情</label>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">付款单号：</label>
+            <label class="layui-form-mid">{{ d.paymentId }}</label>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">发生单据负责人：</label>
+            <label class="layui-form-mid">{{ d.changeUserName }}</label>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">本次付款总额：</label>
+            <div class="layui-form-mid">{{ d.amount }}</div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">收款方：</label>
+            <label class="layui-form-mid">{{ d.partner }}</label>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">收款方账户：</label>
+            <label class="layui-form-mid">{{ d.partnerNo }}</label>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">收款方开户行：</label>
+            <label class="layui-form-mid">{{ d.partnerBank }}</label>
+        </div>
+
+        <table id="finAdjustItemTplTable" lay-filter="finAdjustItemTplTable"></table>
+
+    </form>
+</script>
+<form class="layui-form " id="finAdjustItemTplFrom"></form>
+
+
+<script type="text/javascript">
+    layui.use(['form', 'layer', 'table', 'laytpl'], function () {
+        var layer = layui.layer;
+        var fin_adjust_item_form = layui.form;
+        var fin_adjust_item_table = layui.table;
+        var laytpl = layui.laytpl;
+
+        fin_adjust_item_form.render();
+
+        var getTpl = finAdjustItemTpl.innerHTML
+            , view = document.getElementById('finAdjustItemTplFrom');
+        laytpl(getTpl).render(fin_adj_item_data, function (html) {
+            view.innerHTML = html;
+        });
+
+        delete fin_adj_item_data.adjustTypeEnum;
+        delete fin_adj_item_data.goalBillTypeEnum;
+
+        console.log('fin_adj_item_data:' + JSON.stringify(fin_adj_item_data));
+        fin_adjust_item_table.render({
+            elem: '#finAdjustItemTplTable'
+            , url: '/finance/amountAdjust/getDetail' //数据接口
+            , method: 'post'
+            , where: fin_adj_item_data
+            , page: true //开启分页
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , cols: [[ //表头
+                 {field: 'paymentId', title: '付款单号', width: 80}
+                , {field: 'goalBillNo', title: '目标单号', width: 80}
+                , {templet: '#goalBillTypeEnumTpl', title: '目标单据类型', width: 120}
+                , {field: 'changeBillNo', title: '发生单号', width: 120}
+                , {templet: '#changeBillTypeEnumTpl', title: '发生单据类型', width: 120}
+                , {field: 'createAt', title: '创建时间', width: 120}
+                , {field: 'deptName', title: '所属部门', width: 80}
+                , {field: 'spu', title: '内部名', width: 80}
+                , {field: 'sku', title: 'SKU', width: 120}
+                , {field: 'quantity', title: '数量', width: 80}
+                , {field: 'amount', title: '金额', width: 120}
+            ]]
+        });
+    });
+
+</script>

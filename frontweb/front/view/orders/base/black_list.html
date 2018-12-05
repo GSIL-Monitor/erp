@@ -1,0 +1,179 @@
+<br>
+<form class="layui-form" >
+    <div class="layui-form-item">
+        <!--<div class="layui-inline">-->
+            <!--<label class="layui-form-label">黑名单级别</label>-->
+            <!--<div class="layui-input-inline" >-->
+                <!--<select class="layui-select"   name="blackLevelEnum">-->
+                    <!--<option value="warning">警告</option>-->
+                    <!--<option value="blacklist">黑名单</option>-->
+                    <!--<option value="other" selected >所有</option>-->
+                <!--</select>-->
+            <!--</div>-->
+        <!--</div>-->
+
+        <div class="layui-inline">
+            <label class="layui-form-label">匹配类型</label>
+            <div class="layui-input-inline" >
+                <select class="layui-select"  name="blackTypeEnum">
+                    <option value="other" selected>不限</option>
+                    <option value="ip">IP地址</option>
+                    <option value="phone">电话号码</option>
+                    <option value="email">电子邮箱</option>
+                    <option value="address">联系地址</option>
+                    <option value="name">姓名</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-inline">
+            <label class="layui-form-label">内容</label>
+            <div class="layui-input-inline" style="width: 200px;">
+                <input type="text"  name="content" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+
+
+        <div class="layui-inline">
+            <label class="layui-form-label">操作人</label>
+            <div class="layui-input-inline">
+                <input name="creatorId" class="auto_complateval layui-hide" >
+                <input type="text" class="auto_matchinput layui-input" style="width: 196px"
+                       oninput="input_match(this)"  onblur="blur_event(this)" />
+                <div class="auto_matchwrap layui-anim layui-anim-upbit layui-select-group" style="display: none; position: absolute;background-color: #fff;z-index: 999; ">
+                </div>
+            </div>
+        </div>
+
+
+        <div class="layui-inline">
+            <div class="layui-input-inline" style="width: 100px;">
+                <button  lay-submit  class="layui-btn" lay-filter="blackListForm">搜索</button>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <div class="layui-input-inline" style="width: 100px;">
+                <button  type="reset"  class="layui-btn" >重置</button>
+            </div>
+        </div>
+
+        <div class="layui-inline">
+            <div class="layui-input-inline" style="width: 100px;">
+                <button  type="reset"  class="layui-btn" id="importBlackListBtn">导入黑名单</button>
+            </div>
+        </div>
+
+    </div>
+</form>
+<table class="layui-table" lay-filter="blackListTable" id="blackListTableId"></table>
+<script>
+        var importBlackList_index;
+        layui.use(['form','table','layer','jquery'],function () {
+        var form = layui.form;
+        var table = layui.table;
+        var layer = layui.layer;
+        var $ = layui.$;
+
+        form.render();
+            var tableIndex   =table.render({
+            elem:'#blackListTableId',
+            height: 'full-200',
+            url:'/orders/base/black_list/find',
+            method:'POST',
+            page:true,
+            limit:20,
+            limits:[20,50,100],
+            response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                ,statusCode: 'OK' //成功的状态码，默认：0
+                ,msgName: 'desc' //状态信息的字段名称，默认：msg
+                ,countName: 'total' //数据总数的字段名称，默认：count
+                ,dataName: 'item' //数据列表的字段名称，默认：data
+            },
+            cols:[[
+              
+//                {title:'序号',type:'numbers'},
+                {field:'id',title:'ID',width:'5%'},
+//                {field:'blackLevelEnum',title:'级别',width:120,templet:'#blackLevel'},
+                {field:'blackTypeEnum',title:'匹配类型',width:'10%',templet:'#blackType'},
+                {field:'content',title:'内容',width:'40%'},
+                {title:'导入日期',width:'20%',templet:'#createAttpl'},
+                {field:'creator',title:'添加人',width:'14%'},
+                {title:'操作',fixed:'right',width: '10%',align:'center',toolbar:'#toolBar'}
+            ]]
+        });
+
+
+        form.on('submit(blackListForm)',function (data) {
+            tableIndex.reload({
+                height: 'full-200',
+                where:data.field
+                });
+            return false;
+        });
+
+        $("#importBlackListBtn").bind("click",function () {
+            importBlackListF();
+        });
+
+        table.on('tool(blackListTable)',function (obj) {
+            var data = obj.data;
+            var event = obj.event;
+            if(event === 'edit')
+            {
+                layer.msg('编辑');
+            }else if(event === 'delete')
+            {
+                layer.open({type:0,title:'确认删除这条记录吗？',area:[200,300],btn:['是','否'],shade: [0.8, '#393D49'],
+                yes:function (index,layero) {
+                    layer.close(index);
+                    $.post('/orders/base/black_list/delete',{id:data.id},function (data) {
+                        tableIndex.reload({
+                            height: 'full-200',
+                            where:data.field
+                        });
+                    });
+                }});
+            }
+        });
+
+    });
+
+
+
+        function importBlackListF() {
+            $.get('view/orders/base/import_black_list.html', function (str) {
+                importBlackList_index = layer.open({
+                    type: 1
+                    , tipsMore: false
+                    , title: '导入黑名单数据'
+                    , content: str //注意，如果str是object，那么需要字符拼接。
+                    , maxmin: true
+                    , area: '60%'
+                });
+            });
+        }
+</script>
+<!--<script type="text/html" id="blackLevel">-->
+    <!--{{d.blackLevelEnum.display}}-->
+<!--</script>-->
+<script type="text/html" id="blackType">
+    {{d.blackTypeEnum.display}}
+</script>
+
+<script type="text/html" id="createAttpl">
+        {{ formate_time(d.createAt) }}
+</script>
+<script type="text/html" id="toolBar">
+   <button class="layui-btn layui-btn-xs layui-btn-danger"  lay-event="delete">删除</button>
+</script>
+
+<div class="layui-hide" id="importBlackList">
+   <div class="layui-form">
+       <div class="layui-form-item">
+           <textarea class="layui-textarea" cols="20" rows="30" placeholder="导入数据"></textarea>
+       </div>
+   </div>
+</div>
+
+

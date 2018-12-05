@@ -1,0 +1,1433 @@
+<style type="text/css">
+    td > .layui-table-cell {
+        height: 100px;
+        line-height: 28px;
+        padding: 0 15px;
+        position: relative;
+        overflow-y: auto;
+    }
+
+    .layui-form-select {
+        text-align: left;
+    }
+
+    .spu_show:after {
+        display: block;
+        content: "";
+        clear: both;
+    }
+
+    .orders_item_content h4 {
+        font-weight: bolder;
+    }
+
+    .more_btngroup {
+        display: inline-block;
+        padding: 0;
+    }
+
+    .more_btngroup > .layui-nav-item {
+        line-height: 30px;
+    }
+    #table_tb{
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    .more_btngroup > .layui-nav-item > .layui-nav-child {
+        top: 32px;
+    }
+
+    .layui-table-link {
+        cursor: pointer;
+        color: #01AAED;
+    }
+    .orders_item_content .border_lf_solid{
+        border-left:1px solid rgb(174,216,255);
+        border-right: 1px solid rgb(174,216,255);
+    }
+
+    .readID {
+        display: none;
+    }
+
+    #this_page {
+        margin-top: 10px;
+        width: 49px;
+        height: 23px;
+        display: inline-block;
+        text-align: center;
+    }
+
+
+
+    .orders_btn_check, .orders_check_detail, .orders_item_content_detail {
+        float: left;
+    }
+
+    .orders_more_operate {
+        float: left;
+        margin-top: 10px;
+    }
+    .orders_item_content .adjust_height{
+        height: 150px;
+    }
+    .orders_item_content_detail {
+        box-sizing: border-box;
+        width: 20%;
+        padding-top: 10px;
+        padding-left: 20px;
+        height: 110px;
+    }
+
+    .orders_item:after, .orders_item_content:after {
+        content: "";
+        display: block;
+        clear: both;
+    }
+
+    .orders_item_content_val {
+        margin-right: 20px;
+    }
+
+    .detail_item1_key {
+        margin-right: 10px;
+    }
+
+    .detail_item1_value {
+        margin-right: 20px;
+    }
+
+    .bg_romatic {
+        background: #FF5722;
+        display: inline-block;
+        color: #fff;
+        padding: 2px 5px 2px 5px;
+        border-radius: 3px;
+    }
+
+    .orders_item {
+        background: #f2f2f2;
+        border: 1px solid #f2f2f2;
+        padding-bottom: 12px;
+        padding-top: 12px;
+    }
+    .orders_hover_bg{
+        background:rgb(174, 216, 255) ;
+        border: 1px solid rgb(174,216,255);
+    }
+    .orders_item_content.hover_border{
+        border: 1px solid rgb(174,216,255);
+    }
+    .orders_item_content {
+        margin-bottom: 26px;
+        border: 1px solid #f2f2f2;
+
+    }
+    .orders_item.orders_nomsg{
+        padding-bottom: 0;
+        padding-top: 0;
+    }
+    .orders_btn_check {
+        text-align: center;
+        padding: 10px;
+    }
+
+    .orders_check_detail {
+        margin-right: 20px;
+    }
+
+    .orders_check_detail_item2 {
+        margin-top: 5px;
+    }
+
+
+    .orders_item_content_custom {
+        float: left;
+        width: 40%;
+        height: 110px;
+        border-left:1px solid #F2F2F2 ;
+        border-right:1px solid #F2F2F2 ;
+        padding-left: 20px;
+        padding-top: 10px;
+        box-sizing: border-box;
+        padding-bottom: 10px;
+    }
+
+    .content_item {
+        margin-top: 5px;
+    }
+
+    .content_item:after {
+        content: '';
+        display: block;
+        clear: both;
+    }
+
+    .orders_item_content_busi {
+        height: 110px;
+        border-left:1px solid #F2F2F2 ;
+        padding-bottom: 10px;
+        float: left;
+        width: 20%;
+        padding-left: 20px;
+        padding-top: 10px;
+        box-sizing: border-box;
+    }
+
+    .orders_item_content_product {
+        padding-bottom: 10px;
+        width: 20%;
+        float: left;
+        height: 110px;
+        border-right:1px solid #F2F2F2;
+        padding-left: 20px;
+        padding-top: 10px;
+        box-sizing: border-box;
+    }
+
+    .orders_item_content_logistics {
+        height: 110px;
+        padding-bottom: 10px;
+        width: 20%;
+        float: left;
+        padding-left: 20px;
+        padding-top: 10px;
+        box-sizing: border-box;
+    }
+
+    .detail_item1_value {
+        margin-right: 20px;
+    }
+
+    .spu_unit_wrap {
+        height: 20px;
+        overflow: hidden;
+    }
+
+    .ellipsis_class {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 50%;
+    }
+
+    .show_spu_unitbtn {
+        position: absolute;
+        top: 1px;
+        left: 50%;
+    }
+
+    .product_hide {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        float: left;
+        width: 50%;
+    }
+
+    .sku_hide {
+        display: none;
+    }
+
+    .spu_unit_title:after {
+        content: '';
+        display: block;
+        clear: both;
+    }
+
+    .has_more_btn {
+        text-align: left;
+        width: 50%;
+        float: left;
+    }
+    .father_relate{
+        position: relative;
+    }
+    .child_posite{
+        position: absolute;
+        left: 70%;
+        top: 10%;
+    }
+</style>
+<br>
+<form class="layui-form form1_parent">
+    <!--隐藏域，用于批量提交-->
+    <div style="display: none;">
+        <input type="text" id="merchantOrderNoBatch" name="merchantOrderNoBatch" class="layui-input">
+        <input type="text" id="orderIdBatch" name="orderIdBatch" class="layui-input">
+        <input type="text" id="trackingNoBatch" name="trackingNoBatch" class="layui-input">
+        <input type="text" id="telBatch" name="telBatch" class="layui-input">
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">关键词</label>
+        <div class="layui-input-inline">
+            <input type="text" name="keyWord" placeholder="电话，邮箱，域名，IP，送货地址" autocomplete="off" class="layui-input">
+        </div>
+        <label class="layui-form-label">订单流水号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="orderId" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+        <label class="layui-form-label">商户订单号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="merchantOrderNo" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+        <label class="layui-form-label">运单号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="trackingNo" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+        <label class="layui-form-label">手机验证码</label>
+        <div class="layui-input-inline">
+            <select name="codeType" id="codeType">
+                <option value="">不限</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">支付方式</label>
+        <div class="layui-input-inline">
+            <select name="payMethod" id="payMethod">
+                <option value="">不限</option>
+            </select>
+        </div>
+        <label class="layui-form-label">发货仓</label>
+        <div class="layui-input-inline">
+            <select name="warehouseId" id="warehouseId" lay-search>
+                <option value="">不限</option>
+            </select>
+        </div>
+        <label class="layui-form-label">物流线路</label>
+        <div class="layui-input-inline">
+            <select id="logisticId" name="logisticId" lay-search>
+                <option value="">不限</option>
+            </select>
+        </div>
+        <label class="layui-form-label">状态</label>
+        <div class="layui-input-inline">
+            <select name="orderState" id="orderState" lay-filter="stateChange" lay-search>
+                <option value="">不限</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">地区</label>
+        <div class="layui-input-inline">
+            <select name="zoneId" lay-search>
+                <option value="">不限</option>
+            </select>
+        </div>
+        <!-- <label class="layui-form-label">部门</label>
+        <div class="layui-input-inline">
+            <select name="departmentId" lay-search>
+                <option value="">不限</option>
+            </select>
+        </div> -->
+        <label class="layui-form-label">部门</label>
+        <div class="layui-input-inline">
+            <div class="layui-input-inline">
+                <select id="department_treenode_dept" name="departmentId">
+                    <option value=""></option>
+                </select>
+            </div>
+        </div>
+        <label class="layui-form-label">同步时间</label>
+        <div class="layui-input-inline">
+            <input name="time_zone" type="text" class="layui-input" id="test1">
+        </div>
+    </div>
+    <div class="layui-form-item form1_child">
+        <label class="layui-form-label">更多条件</label>
+        <div class="layui-input-inline">
+            <select name="condition_name" lay-verify="condition_name">
+                <option value="">请选择</option>
+                <option value="title">产品名</option>
+                <option value="spu">SPU</option>
+                <option value="sku">SKU</option>
+                <option value="customerName">客户姓名</option>
+            </select>
+        </div>
+        <div class="layui-input-inline">
+            <input type="text" name="condition_keyword" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+        <button class="layui-btn" lay-submit lay-filter="formDemo1">搜索</button>
+        <!-- <button class="layui-btn layui-btn-primary">导出</button> -->
+        <button type="button" class="layui-btn layui-btn-normal" id="batchQueryBtn">批量查询</button>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        <span class="layui-btn layui-btn-primary" id="toogle_searchcondition_btn">隐藏搜索条件</span>
+    </div>
+</form>
+
+<div class="layui-form">
+    <div class="layui-form-item">
+        <div class="layui-col-md5 text-left padding-t10" style="margin-left:20px">
+            <!--<div style=" display:inline; margin-left:20px">-->
+            <!--<span class="layui-word-aux">说明：字体红色，重复订单-->
+            <!--背景红色，黑名单</span>-->
+            <!--</div>-->
+            <div id="waitAuditStatistics" style="display:none;">
+                待审总数：<span class="text-red" id='historyWaitAuditCount'>0</span>&nbsp;&nbsp;
+                今天：<span class="text-red" id='todayWaitAuditCount'>0</span>&nbsp;&nbsp;
+                今天前：<span class="text-red" id='beforeTodayWaitAuditCount'>0</span>
+            </div>
+        </div>
+        <!-- 批量审单选择框 -->
+        <div id="batchOperationDiv" style="display:none">
+            <div class="layui-input-inline">
+                <select name="operation_select" lay-verify="required">
+                    <option value="">请选择</option>
+                </select>
+            </div>
+            <div class="layui-input-inline">
+                <input type="text" name="memo" placeholder="请输入备注" size="30" class="layui-input">
+            </div>
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="formDemo2">确定</button>
+        </div>
+    </div>
+</div>
+
+<div id="table_tb"></div>
+<div class="layui-form" id="data_page">
+    <div class="layui-form-item">
+        <button class="layui-btn layui-btn-xs" style="margin-left: 5px" id="btn_prev">前一页</button>
+        <span id="this_page">1</span>
+        <button class="layui-btn layui-btn-xs" id="btn_next">后一页</button>
+    </div>
+</div>
+
+<script>
+    //单个操作时页面remove的订单编号
+    var hadDelOrderIds = [];
+
+    //模态框索引
+    var modalIndex = "";
+
+    var applyDetailIndex = "";
+
+    var applyEditIndex = "";
+    //批量查询结果
+    var batchQueryResult = {};
+
+    //批量查询类型
+    var batchQueryType = "";
+
+    //退换货类型
+    //todo 目前没有事件机制
+    var afterSaleType = "";
+
+    //退换货申请订单编号
+    var afterSaleOrderId = 11;
+    //订单ID
+    var orderId = "";
+
+    //搜索条件
+    var searchParam = {};
+    //搜索条件是否显示标志位
+    var toogle_searchcondition_status = true;
+
+    layui.use(['layer', 'element', 'form','laydate'], function () {
+        var layer = layui.layer;
+        layui.laytpl.encodeUriFn = function (value) {
+            return encodeURI(value);
+        };
+        var laydate = layui.laydate;
+        var index = layer.load(0, {time: 10});
+
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#test1' //指定元素
+            , type: 'datetime'
+            , range: '~' //或 range: '~' 来自定义分割字符
+            , max: 'new Date()'
+            , theme: 'molv'
+            , ready: function (date) {
+            }
+            , change: function (value, date) { //监听日期被切换
+            }
+            , done: function (value, date, endDate) {
+
+            }
+        });
+
+        var page_len = 0;
+        function getData(page, limit) {
+            $.ajax({
+
+                type: 'POST',
+                dataType: "json",
+                url: "/orders/orders/find",
+                method: 'post',
+                data: searchParam || {
+                    page: 1, //页码的参数名称，默认：page
+                    limit: 10 //每页数据量的参数名，默认：limit
+                },
+                success: function (res) {
+                    state_response(res);
+                    page_len = res.item && res.item.length;
+                    done_render(res);
+                    $('#table_tb').html(template('orderTableTpl', res));
+                }
+            });
+        }
+
+        $(getData());
+
+        $("#btn_prev").click(function () {
+            var page = $("#this_page").text();
+            if ($("#this_page").text() == 1) {
+                return;
+            } else {
+                $("#this_page").text(page - 1);
+                if (searchParam) {
+                    searchParam.page = page - 1;
+                    searchParam.limit =10;
+                    getData(searchParam);
+                } else {
+                    getData({page:page - 1,limit:10});
+                }
+                if (page_len == 10) {
+                    $("#btn_next").prop("disabled") == true && $("#btn_next").attr("disabled", false);
+                }
+            }
+        });
+
+        $("#btn_next").click(function (e) {
+            var page = $("#this_page").text();
+            $("#this_page").text(parseInt(page) + 1);
+            if (searchParam) {
+                searchParam.page = parseInt(page) + 1;
+                searchParam.limit = 10;
+                getData(searchParam);
+            } else {
+                getData({page:parseInt(page) + 1,limit:10});
+            }
+
+            if (page_len < 10) {
+                $("#btn_next").attr("disabled", true);
+                return;
+            }
+        });
+
+
+// div code end
+
+
+        function done_render(res) {
+            //设置背景色
+            //
+            handleBlackFiledAndRepeatInfo(res, "table_tb");
+            operationRender(form, searchParam.orderState);
+            var element = layui.element;
+            element.init();
+            if (searchParam.orderState == 'waitContact' || searchParam.orderState == 'waitAudit') {
+                $(".layui-table-fixed-l input").prop('disabled', false);
+                statistics(res);
+            } else {
+                $(".layui-table-fixed-l input").prop('disabled', true);
+                $("#waitAuditStatistics").hide();
+            }
+            layui.form.render('checkbox');
+        }
+
+        //订单统计
+        function statistics(data) {
+            $.ajax({
+                type: 'POST',
+                dataType: "json",
+                url: "/orders/orders/statistics",
+                data: searchParam,
+                // contentType:"application/json",
+                success: function (res) {
+                    $('#historyWaitAuditCount').html(res.item.historyWaitAuditCount);
+                    $('#todayWaitAuditCount').html(res.item.todayWaitAuditCount);
+                    $('#beforeTodayWaitAuditCount').html(res.item.beforeTodayWaitAuditCount);
+                    $("#waitAuditStatistics").css("display", "inline");
+                }
+            });
+        }
+
+
+        //Demo
+        var form = layui.form;
+
+
+        form.verify({
+            condition_name: function(value, item){ //value：表单的值、item：表单的DOM对象
+                var conKeyWord = $("input[name='condition_keyword']").val();
+                conKeyWord = $.trim(conKeyWord);
+                if(conKeyWord !='' && $.trim(value) == ''){
+                    return "请选择对应的类型查询";
+                }
+            }
+
+        });
+
+        //监听提交
+        form.on('submit(formDemo1)', function (data) {
+            var index = layer.load(0, {time: 5 * 1000});
+            $("#this_page").text(1);
+            isFormDemo1 = true;
+            console.log("重构前的表单数据", JSON.stringify(data.field));
+            // var search_obj = {};
+            searchParam.limit = 10;
+            searchParam = data.field;
+            var showTimearray = data.field.time_zone.split("~");
+            searchParam.keyWord = $.trim(data.field.keyWord);
+            searchParam.orderId = data.field.orderId.replace(/\s/g, '');
+            searchParam.trackingNo = data.field.trackingNo.replace(/\s/g, '');
+            searchParam.merchantOrderNo = data.field.merchantOrderNo.replace(/\s/g, '');
+            searchParam.minShowTime = $.trim(showTimearray[0]);
+            searchParam.maxShowTime = $.trim(showTimearray[1]);
+            var condition_name = data.field.condition_name;
+            searchParam[condition_name] = $.trim(data.field.condition_keyword);
+
+            console.log("重构后的数据", JSON.stringify(searchParam));
+            // searchParam = search_obj;
+            //上述方法等价于
+
+            $.ajax({
+                type: 'POST',
+                dataType: "json",
+                url: "/orders/orders/find",
+                method: 'post',
+                data: searchParam,
+                success: function (res) {
+                    state_response(res);
+                    layer.close(index);
+                    page_len = res.item.length;
+                    if (page_len != 0) {
+                        $('#table_tb').html(template('orderTableTpl', res));
+                    } else {
+                        $('#table_tb').html("");
+                    }
+                    done_render(res);
+                }
+            });
+
+            isFormDemo1 = false;
+            return false;
+        });
+
+
+        form.on('submit(formDemo2)', function (data) { //批量审单提交
+            //layer.msg(JSON.stringify(data.field));
+            var operation_choice = data.field.operation_select;
+            var checkStatus = $("[name='checkbox_group']:checked").length; //test即为基础参数id对应的值
+            var audit_memo = $("input[name='memo']").val();//beizhu
+            if (checkStatus) {
+                var select_id_array = [];
+                var req_data = {
+                    "type": operation_choice,
+                    "auditList": []
+                };
+                var auditList = [];
+
+                $("[name='checkbox_group']:checked").each(function () {
+                    var obj = {};
+                    obj.orderId = $(this).val();
+                    obj.memo = audit_memo;
+                    auditList.push(obj);
+                });
+                console.log("已勾选的checkbox数组", auditList);
+                req_data.auditList = auditList;
+                $.ajax({
+                    type: 'POST',
+                    dataType: "json",
+                    url: "/orders/audit/batch",
+                    data: JSON.stringify(req_data),
+                    contentType: "application/json",
+                    success: function (res) {
+                        console.log("请求后的返回", res);
+                        state_response(res);
+                        layer.msg(res.desc);
+                        //重新渲染数据
+                        isFormDemo1 = true;
+                        $("input[name='memo']").val("");
+                        getData(searchParam);
+                    }
+                });
+
+                // operation_submit("/orders/audit/batch", req_data);
+
+            } else {
+                layer.msg('请勾选要操作的订单行', {icon: 3});
+            }
+
+            return false;
+        });
+
+
+        $.ajax({
+            type: 'GET',
+            url: "/orders/common/enumList",
+            dataType: 'json',
+            success: function (res) {
+                console.log("请求订单列表-下拉框数据", res);
+                state_response(res);
+                var obj = new Object;
+                obj.item = res.item.codeStateEnum;
+                $("#codeType").append(template('option-enum-tpl', obj));
+                obj.item = res.item.payMethodEnum;
+                $("#payMethod").append(template('option-enum-tpl', obj));
+                obj.item = res.item.orderStateEnum;
+                $("#orderState").append(template('option-enum-tpl', obj));
+                form.render('select'); //刷新select选择框渲染
+            }
+        });
+
+        tms_shippingWayId_option('logisticId',null);
+
+        $.ajax({
+            type: 'GET',
+            url: "/product/base/zone/findAll",
+            dataType: 'json',
+            success: function (res) {
+                state_response(res);
+                // $("#zoneIdSelect").append(template('deptZoneRel_option_tpl3', res));
+                $("select[name='zoneId']").append(template('zone_option_tpl3', res));
+                form.render(); //更新全部
+            }
+        });
+
+
+        tree_formDept('department_treenode_dept', 'id');
+
+        $.ajax({
+            type: 'POST',
+            url: "/store/findList",
+            dataType: 'json',
+            date: '', //转寄
+            success: function (res) {
+                console.log("请求-下拉框数据", res);
+                state_response(res);
+                $("select[name='warehouseId']").append(template('wmsId-option-tpl', res));
+                form.render();
+            }
+        });
+
+
+        $("[type=reset]").click(function () {
+            isFormDemo1 = false;
+        });
+
+
+        $("#batchQueryBtn").bind("click", function () {
+            $.get('view/orders/manage/component/batch_query.html', function (str) {
+                modalIndex = layer.open({
+                    type: 1
+                    , title: '批量查询'
+                    , content: str //注意，如果str是object，那么需要字符拼接。
+                    , maxmin: true
+                    , area: ['65%', '80%']
+                    , success: function (layero, index) {
+                        layero.find('.layui-btn').css('text-align', 'right');
+                    }
+                });
+            });
+        });
+
+        $("#toogle_searchcondition_btn").click(function () {
+            toogle_searchcondition_status = !toogle_searchcondition_status;
+            if (toogle_searchcondition_status == true) {
+                $(".form1_parent").removeClass("father_relate").find(".form1_child").removeClass("child_posite");
+                $(this).prev().prev().prev().prevAll().show().parent(".layui-form-item").prev().show().prev().show().prev(".layui-form-item").children(":nth-child(6)").nextAll().show();
+                $(this).text("隐藏搜索条件");
+            } else {
+                $(".form1_parent").addClass("father_relate").find(".form1_child").addClass("child_posite");
+                $(this).prev().prev().prev().prevAll().hide().parent(".layui-form-item").prev().hide().prev().hide().prev(".layui-form-item").children(":nth-child(6)").nextAll().hide();
+                $(this).text("显示搜索条件");
+            }
+        });
+        $(".form1_parent").on("keydown", function (event) {
+            if (event.keyCode == 70) {
+                if ($(".form1_parent").hasClass("father_relate")) {
+                    $(".form1_parent").removeClass("father_relate").find(".form1_child").removeClass("child_posite");
+                    $("#toogle_searchcondition_btn").prev().prev().prev().prevAll().show().parent(".layui-form-item").prev().show().prev().show().prev(".layui-form-item").children(":nth-child(6)").nextAll().show();
+                    $("#toogle_searchcondition_btn").text("隐藏搜索条件");
+                } else {
+                    $(".form1_parent").addClass("father_relate").find(".form1_child").addClass("child_posite");
+                    $("#toogle_searchcondition_btn").prev().prev().prev().prevAll().hide().parent(".layui-form-item").prev().hide().prev().hide().prev(".layui-form-item").children(":nth-child(6)").nextAll().hide();
+                    $("#toogle_searchcondition_btn").text("显示搜索条件");
+                }
+            }
+        });
+
+    });
+
+    function returnOrderTest(id){
+        createAfterSaleApply(id,'returned',null);
+        // rmaOrderId = id;
+        // rmaType =  'returned';
+        // rmaShowType = 'apply';
+        // $.get('view/orders/manage/component/rma_comp.html', function (str) {
+        //     rmaIndex = layer.open({
+        //         type: 1
+        //         ,title: '新建退货单据'
+        //         , content: str //注意，如果str是object，那么需要字符拼接。
+        //         , maxmin: true
+        //         , area: ['75%','85%']
+        //         ,success: function(layero, index){
+        //             layero.find('.layui-btn').css('text-align', 'right');
+        //         }
+        //     });
+        // });
+    }
+
+    function rejectOrderTest(id){
+        createAfterSaleApply(id,'reject',null);
+        // rmaOrderId = id;
+        // rmaType =  'reject';
+        // rmaShowType = 'apply';
+        // $.get('view/orders/manage/component/rma_comp.html', function (str) {
+        //     rmaIndex = layer.open({
+        //         type: 1
+        //         ,title: '新建退货单据'
+        //         , content: str //注意，如果str是object，那么需要字符拼接。
+        //         , maxmin: true
+        //         , area: ['75%','85%']
+        //         ,success: function(layero, index){
+        //             layero.find('.layui-btn').css('text-align', 'right');
+        //         }
+        //     });
+        // });
+    }
+
+
+    function handleBlackFiledAndRepeatInfo(res, id) {
+        $.each(res.item, function (i, n) {
+            if (n.blackFields != "" && n.repeatInfo != "") {
+                $("#" + id).siblings("tr").eq(i).css({"color": "#ff0000", "background": "#f99a9a"});
+            } else if (n.blackFields != "") {
+                $("#" + id).siblings("tr").eq(i).css({"background": "#f99a9a"});
+            } else if (n.repeatInfo != "") {
+                $("#" + id).siblings("tr").eq(i).css({"color": "#ff0000"});
+            }
+        });
+    }
+
+    //批量操作下拉框
+    function operationRender(form, orderState) {
+        $("select[name='operation_select']").empty();
+
+        if (orderState == 'waitAudit') {
+            $("select[name='operation_select']").append('<option value="">请选择</option>');
+            $("select[name='operation_select']").append('<option value="0">有效订单</option>');
+            $("select[name='operation_select']").append('<option value="1">待联系</option>');
+            $("select[name='operation_select']").append('<optgroup label="无效订单">');
+            $("select[name='operation_select']").append('<option value="2">重复订单</option>');
+            $("select[name='operation_select']").append('<option value="3">信息不完整</option>');
+            $("select[name='operation_select']").append('<option value="4">恶意下单</option>');
+            $("select[name='operation_select']").append('</optgroup>');
+            form.render("select");
+            $("#batchOperationDiv").show();
+        } else if (orderState == 'waitContact') {
+            $("select[name='operation_select']").append('<option value="">请选择</option>');
+            $("select[name='operation_select']").append('<option value="0">有效订单</option>');
+            $("select[name='operation_select']").append('<optgroup label="无效订单">');
+            $("select[name='operation_select']").append('<option value="2">重复订单</option>');
+            $("select[name='operation_select']").append('<option value="3">信息不完整</option>');
+            $("select[name='operation_select']").append('<option value="4">恶意下单</option>');
+            $("select[name='operation_select']").append('</optgroup>');
+            form.render("select");
+            $("#batchOperationDiv").show();
+        } else {
+            $("#batchOperationDiv").hide();
+        }
+    }
+
+    //换货申请
+    function exchangeApplyFunc() {
+        $.get('view/orders/manage/component/order_change_apply.html', function (str) {
+            applyIndex = layer.open({
+                type: 1
+                , title: '退换货申请'
+                , content: str //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , area: '50%'
+                , success: function (layero, index) {
+                    layero.find('.layui-btn').css('text-align', 'right');
+                }
+            });
+        });
+    }
+    //订单详情页
+    function detail(id) {
+        orderId = id;
+        $.get('view/orders/manage/ordersDetail.html', function (str) {
+            applyDetailIndex = layer.open({
+                type: 1
+                , title: '订单详情'
+                , id: 'orderDetail'
+                , content: str //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , area: ['65%', '80%']
+                , offset: '50px'
+                , success: function (layero, index) {
+                    layero.find('.layui-btn').css('text-align', 'right');
+                }
+            });
+        });
+    }
+    //订单编辑
+    function editOrder(id) {
+        orderId = id;
+        $.get('view/orders/manage/ordersEdit.html', function (str) {
+            applyEditIndex = layer.open({
+                type: 1
+                , id: 'ordersEdit'
+                , title: '订单编辑'
+                , content: str //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , area: ['65%', '80%']
+                , offset: '50px'
+                , success: function (layero, index) {
+                    layero.find('.layui-btn').css('text-align', 'right');
+                }
+            });
+            /* applyEditIndex = layer.open({
+             type: 2,
+             area: ['65%','80%'],
+             fixed: false, //不固定
+             maxmin: true,
+             content: str
+             });*/
+        });
+    }
+    function reOrder(id) {
+        orderId = id;
+        $.get('view/orders/manage/ordersEdit.html', function (str) {
+            applyEditIndex = layer.open({
+                type: 1
+                , title: '订单编辑'
+                , content: str //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , area: ['65%', '80%']
+                , offset: '50px'
+                , success: function (layero, index) {
+                    layero.find('.layui-btn').css('text-align', 'right');
+                }
+            });
+        });
+    }
+    //退货申请
+    function returnApplyFunc() {
+        $.get('view/orders/manage/component/order_change_apply.html', function (str) {
+            applyIndex = layer.open({
+                type: 1
+                , title: '退换货申请'
+                , content: str //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , area: '50%'
+                , success: function (layero, index) {
+                    layero.find('.layui-btn').css('text-align', 'right');
+                }
+            });
+        });
+    }
+
+    //订单撤回
+    function revokeOrder(id) {
+        applyIndex = layer.confirm('是否确定撤回“待审核”状态？', {
+            btn: ['确认', '取消'] //按钮
+        }, function () {
+            var postData = {
+                "orderId": id,
+                "memo": ""
+            };
+            $.ajax({
+                type: 'POST',
+                dataType: "json",
+                url: "/orders/audit/revoke",
+                data: postData,
+                success: function (res) {
+                    if (res.code == "FAIL") {
+                        layer.msg(res.desc);
+                        return;
+                    }
+
+                    layer.msg('操作成功', {icon: 1});
+                    $.ajax({
+                        type: 'POST',
+                        dataType: "json",
+                        url: "/orders/orders/find",
+                        method: 'post',
+                        data: searchParam,
+                        success: function (res) {
+                            layer.close(index);
+                            page_len = res.item.length;
+                            if (page_len != 0) {
+                                $('#table_tb').html(template('orderTableTpl', res));
+                            } else {
+                                $('#table_tb').html("");
+                            }
+                            done_render(res);
+                        }
+                    });
+
+                }
+                , error: function (res) {
+                    layer.msg('操作异常！', {icon: 1});
+                }
+            });
+
+        });
+    }
+
+    //取消订单
+    function cancelOrder(id) {
+        orderId = id;
+        $.get('view/orders/manage/component/order_cancel.html', function (str) {
+            applyIndex = layer.open({
+                type: 1
+                , title: '取消订单'
+                , content: str //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , area: ['500px', '500px']
+            });
+        });
+    }
+
+    function supplementFunc(id) {
+        orderId = id;
+        $.get('view/orders/manage/component/order_supplement.html', function (str) {
+            layer.open({
+                type: 1
+                , title: '补发'
+                , content: str //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , area: ['80%', '90%']
+            });
+        });
+    }
+
+
+</script>
+
+<!--枚举下拉框 -->
+<script id="option-enum-tpl" type="text/html">
+    {{each item value index}}
+    <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+
+<!--区域 -->
+<script id="zone_option_tpl3" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.title}}</option>
+    {{/each}}
+</script>
+<!--部门 -->
+<script id="dept_option_tpl" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.departmentName}}</option>
+    {{/each}}
+</script>
+<!--发货仓 -->
+<script id="wmsId-option-tpl" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.name}}</option>
+    {{/each}}
+</script>
+
+<script>
+    //    table
+
+</script>
+
+
+<script type="text/html" id="orderTableTpl">
+    {{each item value index}}
+    {{if value.memo || value.customerMessage}}
+    <div class="orders_item" onmouseleave="mouseleave_bg(this)" onmouseenter="mouseenter_bg(this)">
+        {{if value.orderStatusEnum.name == "waitAudit" || value.orderStatusEnum.name == "waitContact"}}
+        <div class="orders_btn_check">
+            <input type="checkbox" name="checkbox_group" value="{{value.id}}">
+        </div>
+        {{else}}
+        <div class="orders_btn_check">
+            <input type="checkbox" name="checkbox_group" disabled value="{{value.id}}">
+        </div>
+
+        {{/if}}
+        <div class="orders_check_detail">
+            {{if value.memo || value.customerMessage}}
+            <p class="orders_check_detail_item1">
+                <span class="detail_item1_key">订单流水号</span>
+                <span class="detail_item1_value"> {{value.id}}</span>
+                <span class="detail_item1_key">商户订单号</span>
+                <span class="detail_item1_value">{{value.merchantOrderNo}}</span>
+                <!-- time -->
+                <span class="detail_item1_value">{{value.createAt}}</span>
+                <!-- ip -->
+
+                {{if value.orderStatusEnum.name == "waitAudit" || value.orderStatusEnum.name == "waitContact"}}
+                <span class="detail_item1_key">{{value.zoneName}}</span>
+                <span class="detail_item1_key">{{value.ip}}：</span>
+                <span class="detail_item1_value">当天购买{{value.ipOrderQty}}</span>
+                {{/if}}
+                <!-- send status -->
+                <span class="detail_item1_value">{{value.orderStatusEnum.display}}</span>
+                <!-- pay status -->
+                <span class="detail_item1_value">{{value.payState.display}}</span>
+            </p>
+            {{else}}
+            <p class="orders_check_detail_item1" style="margin-top: 5px;">
+                <span class="detail_item1_key">订单流水号</span>
+                <span class="detail_item1_value"> {{value.id}}</span>
+                <span class="detail_item1_key">商户订单号</span>
+                <span class="detail_item1_value">{{value.merchantOrderNo}}</span>
+                <!-- time -->
+                <span class="detail_item1_value">{{value.createAt}}</span>
+                <!-- ip -->
+
+                {{if value.orderStatusEnum.name == "waitAudit" || value.orderStatusEnum.name == "waitContact"}}
+                <span class="detail_item1_key">{{value.zoneName}}</span>
+                <span class="detail_item1_key">{{value.ip}}：</span>
+                <span class="detail_item1_value">当天购买{{value.ipOrderQty}}</span>{{/if}}
+                <!-- send status -->
+                <span class="detail_item1_value">{{value.orderStatusEnum.display}}</span>
+                <!-- pay status -->
+                <span class="detail_item1_value">{{value.payState.display}}</span>
+            </p>
+            {{/if}}
+            {{if value.memo || value.customerMessage}}
+            <p class="orders_check_detail_item2">
+                {{if value.memo}}
+                <span class="detail_item2_key">备注:</span>
+                <span class="detail_item2_value">{{value.memo}}</span>
+                {{/if}}
+                {{if value.customerMessage}}
+                <span class="detail_item2_key">客户留言:</span>
+                <span class="detail_item2_value">{{value.customerMessage}}</span>
+                {{/if}}
+            </p>
+            {{/if}}
+        </div>
+        <div class="orders_more_operate">
+            <span id="moreoperationbtn_wrap" class="show">
+                <span onclick="detail({{value.id}})" class="layui-btn layui-btn-xs">查看详情</span>
+                {{if $imports.$window.order_edit == true &&
+                    value.orderStatusEnum.name == "waitAudit" || value.orderStatusEnum.name == "waitContact" || value.orderStatusEnum.name == "invalidOrder"}}
+                        <span onclick="editOrder({{value.id}})" class="layui-btn layui-btn-xs">编辑订单</span>
+                {{/if}}
+                {{if $imports.$window.order_cancel == true && value.orderStatusEnum.name == "waitAudit"|| value.orderStatusEnum.name == "waitDeliver" || value.orderStatusEnum.name == "waitContact" || value.orderStatusEnum.name == "waitSpecifyLogistic" || value.orderStatusEnum.name == "waitPurchase"}}
+                        <span onclick="cancelOrder({{value.id}});" class="layui-btn layui-btn-xs">取消订单</span>
+                {{/if}}
+                {{if $imports.$window.order_revoke == true && value.orderStatusEnum.name == "invalidOrder" || value.orderStatusEnum.name == "malice" || value.orderStatusEnum.name == "incomplete" }}
+                    <span onclick="revokeOrder({{value.id}});" class="layui-btn layui-btn-xs">撤回</span>
+                {{/if}}
+                {{if $imports.$window.order_re_order == true && value.orderStatusEnum.name == "orderCancel" || value.hasRmaRecord == "yes" }}
+                <span onclick="reOrder({{value.id}});" class="layui-btn layui-btn-xs">重新下单</span>
+                {{/if}}
+                {{if $imports.$window.order_aftersale_apply == true && value.orderStatusEnum.name == "deliver" || value.orderStatusEnum.name == "sign"}}
+                    <span onclick='returnOrderTest({{value.id}});' class='layui-btn layui-btn-xs'>退货</span>
+                {{/if}}
+        </span>
+
+        </div>
+    </div>
+    {{else}}
+
+    <div class="orders_item orders_nomsg" onmouseleave="mouseleave_bg(this)" onmouseenter="mouseenter_bg(this)">
+        {{if value.orderStatusEnum.name == "waitAudit" || value.orderStatusEnum.name == "waitContact"}}
+        <div class="orders_btn_check">
+            <input type="checkbox" name="checkbox_group" value="{{value.id}}">
+        </div>
+        {{else}}
+        <div class="orders_btn_check">
+            <input type="checkbox" name="checkbox_group" disabled value="{{value.id}}">
+        </div>
+
+        {{/if}}
+        <div class="orders_check_detail">
+            {{if value.memo || value.customerMessage}}
+            <p class="orders_check_detail_item1">
+                <span class="detail_item1_key">订单流水号</span>
+                <span class="detail_item1_value"> {{value.id}}</span>
+                <span class="detail_item1_key">订单号</span>
+                <span class="detail_item1_value">{{value.merchantOrderNo}}</span>
+                <!-- time -->
+                <span class="detail_item1_value">{{value.createAt}}</span>
+                <!-- ip -->
+
+                {{if value.orderStatusEnum.name == "waitAudit" || value.orderStatusEnum.name == "waitContact"}}
+                <span class="detail_item1_key">{{value.zoneName}}</span>
+                <span class="detail_item1_key">{{value.ip}}：</span>
+                <span class="detail_item1_value">当天购买{{value.ipOrderQty}}</span>{{/if}}
+                <!-- send status -->
+                <span class="detail_item1_value">{{value.orderStatusEnum.display}}</span>
+                <!-- pay status -->
+                <span class="detail_item1_value">{{value.payState.display}}</span>
+            </p>
+            {{else}}
+            <p class="orders_check_detail_item1" style="margin-top: 5px;">
+                <span class="detail_item1_key">订单流水号</span>
+                <span class="detail_item1_value"> {{value.id}}</span>
+                <span class="detail_item1_key">商户订单号</span>
+                <span class="detail_item1_value">{{value.merchantOrderNo}}</span>
+                <!-- time -->
+                <span class="detail_item1_value">{{value.createAt}}</span>
+                <!-- ip -->
+
+                {{if value.orderStatusEnum.name == "waitAudit" || value.orderStatusEnum.name == "waitContact"}}
+                <span class="detail_item1_key">{{value.zoneName}}</span>
+                <span class="detail_item1_key">{{value.ip}}：</span>
+                <span class="detail_item1_value">当天购买{{value.ipOrderQty}}</span>{{/if}}
+                <!-- send status -->
+                <span class="detail_item1_value">{{value.orderStatusEnum.display}}</span>
+                <!-- pay status -->
+                <span class="detail_item1_value">{{value.payState.display}}</span>
+            </p>
+            {{/if}}
+            {{if value.memo || value.customerMessage}}
+            <p class="orders_check_detail_item2">
+                {{if value.memo}}
+                <span class="detail_item2_key">备注:</span>
+                <span class="detail_item2_value">{{value.memo}}</span>
+                {{/if}}
+                {{if value.customerMessage}}
+                <span class="detail_item2_key">客户留言:</span>
+                <span class="detail_item2_value">{{value.customerMessage}}</span>
+                {{/if}}
+            </p>
+            {{/if}}
+        </div>
+        <div class="orders_more_operate" style="margin-top: 8px">
+            <span id="moreoperationbtn_wrap" class="show">
+                <span onclick="detail({{value.id}})" class="layui-btn layui-btn-xs">查看详情</span>
+                {{if $imports.$window.order_edit == true &&
+                    value.orderStatusEnum.name == "waitAudit" || value.orderStatusEnum.name == "waitContact" || value.orderStatusEnum.name == "invalidOrder"}}
+                        <span onclick="editOrder({{value.id}})" class="layui-btn layui-btn-xs">编辑订单</span>
+                {{/if}}
+                {{if $imports.$window.order_cancel == true && value.orderStatusEnum.name == "waitAudit"|| value.orderStatusEnum.name == "waitDeliver" || value.orderStatusEnum.name == "waitContact" || value.orderStatusEnum.name == "waitSpecifyLogistic" || value.orderStatusEnum.name == "waitPurchase"}}
+                        <span onclick="cancelOrder({{value.id}});" class="layui-btn layui-btn-xs">取消订单</span>
+                {{/if}}
+                {{if $imports.$window.order_revoke == true && value.orderStatusEnum.name == "invalidOrder" || value.orderStatusEnum.name == "malice" || value.orderStatusEnum.name == "incomplete" }}
+                    <span onclick="revokeOrder({{value.id}});" class="layui-btn layui-btn-xs">撤回</span>
+                {{/if}}
+                {{if $imports.$window.order_re_order == true && value.orderStatusEnum.name == "orderCancel" || value.hasRmaRecord == "yes" }}
+                <span onclick="reOrder({{value.id}});" class="layui-btn layui-btn-xs">重新下单</span>
+                {{/if}}
+
+                {{if $imports.$window.order_aftersale_apply == true && value.orderStatusEnum.name == "deliver" || value.orderStatusEnum.name == "sign"}}
+                    <span onclick='returnOrderTest({{value.id}});' class='layui-btn layui-btn-xs'>退货</span>
+                {{/if}}
+        </span>
+
+        </div>
+    </div>
+    {{/if}}
+
+    <div class="orders_item_content">
+        {{if value.orderStatusEnum.name != "waitAudit" && value.orderStatusEnum.name != "waitContact"}}
+        <div class="orders_item_content_busi">
+            <h4>业务归属</h4>
+            <p class="content_item"><span>{{value.zoneName}} </span><span>{{value.domain}}</span></p>
+            <p class="content_item"><span class="detail_item1_value">{{value.departmentUserInfo}}</span><span>{{value.seoUserName}}</span>
+            </p>
+        </div>
+        {{/if}}
+        <div class="orders_item_content_custom">
+            <h4>
+                <span>客户信息 </span>
+                {{if value.repeatInfo != "" }}
+                <span class="bg_romatic">重复订单</span>
+                {{/if}}
+                {{if value.blackFields != "" }}
+                <span class="bg_romatic">黑名单({{value.blackFields}})</span>
+                {{/if}}
+            </h4>
+
+            <p class="content_item">
+                <span class="orders_item_content_key">{{value.firstName + value.lastName}}</span>
+                <span class="orders_item_content_val">
+                     {{if $imports.$window.order_tel_email }}
+                        {{value.telphone}}
+                        {{else}}
+                    <!-- 无电话权限 -->
+                    {{/if}}
+                </span>
+                {{if value.orderStatusEnum.name == "waitAudit" || value.orderStatusEnum.name == "waitContact"}}
+                {{if value.codeType.name == "succ" || value.codeType.name == "fail"}}
+                <span class="orders_item_content_key">{{value.codeType.display}}</span>
+                {{/if}}
+                {{if value.codeType.name == "fail"}}
+                <span class="orders_item_content_val">  原：{{value.getCode}}验：{{value.inputCode}}</span>
+                {{/if}}
+                {{/if}}
+                <span class="orders_item_content_val">
+
+                  {{if $imports.$window.order_tel_email }}
+                        {{value.email}}
+                    {{else}}
+                    <!-- 无邮箱权限 -->
+                    {{/if}}
+                </span>
+            </p>
+            <p class="content_item">
+                <span class="orders_item_content_val">{{value.address}}</span>
+                {{if value.orderStatusEnum.name == "waitAudit" || value.orderStatusEnum.name == "waitContact"}}
+                <span class="orders_item_content_key">{{value.zipcode}}</span>
+                {{/if}}
+            </p>
+        </div>
+        <div class="orders_item_content_product">
+            <h4>产品信息</h4>
+            <p class="content_item">
+                <span class="orders_item_content_key">{{value.amountShow}}</span>
+                <span class="orders_item_content_key">购买数：{{value.goodsQty}}</span>
+            </p>
+            <p class="content_item posi-relative">
+                {{if value.goodsQty>1}}
+                {{each value.spuList val2 ind2}}
+            <div>{{val2.spu}}&nbsp;&nbsp;{{val2.title}}</div>
+            {{each val2.skuList val3 ind3}}
+            <div>&nbsp;&nbsp;&nbsp;&nbsp;{{val3.sku}}&nbsp;&nbsp;{{val3.attr}}&nbsp;<span class="text-red">x</span>&nbsp;{{val3.qty}}
+            </div>
+            {{/each}}
+            {{/each}}
+            {{else}}
+
+            {{if value.spuList.length>0}}
+            <span class="layui-btn layui-btn-xs layui-btn-normal show_spu_unitbtn" onclick="show_spu_unit(this,{{value.spuList.length}});">更多({{value.spuList.length}})</span>
+            {{/if}}
+            <div class="spu_unit_wrap">
+                {{each value.spuList val2 ind2}}
+                <div class="ellipsis_class">{{val2.spu}}&nbsp;&nbsp;{{val2.title}}</div>
+                {{each val2.skuList val3 ind3}}
+                <div>&nbsp;&nbsp;&nbsp;&nbsp;{{val3.sku}}&nbsp;&nbsp;{{val3.attr}}&nbsp;<span class="text-red">x</span>&nbsp;{{val3.qty}}
+                </div>
+                {{/each}}
+                {{/each}}
+            </div>
+            {{/if}}
+            </p>
+        </div>
+        {{if value.orderStatusEnum.name != "waitAudit" && value.orderStatusEnum.name != "waitContact"}}
+        <div class="orders_item_content_logistics">
+            <h4>物流信息</h4>
+            <p>
+                <span class="orders_item_content_key">{{value.logisticsName}}</span>
+                <span class="orders_item_content_key">{{value.trackingNo}}</span>
+            </p>
+            <p><span class="orders_item_content_key">{{value.warehouseName}}</span></p>
+        </div>
+        {{/if}}
+        {{if value.orderStatusEnum.name == "waitAudit" || value.orderStatusEnum.name == "waitContact" }}
+        <div class="orders_item_content_detail">
+            {{if $imports.$window.order_auth == true }}
+            <select name="" lay-ignore class="operation_choice">
+                <option value="">请选择</option>
+                {{if value.orderStatusEnum.name == "waitAudit" || value.orderStatusEnum.name == "waitContact" }}
+                <option value="0">有效订单</option>
+                {{/if}}
+                {{if value.orderStatusEnum.name == "waitAudit" }}
+                <option value="1">待联系</option>
+                {{/if}}
+                {{if value.orderStatusEnum.name == "waitAudit" || value.orderStatusEnum.name == "waitContact" }}
+                <optgroup label="无效订单">
+                    <option value="2">重复下单</option>
+                    <option value="3">信息不完整</option>
+                    <option value="4">恶意下单</option>
+                </optgroup>
+                {{/if}}
+            </select>
+            <button style="margin-bottom: 5px;" onclick="single_rowsubmit(this);" class="layui-btn layui-btn-xs"
+                    data-id={{value.id}}>确定
+            </button>
+            <div class="_trial_remark">
+                <textarea name="reason" placeholder="请输入" class="operation_msg"></textarea>
+            </div>
+            {{/if}}
+        </div>
+        {{/if}}
+    </div>
+    {{/each}}
+</script>
+
+<script type="text/javascript">
+    function show_moreoperation(that) {
+        $(that).siblings("#trial_orders_form").toggle();
+        $(that).siblings("#moreoperationbtn_wrap").toggle();
+        var _status = $(that).siblings("#moreoperationbtn_wrap").is(":hidden");
+        if (_status) {
+            $(that).text("更多操作");
+        } else {
+            $(that).text("隐藏更多");
+        }
+    }
+    var search_array;
+    function searchresult_modal(key, val) {
+        search_array = [key, val];
+        $.get('/view/orders/manage/order_searchresult.html', function (str) {
+            modalIndex = layer.open({
+                type: 1
+                , title: '订单搜索结果'
+                , content: str //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , area: ['100%', '100%']
+            });
+        });
+    }
+
+
+    //单个审单
+    function single_rowsubmit(that) {
+        var _id = $(that).attr("data-id");
+        var _operation_choice = $(that).prev(".operation_choice").val();
+        var _trial_remark = $(that).next("._trial_remark").find(".operation_msg").val();
+        var req_data = {}, obj = {};
+        if (!_operation_choice) {
+            layer.msg("请选择操作类型");
+            return;
+        }
+        req_data.type = _operation_choice;
+        req_data.auditList = [];
+        obj.orderId = _id;
+        obj.memo = _trial_remark;
+        req_data.auditList.push(obj);
+
+        $.ajax({
+            type: 'POST',
+            dataType: "json",
+            url: "/orders/audit/batch",
+            data: JSON.stringify(req_data),
+            contentType: "application/json",
+            success: function (res) {
+                console.log("请求后的返回", res);
+                state_response(res);
+                layer.msg(res.desc);
+                //重新渲染数据
+                $(that).parents(".orders_item_content").prev(".orders_item").remove();
+                $(that).parents(".orders_item_content").remove();
+            }
+        });
+    }
+
+
+    function show_spu_unit(that,len) {
+
+        var flex_height=0;
+        if(len==1){
+            flex_height=parseInt(110)+5*len+"px";
+        }else if(len==2){
+            flex_height=parseInt(110)+20*len+"px";
+        }else{
+            flex_height=parseInt(110)+30*len+"px";
+        }
+
+        $(that).parent(".content_item").next(".spu_unit_wrap").find(".ellipsis_class").removeClass("ellipsis_class").parent(".orders_item_content_product").addClass();
+        $(that).parent(".content_item").next(".spu_unit_wrap").removeClass("spu_unit_wrap").parent(".orders_item_content_product").css("height",flex_height).siblings().css("height",flex_height);
+        $(that).hide();
+    }
+
+    function mouseenter_bg(that) {
+        $(that).addClass("orders_hover_bg").next(".orders_item_content").addClass("hover_border").find(".orders_item_content_custom").addClass("border_lf_solid").next(".orders_item_content_product").css("border-right","1px solid rgb(174,216,255)");
+    }
+    function mouseleave_bg(that) {
+        $(that).removeClass("orders_hover_bg").next(".orders_item_content").removeClass("hover_border").find(".orders_item_content_custom").removeClass("border_lf_solid").next(".orders_item_content_product").css("border-right","1px solid #f2f2f2");
+
+    }
+</script>
+
+
+

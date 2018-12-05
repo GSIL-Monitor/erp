@@ -1,0 +1,405 @@
+    <style>
+        .detail-row-space .layui-row{
+            margin-bottom: 5px;
+        }
+        #detailContainer td > .layui-table-cell{
+            height:auto !important;
+        }
+    </style>
+        <div class="layui-container detail-row-space" id="detailContainer">
+            <script type="text/html" id="data-parcelDetail">
+                <div id="parcelInfo">
+                    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 40px;">
+                        <legend>订单基础数据</legend>
+                    </fieldset>
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md6">
+                            <div class="layui-row">
+                                <div class="layui-col-md3">
+                                    <div class="">发货单号:</div>
+                                </div>
+                                <div class="layui-col-md9">
+                                    <div class="">{{item.parcelNo}}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md6">
+                            <div class="layui-row layui-col-space15">
+                                <div class="layui-col-md3">
+                                    <div class="">订单号:</div>
+                                </div>
+                                <div class="layui-col-md9">
+                                    <div class="">{{item.orderNo}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md6">
+                            <div class="layui-row layui-col-space15">
+                                <div class="layui-col-md3">
+                                    <div class="">发货单创建时间:</div>
+                                </div>
+                                <div class="layui-col-md9">
+                                    <div class="">{{item.createAt}}
+                                        <span id="codeLable" onmouseleave="closeTips(this)"  onmouseenter="showTips(this)">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md6">
+                            <div class="layui-row layui-col-space15">
+                                <div class="layui-col-md3">
+                                    <div class="">订单创建时间:</div>
+                                </div>
+                                <div class="layui-col-md9">
+                                    <div class= "">{{item.orderDate}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md6">
+                            <div class="layui-row grid-demo layui-col-space15">
+                                <div class="layui-col-md3">
+                                    <div class="">订单金额:</div>
+                                </div>
+                                <div class="layui-col-md9">
+                                    <div class="">{{item.orderAmount}}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md6">
+                            <div class="layui-row grid-demo layui-col-space15">
+                                <div class="layui-col-md3">
+                                    <div class="">实付金额:</div>
+                                </div>
+                                <div class="layui-col-md9">
+                                    <div class="">{{item.orderRealAmount}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md6">
+                            <div class="layui-row grid-demo layui-col-space15">
+                                <div class="layui-col-md3">
+                                    <div class="">发货单状态:</div>
+                                </div>
+                                <div class="layui-col-md9">
+                                    <div class="">
+                                        {{if item.state == 1}}
+                                        已创建
+                                        {{/if}}
+                                        {{if item.state == 2}}
+                                        已发货
+                                        {{/if}}
+                                        {{if item.state == 3}}
+                                        拒收
+                                        {{/if}}
+                                        {{if item.state == 4}}
+                                        取消
+                                        {{/if}}
+                                        {{if item.state == 5}}
+                                        指派失败
+                                        {{/if}}
+                                        {{if item.state == 6}}
+                                         确认收货
+                                        {{/if}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md6">
+                            <div class="layui-row grid-demo layui-col-space15">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md6">
+                            <div class="layui-row grid-demo layui-col-space15">
+                                <div class="layui-col-md3">
+                                    <div class="">同步状态:</div>
+                                </div>
+                                <div class="layui-col-md9">
+                                    <div class="">
+                                        {{if item.syncStatus == 1}}
+                                        待同步
+                                        {{/if}}
+                                        {{if item.syncStatus == 2}}
+                                        成功
+                                        {{/if}}
+                                        {{if item.syncStatus == 3}}
+                                        失败
+                                        {{/if}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md6">
+                            <div class="layui-row grid-demo layui-col-space15">
+                                <div class="layui-col-md3">
+                                    <div class="">同步信息:</div>
+                                </div>
+                                <div class="layui-col-md9">
+                                    <div class="">{{item.syncInfo}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="customerInfos">
+                    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                        <legend>收货人信息</legend>
+                    </fieldset>
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md6">
+                            <div class="layui-row">
+                                <div class="layui-col-md3">
+                                    <div class="">发货人姓:</div>
+                                </div>
+                                <div class="layui-col-md9">
+                                    <div class="">{{item.firstName}}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md6">
+                            <div class="layui-row layui-col-space15">
+                                <div class="layui-col-md3">
+                                    <div class="">名:</div>
+                                </div>
+                                <div class="layui-col-md9">
+                                    <div class="">{{item.lastName}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md6">
+                            <div class="layui-row layui-col-space15">
+                                <div class="layui-col-md3">
+                                    <div class="">收货地址:</div>
+                                </div>
+                                <div class="layui-col-md9">
+                                    <div class="">{{item.country}} 国 {{item.province}} 省/州 {{item.city}} 市/区 {{item.address}} </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md6">
+                            <div class="layui-row layui-col-space15">
+                                <div class="layui-col-md3">
+                                    <div class="">邮编</div>
+                                </div>
+                                <div class="layui-col-md9">
+                                    <div class= "">{{item.zipcode}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md6">
+                            <div class="layui-row grid-demo layui-col-space15">
+                                <div class="layui-col-md3">
+                                    <div class="">联系方式:</div>
+                                </div>
+                                <div class="layui-col-md9">
+                                    <div class="">{{item.telphone}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="remarks">
+                    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                        <legend>备注</legend>
+                    </fieldset>
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md12">
+                            <div class="layui-row grid-demo layui-col-space15">
+                                <div class="layui-col-md3">
+                                    <div class="">客户备注:</div>
+                                </div>
+                                <div class="layui-col-md9">
+                                    <div class="">
+                                        <textarea name="" disabled class="layui-textarea">{{item.orderRemark}}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md12">
+                            <div class="layui-row grid-demo layui-col-space15">
+                                <div class="layui-col-md3">
+                                    <div class="">客服备注:</div>
+                                </div>
+                                <div class="layui-col-md9">
+                                    <div class="">
+                                        <textarea name="" disabled class="layui-textarea">{{item.serviceRemark}}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-form" >
+                        <input type="hidden" name="id" value="{{item.id}}">
+                        <div class="layui-row layui-col-space15">
+                            <div class="layui-col-md12">
+                                <div class="layui-row grid-demo layui-col-space15">
+                                    <div class="layui-col-md3">
+                                        <div class="">物流备注:</div>
+                                    </div>
+                                    <div class="layui-col-md9">
+                                        <div class="">
+                                            <textarea id="memo" name="memo" required lay-verify="required" placeholder="请输入"  class="layui-textarea">{{item.memo}}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-row layui-col-space15">
+                            <div class="layui-col-md2 layui-col-md-offset9">
+                                <button class="layui-btn" lay-submit lay-filter="saveMemo">保存</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="detailInfos">
+                    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                        <legend>商品数据</legend>
+                    </fieldset>
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-row layui-col-space15">
+                            <div class="layui-col-md12">
+                                <table id="parcelDetailTable" lay-filter="parcelDetailTable"></table>
+                            </div>
+                            <div class="layui-col-md2 layui-col-md-offset10">
+                                包裹重量 {{item.weight}}KG
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="fsmHistorys">
+                    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                        <legend>相关日志</legend>
+                    </fieldset>
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md12">
+                            <div class="layui-tab layui-tab-brief" lay-filter="docDemoTabBrief">
+                                <ul class="layui-tab-title">
+                                    <li class="layui-this">发货轨迹</li>
+                                </ul>
+                                <div class="layui-tab-content">
+                                    <div class="layui-tab-item layui-show">
+                                        <table id="parcelTaskListTable" lay-filter="parcelTaskListTable"></table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </script>
+        </div>
+        <script type="text/javascript">
+            /*$(window).scroll(function(){
+                var scrollTop = $(this).scrollTop();
+                var scrollHeight = $(document).height();
+                var windowHeight = $(this).height();
+                if(scrollTop + windowHeight == scrollHeight){
+                    alert(1);
+                }
+            });*/
+            layui.use(['layer','table','form'], function(){
+                var form = layui.form;
+                form.render();
+                var table = layui.table;
+                layui.laytpl.fn = function (value){
+                    return value.replace(new RegExp("\\*","gm"),"<br/>");
+                }
+                $.ajax({
+                    type : 'GET',
+                    url : "/tms/shippingParcel/detail?id="+parcel_data.id,
+                    dataType : 'json',
+                    success : function(res){
+                        $("#detailContainer").html(template('data-parcelDetail', res));
+                        table.render({
+                            elem: '#parcelDetailTable'
+                            , id: 'parcelDetailTable'
+                            , url: '/tms/shippingParcelDetail/query' //数据接口
+                            , method: 'post'
+                            ,where:{
+                                parcelId:parcel_data.id
+                            }
+                            , done: function (res, curr, count) {
+                                var element = layui.element;
+                                element.init();
+                            }
+                            , response: {
+                                statusName: 'code' //数据状态的字段名称，默认：code
+                                , statusCode: 'OK' //成功的状态码，默认：0
+                                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                                , countName: 'total' //数据总数的字段名称，默认：count
+                                , dataName: 'item' //数据列表的字段名称，默认：data
+                            }
+                            , page: false //开启分页
+                            , cols: [[ //表头
+                                {field: 'id', title: 'id',fixed: 'left',width:80}
+                                ,{field: 'orderItemId', title: '订单项次ID'}
+                                , {field: 'sku', title: '商品sku'}
+                                , {field: 'productTitle', title: '商品名称'}
+                                , {field: 'orderDetailQty', title: '商品数量'}
+                                , {field: 'price', title: '商品单价'}
+                                , {field: 'discountAmount', title: '优惠金额'}
+                                , {field: 'realAmount', title: '商品实付总额'}
+                            ]]
+                        });
+
+                        table.render({
+                            elem: '#parcelTaskListTable'
+                            , id: 'parcelTaskListTable'
+                            , url: '/tms/shippingParcel/taskList?id='+parcel_data.id //数据接口
+                            , method: 'get'
+                            , done: function (res, curr, count) {
+                                var element = layui.element;
+                                element.init();
+                            }
+                            , response: {
+                                statusName: 'code' //数据状态的字段名称，默认：code
+                                , statusCode: 'OK' //成功的状态码，默认：0
+                                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                                , countName: 'total' //数据总数的字段名称，默认：count
+                                , dataName: 'item' //数据列表的字段名称，默认：data
+                            }
+                            , page: false //开启分页
+                            , cols: [[ //表头
+                                {field: 'trackStatus', title: '物流状态'}
+                                , {field: 'classifyStatus', title: '归类状态'}
+                                , {field: 'trackTime', title: '时间'}
+                            ]]
+                        });
+
+                        //监听提交
+                        form.on('submit(saveMemo)', function (data) {
+                            $.ajax({
+                                type: 'put',
+                                url: "/tms/shippingParcel/updateMemo",
+                                data: data.field,
+                                dataType: 'json',
+                                success: function (res) {
+                                    console.log("修改物流返回值", res);
+                                    if(res.code==='NOTICE') {
+                                        layer.msg('修改成功', {icon: 1});
+                                    }else{
+                                        layer.msg(res.desc,{icon:2});
+                                    }
+                                },
+                                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                }
+                            });
+                            return false;
+                        });
+
+                    }
+                });
+            });
+        </script>

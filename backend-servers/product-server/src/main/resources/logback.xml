@@ -1,0 +1,187 @@
+<configuration scanPeriod="60 seconds">
+	<!-- 1.logback首先会试着查找logback.groovy文件; -->
+	<!-- 2.当没有找到时，继续试着查找logback-test.py.xml文件; -->
+	<!-- 3.当没有找到时，继续试着查找logback.xml文件; -->
+	<!-- 4.如果仍然没有找到，则使用默认配置（打印到控制台） -->
+
+	<timestamp key="bySecond" datePattern="yyyy-MM-dd HH:mm:ss" />
+	<property file="project.properties" />
+	<property name="project.app.name" value="product-server" />
+	<!-- This is used so we can get SEVERE messages logged from 3rd party packages 
+		(guava, jsoup) into zeus.log -->
+	<contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator" />
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+		</layout>
+	</appender>
+
+	<appender name="MAIN"
+			  class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>
+				${user.home}/logs/${project.app.name}/${spring.profiles.active}/${project.app.name}.%d.log.gz
+			</FileNamePattern>
+			<!--<FileNamePattern>${user.home}/logs/erp/${spring.profiles.active}/${project.app.name}.%d.log.gz-->
+			<!--</FileNamePattern>-->
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<charset>UTF-8</charset>
+			<pattern>%date %-5level [%13.13thread] %30.30logger{30} [%file:%line]
+				>>> %msg%n
+			</pattern>
+		</encoder>
+	</appender>
+
+
+	<appender name="SQL"
+			  class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>
+				${user.home}/logs/${project.app.name}/${spring.profiles.active}/sql/mybatis.%d.log.gz
+			</FileNamePattern>
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<charset>UTF-8</charset>
+			<pattern>%date %-5level [%13.13thread] %30.30logger{30} [%file:%line]
+				>>> %msg%n
+			</pattern>
+		</encoder>
+	</appender>
+
+
+	<appender name="DeleteOldErp"
+			  class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>
+				${user.home}/logs/${project.app.name}/${spring.profiles.active}/sql/DeleteOldErp/push_revoke.%d.log.gz
+			</FileNamePattern>
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<charset>UTF-8</charset>
+			<pattern>%date %-5level [%13.13thread] %30.30logger{30} [%file:%line]
+				>>> %msg%n
+			</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="deamon" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>
+				${user.home}/logs/${project.app.name}/${spring.profiles.active}/deamon/email.%d.log.gz
+			</FileNamePattern>
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<charset>UTF-8</charset>
+			<pattern>%date %-5level [%13.13thread] %30.30logger{30} [%file:%line]
+				>>> %msg%n
+			</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="productSchedule"
+			  class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>
+				${user.home}/logs/${project.app.name}/${spring.profiles.active}/oldErp/productSchedule.%d.log.gz
+			</FileNamePattern>
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<charset>UTF-8</charset>
+			<pattern>%date %-5level [%13.13thread] %30.30logger{30} [%file:%line]
+				>>> %msg%n
+			</pattern>
+		</encoder>
+	</appender>
+
+
+
+	<logger name="ch.qos.logback" level="warn" />
+
+	<logger name="com.mangofactory.swagger" level="warn" />
+	<logger
+			name="org.springframework.context.support.PropertySourcesPlaceholderConfigurer"
+			level="debug"/>
+	<logger name="com" level="info" />
+	<logger name="org.apache.commons.jexl2" level="error" />
+
+	<logger name="org" level="INFO" />
+	<logger name="cn" level="warn" />
+	<logger name="net" level="info" />
+	<logger name="com.github" level="debug" />
+
+	<!-- -->
+	<logger name="org.apache.http" level="INFO"/>
+	<logger name="org.apache.http.wire" level="INFO"/>
+	<logger name="org.apache.http.wire" level="INFO"/>
+	<logger name="com.mchange" level="INFO"/>
+	<logger name="sun.net" level="INFO"/>
+
+
+
+
+
+	<!--开发环境-->
+	<logger name="com.stosz" level="trace" />
+	<!--mybatis的sql日志保存到统一的目录，提供查询 add by carter 20171030-->
+	<logger name="com.stosz.product.mapper" aditivity="false">
+		<!--additivity="false"-->
+		<level value="debug"/>
+		<appender-ref ref="SQL"/>
+		<!--<appender-ref ref="STDOUT"/>-->
+	</logger>
+
+	<logger name="com.stosz.admin.mapper" aditivity="false">
+		<!--additivity="false"-->
+		<level value="debug" />
+		<appender-ref ref="SQL"/>
+		<!--<appender-ref ref="STDOUT"/>-->
+	</logger>
+
+	<!--推送到老erp的日志保存，以及删除的日志 start add by carter 20171106 -->
+	<logger name="com.stosz.deamon.product.deamon.ProductPushService">
+		<level value="info"></level>
+		<appender-ref ref="DeleteOldErp" />
+	</logger>
+	<logger name="com.stosz.deamon.product.sync.service.RevokeProductService">
+		<level value="info"></level>
+		<appender-ref ref="DeleteOldErp" />
+	</logger>
+	<!--推送到老erp的日志保存，以及删除的日志 end -->
+
+
+	<!--邮件发送日志 -->
+	<logger name="com.stosz.product.deamon.ProductDeamonServiceImpl">
+		<level value="DEBUG"></level>
+		<appender-ref ref="deamon"/>
+	</logger>
+	<logger name="com.stosz.product.deamon.ProductZoneDeamon">
+		<level value="DEBUG"></level>
+		<appender-ref ref="deamon"/>
+	</logger>
+	<logger name="com.stosz.product.deamon.ProductPushService">
+		<level value="DEBUG"></level>
+		<appender-ref ref="deamon"/>
+	</logger>
+	<logger name="com.stosz.product.deamon.ProductNewReportDeamon">
+		<level value="DEBUG"></level>
+		<appender-ref ref="deamon"/>
+	</logger>
+	<logger name="com.stosz.product.deamon.OldErpCategoryNewDeamon">
+		<level value="DEBUG"></level>
+		<appender-ref ref="deamon"/>
+	</logger>
+
+	<!--OA调度日志-->
+	<logger name="com.stosz.product.sync.task.OldErpProductSchedule">
+		<level value="DEBUG"></level>
+		<appender-ref ref="productSchedule"/>
+	</logger>
+
+
+	<root level="trace">
+		<appender-ref ref="MAIN" />
+	</root>
+
+</configuration>

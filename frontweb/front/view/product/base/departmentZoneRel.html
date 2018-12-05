@@ -1,0 +1,184 @@
+<div class="layui-fluid">
+    </br>
+    <div class="layui-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label">部门</label>
+            <div class="layui-input-inline">
+                <select lay-search name="departmentId" id="deptZoneRel_departmentId">
+                    <option value="">不限</option>
+                </select>
+            </div>
+            <label class="layui-form-label">地区</label>
+            <div class="layui-input-inline" >
+                <select lay-search name="zoneId" id="deptZoneRel_zoneId">
+                    <option value="">不限</option>
+                </select>
+            </div>
+            <label class="layui-form-label">是否有效</label>
+            <div class="layui-input-inline">
+                <select name="usable" >
+                    <option value="">不限</option>
+                    <option value="true">有效</option>
+                    <option value="false">无效</option>
+                </select>
+            </div>
+
+            <button class="layui-btn" lay-submit lay-filter="searchDeptZoneRel"><i class="layui-icon">&#xe615;</i>搜索</button>
+            <button class="layui-btn layui-btn-normal" onclick="addbtn()"><i class="layui-icon">&#xe654;</i>新增</button>
+        </div>
+    </div>
+    <table id="deptZoneRelId" lay-filter="deptZoneRel"></table>
+
+    <script>
+        layui.use(['layer', 'table', 'element', 'form'], function () {
+            var product_deptZoneRel_layer = layui.layer;
+            var product_deptZoneRel_index = layer.load(0,{time:5*1000});
+            var product_deptZoneRel_form = layui.form;
+            var product_deptZoneRel_table = layui.table;
+            product_deptZoneRel_form.render();
+
+            //部门
+            $.ajax({
+                type: 'GET',
+                url: "/admin/department/query",
+                dataType: 'json',
+                success: function (res) {
+                    $("#deptZoneRel_departmentId").append(template('deptZone_option_tpl2', res));
+                    product_deptZoneRel_form.render();
+                }
+            });
+            //地区
+            $.ajax({
+                type: 'GET',
+                url: "/product/base/zone/findAll",
+                dataType: 'json',
+                success: function (res) {
+                    $("#deptZoneRel_zoneId").append(template('deptZoneRel_option_tpl', res));
+                    product_deptZoneRel_form.render(); //刷新select选择框渲染
+                }
+            });
+
+            product_deptZoneRel_table.render({
+                elem: '#deptZoneRelId',
+                url: "/product/base/departmentZoneRel/find",
+                even: true,     //开启隔行背景
+                page: true,    //关闭分页
+                height: 'full-200',
+                limit : 20,
+                done: function (res, curr, count) {
+                    var element = layui.element;
+                    element.init();
+                    product_deptZoneRel_layer.close(product_deptZoneRel_index);
+                },
+                cols: [[ //表头
+                    {field: 'departmentName', title: '部门', },
+                    {field: 'zoneName', title: '地区'  },
+                    {field: 'usable', title: '是否有效', width:110, templet: '#switchTpl', unresize: true},
+                    {field:'',fixed: 'right', width:150, title:'操作', align:'center', toolbar: '#barDeptZoneRel'}
+                ]],
+                response: {
+                    statusName: 'code', //数据状态的字段名称，默认：code
+                    statusCode: 'OK', //成功的状态码，默认：0
+                    msgName: 'desc', //状态信息的字段名称，默认：msg
+                    countName: 'total', //数据总数的字段名称，默认：count
+                    dataName: 'item' //数据列表的字段名称，默认：data
+                }
+            });
+            //监听是否有效
+            product_deptZoneRel_form.on('switch(usableFilter)', function(obj){
+                $.ajax({
+                    type : 'POST',
+                    url : "/product/base/departmentZoneRel/updateUsable",
+                    data: {
+                        id : this.value,
+                        usable : obj.elem.checked
+                    },
+                    dataType : 'json',
+                    success : function(res){
+                        if(res.code === 'NOTICE'){
+                            product_deptZoneRel_layer.msg('状态修改成功', {icon: 1});
+                        }else{
+                            product_deptZoneRel_layer.msg(res.desc, {icon: 2});
+                            product_deptZoneRel_table.reload('deptZoneRelId');
+                        }
+                    }
+                });
+            });
+
+            //搜索条件
+            product_deptZoneRel_form.on('submit(searchDeptZoneRel)', function(data){
+                product_deptZoneRel_table.reload('deptZoneRelId', {
+                    where: {
+                        usable : data.field.usable,
+                        zoneId : data.field.zoneId,
+                        departmentId : data.field.departmentId
+                    } ,    //设定异步数据接口的额外参数，任意设
+                    page: {
+                        curr: 1 //重新从第 1 页开始
+                    }
+                });
+                return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+            });
+
+            //监听工具条
+            product_deptZoneRel_table.on('tool(deptZoneRel)', function(obj){ //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+                var data = obj.data;                //获得当前行数据
+                var layEvent = obj.event;           //获得 lay-event 对应的值
+                if(layEvent === 'del'){
+                    product_deptZoneRel_layer.confirm('确认删除该元素么?', function(product_deptZoneRel_index){
+                        obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
+                        product_deptZoneRel_layer.close(product_deptZoneRel_index);
+                        //向服务端发送删除指令
+                        $.ajax({
+                            type : 'POST',
+                            url : "/product/base/departmentZoneRel/delete",
+                            data: {
+                                id : data.id
+                            },
+                            dataType : 'json',
+                            success : function(res){
+                                if(res.code === 'NOTICE') {
+                                    product_deptZoneRel_layer.msg('删除成功', {icon: 3});
+                                }else{
+                                    product_deptZoneRel_layer.msg(res.desc, {icon: 2});
+                                    product_deptZoneRel_table.reload('deptZoneRelId');
+                                }
+                            }
+                        });
+                    });
+                }
+            });
+
+        });
+
+        function addbtn(){
+            $.get('view/product/base/add_departmentZoneRel.html', function(str){
+                index = layer.open({
+                    type: 1 ,
+                    title :'新增部门地区的关系' ,
+                    content: str ,//注意，如果str是object，那么需要字符拼接。
+                    maxmin: true ,
+                    area: '50%'
+                });
+            });
+        }
+    </script>
+</div>
+<script type="text/html" id="switchTpl">
+    <input type="checkbox" name="usable" value="{{d.id}}" lay-skin="switch" lay-text="开启|关闭" lay-filter="usableFilter" {{ d.usable == true ? 'checked' : '' }}>
+</script>
+<script type="text/html" id="barDeptZoneRel">
+    {{# if(window.product_write_power){ }}
+        <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del" style="text-align: center;"><i class="layui-icon"></i>删除</button>
+    {{# } }}
+</script>
+<script id="deptZone_option_tpl2" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.departmentName}}</option>
+    {{/each}}
+</script>
+<script id="deptZoneRel_option_tpl" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.title}}</option>
+    {{/each}}
+</script>

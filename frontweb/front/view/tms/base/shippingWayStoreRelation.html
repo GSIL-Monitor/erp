@@ -1,0 +1,233 @@
+<br>
+<br>
+<div class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">物流线路:</label>
+        <div class="layui-input-inline">
+            <select name="shippingWayId" id="shippingWayIdSelect" >
+                <option value="">请选择</option>
+            </select>
+        </div>
+        <label class="layui-form-label">仓库:</label>
+        <div class="layui-input-inline">
+            <select name="wmsId" lay-search id="wmsIdSelect">
+                <option value=" ">不限</option>
+            </select>
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn" lay-submit lay-filter="position_search">搜索</button>
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn layui-btn-warm" onclick="addShippingStore()">
+                <i class="layui-icon">&#xe608;</i> 新增
+            </button>
+        </div>
+    </div>
+</div>
+<table id="demo" lay-filter="test"></table>
+
+<script>
+    var add_rel_index,shipping_store_rel_data,rel_window_index,edit_rel_index =false;
+    layui.use(['layer', 'table', 'element', 'form'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0,{time:5*1000});
+        var table = layui.table;
+        var form = layui.form;
+
+        store_wmsId_option('wmsIdSelect');
+
+        $.ajax({
+            type: 'POST',
+            url: "/tms/base/shippingway/query",
+            data: {
+                page:1,
+                limit:100000,
+                shippingWayName:null
+            },
+            dataType: 'json',
+            success: function (res) {
+                console.log("获取物 流公司列表数据", res);
+                state_response(res);
+                $("#shippingWayIdSelect").append(template('option-shippingWayId', res));
+                form.render();
+            }
+        });
+
+
+
+        table.on('tool(test)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+            shipping_store_rel_data = data;
+            if (layEvent === 'position-number') {
+                $(".link_btn[data-url='/tms/allocation/allocationTemplate']").trigger("click");
+            } else if (layEvent === 'position-cost') {
+                $(".link_btn[data-url='/tms/base/shippingZoneStoreRelation']").trigger("click");
+            } else if (layEvent === 'position-enabled') { //启用
+                layer.confirm('你确定要启用该物流吗?', {icon: 3, title:'提示'}, function(index){
+                    //do something
+                    rel_window_index = index;
+                    enditShippingStoreRelEnable(1);
+                },function(index){
+                    layer.close(index);
+                });
+            } else if (layEvent === 'position-disable') { //禁用
+                layer.confirm('你确定要禁用该物流吗?', {icon: 3, title:'提示'}, function(index){
+                    //do something
+                    rel_window_index = index;
+                    enditShippingStoreRelEnable(0);
+                },function(index){
+                    layer.close(index);
+                });
+            } else if (layEvent === 'position-edit') { //编辑
+                $.get('view/tms/base/edit_shippingWayStoreRelation.html', function (str) {
+                    edit_rel_index = layer.open({
+                        type: 1
+                        ,title: '编辑物流商'
+                        , content: str //注意，如果str是object，那么需要字符拼接。
+                        , maxmin: true
+                        , area: ['40%',"80%"]
+                    });
+                });
+            }
+        });
+
+
+        table.render({
+            elem: '#demo'
+            , id: 'demo'
+            , url: '/tms/shippingStoreRel/query' //数据接口
+            , method: 'post'
+            , done: function (res, curr, count) {
+                var element = layui.element;
+                element.init();
+                layer.close(index);
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            ,height: 'full-170' //高度最大化减去差值
+            , page: true //开启分页
+            , cols: [[ //表头
+                {field: 'id', title: 'id',fixed: 'left',width:50}
+                , {field: 'wmsName', title: '仓库'}
+                , {field: 'shippingWayCode', title: '物流线路代码'}
+                , {field: 'shippingWayName', title: '物流线路名称'}
+                , {field: 'allowedProductType', title: '货物类型',templet:'#typeRender'}
+                , {field: 'enable', title: '状态',templet:'#enableRender'}
+                , {field: 'creator', title: '创建人'}
+                , {field: 'createAt', title: '创建时间',width:170}
+                , {field: 'modifier', title: '修改人'}
+                , {field: 'updateAt', title: '最后修改时间',width:170}
+                , {field: '', title: '设置', templet: '#setDemo', align: 'center',fixed: 'right',width:300}
+                , {field: '', title: '操作', templet: '#operationDemo', align: 'center',fixed: 'right',width:150}
+            ]]
+        });
+
+        form.on('submit(position_search)', function(data){
+            table.reload('demo', {
+                where: {
+                    shippingWayId:data.field.shippingWayId,
+                    wmsId:data.field.wmsId,
+                }    //设定异步数据接口的额外参数，任意设
+                , page: {
+                    page: 1 //重新从第 1 页开始
+                }
+            });
+            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+        });
+
+    });
+
+    function enditShippingStoreRelEnable(enable){
+        var table = layui.table;
+        $.ajax({
+            type: 'PUT',
+            url: "/tms/shippingStoreRel/updateEnable",
+            data:{
+                id:shipping_store_rel_data.id,
+                enable:enable
+            },
+            dataType: 'json',
+            success: function (res) {
+                console.log("更新元素返回值", res);
+                if(res.code==='NOTICE') {
+                    table.reload('demo');
+                    layer.msg('更改状态成功', {icon: 1});
+                }else{
+                    layer.msg(res.desc,{icon:2});
+                }
+                layer.close(rel_window_index);
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+            }
+        });
+
+    }
+
+</script>
+
+
+<script type="text/html" id="typeRender">
+
+    {{#  if(d.allowedProductType==0){ }}
+    所有
+    {{#  } else if(d.allowedProductType==1) { }}
+    普货
+    {{#  } else if(d.allowedProductType==2){ }}
+    特货
+    {{#  } }}
+</script>
+
+<script type="text/html" id="enableRender">
+    {{#  if(d.enable==0){ }}
+    <a>无效</a>
+    {{#  } else if(d.enable==1) { }}
+    <a>有效</a>
+    {{#  } }}
+</script>
+
+
+
+<script type="text/javascript">
+    function addShippingStore(){
+        $.get('view/tms/base/add_shippingWayStoreRelation.html', function(str){
+            add_rel_index = layer.open({
+                type: 1
+                ,title :'新增'
+                ,content: str //注意，如果str是object，那么需要字符拼接。
+                ,maxmin: true
+                ,area: ['40%',"80%"]
+            });
+        });
+    }
+</script>
+
+
+<script type="text/html" id="setDemo">
+    <a class="layui-btn layui-btn-xs" lay-event="position-number">派单数量设置</a>
+    <a class="layui-btn layui-btn-xs" lay-event="position-cost">物流区域费用设置</a>
+</script>
+
+<script type="text/html" id="operationDemo">
+    {{#  if(d.enable==0){ }}
+        <a class="layui-btn layui-btn-xs" lay-event="position-enabled">启用</a>
+    {{#  } else { }}
+        <a class="layui-btn layui-btn-xs" lay-event="position-disable">禁用</a>
+    {{#  } }}
+    <a class="layui-btn layui-btn-xs" lay-event="position-edit">编辑</a>
+</script>
+
+
+
+<script id="option-shippingWayId" type="text/html">
+    {{each item value index}}
+        <option value="{{value.id}}">{{value.shippingWayName}}</option>
+    {{/each}}
+</script>

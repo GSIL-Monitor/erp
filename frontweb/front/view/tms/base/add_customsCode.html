@@ -1,0 +1,49 @@
+<div class="layui-form  padding30" >
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <a href="/tms/customsCode/exportTemplate" class="layui-btn">下载模板</a>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button type="button" class="layui-btn" id="upload">
+                <i class="layui-icon">&#xe67c;</i>导入
+            </button>
+        </div>
+    </div>
+</div>
+
+<form method="post" action="/tms/customsCode/exportFailExecl"  hidden id="exportFailExcelForm">
+    <input name="key" type="hidden" value="">
+</form>
+
+
+<script>
+    layui.use('upload', function(){
+        var upload = layui.upload;
+        var add_customs_Code_table = layui.table;
+        //执行实例
+        var uploadInst = upload.render({
+            elem: '#upload' //绑定元素
+            ,url: '/tms/customsCode/upload' //上传接口
+            ,accept:"files"
+            ,exts:"xls|xlsx"
+            ,done: function(res){
+                console.log("导入execl返回值", res);
+                if(res.code==='NOTICE') {
+                    if(res.item != null && res.item != ''){
+                        $("input[name=\'key\']").val(res.item);
+                        $("#exportFailExcelForm").submit();
+                    }
+                    add_customs_Code_table.reload("demo");
+                    layer.close(add_customsCode);
+                }else{
+                    layer.msg(res.desc,{icon:2});
+                }
+            }
+            ,error: function(res){
+                console.log(res.desc);
+            }
+        });
+    });
+</script>

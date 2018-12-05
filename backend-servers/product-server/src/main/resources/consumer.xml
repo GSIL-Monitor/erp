@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://code.alibabatech.com/schema/dubbo https://github.com/alibaba/dubbo/blob/master/dubbo-config/dubbo-config-spring/src/main/resources/META-INF/dubbo.xsd">
+<dubbo:application name="admin-consumer"/>
+    <dubbo:registry address="zookeeper://127.0.0.1:2181"/>
+    <!--接口实现的包路径-->
+    <dubbo:annotation package="com.stosz.admin"/>
+</beans>

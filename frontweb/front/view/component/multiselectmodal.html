@@ -1,0 +1,92 @@
+<div class="layui-form padding30" id="multi_selectform">
+        
+</div>
+<script type="text/html" id="multi_selecttpl">
+        <div class="layui-form-item">
+            <div id="multi_selectsearchinput_wrap" class="layui-input-inline margin-l-50">
+                    <input type="text" placeholder="请输入关键词" autocomplete="off" class="layui-input">
+            </div>
+            <button class="layui-btn" onclick="multi_selectsearch(this);">搜索</button>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">复选框</label>
+            <div class="layui-input-block">
+                {{each item value index}}
+                        <input class="multi_selectcheckbox" value="{{value.title}}" type="checkbox" name="{{value.id}}" title="{{value.title}}">
+                {{/each}}
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="multi_selectsubmit">确定</button>
+            </div>
+        </div>
+</script>
+
+<script type="text/javascript">
+    function multiselect_modalrender(url,that,display_item,val_item){
+        layui.use(['form'], function () {
+            var multi_selectform = layui.form;   
+            var selectedid_array = $(that).siblings(".component_input").attr("data-id");
+            $.ajax({
+                    url: url,
+                    dataType: 'json',
+                    type: 'GET',
+                    success: function (res) {
+                        console.log("下拉多选数据源", res);
+                        state_response(res);
+                        var _obj = {};
+                        _obj.item = [];
+                        console.log(display_item,val_item);
+                        $.each(res.item, function(i, n){
+                                _obj.item.push({"title":n[display_item],"id":n[val_item]});        
+                        });
+                        console.log(_obj);
+                        $("#multi_selectform").html(template("multi_selecttpl",_obj)); 
+                        if (selectedid_array) {
+                                selectedid_array = selectedid_array.split(",");
+                                console.log("取出来的已选id数组",selectedid_array);
+                                $("#multi_selectform .multi_selectcheckbox").each(function(){
+                                       if($.inArray($(this).attr("name"), selectedid_array) != "-1"){
+                                                console.log("匹配上的checkbox",$(this).html());
+                                                $(this).attr("checked","checked");
+                                       }
+                                });      
+                        }
+                        multi_selectform.render();
+                    }
+            });  
+            multi_selectform.on('submit(multi_selectsubmit)', function(data){
+                  console.log(data.field) //当前容器的全部表单字段，名值对形式：{name: value}
+                  var title_array = [],id_array = [];
+                  for (x in data.field){
+                        id_array.push(x);
+                        title_array.push(data.field[x]);
+                  }
+                  $(that).siblings(".component_input").val(title_array);
+                  $(that).siblings(".component_input").attr("data-id",id_array);
+                  console.log("已选checkbox的id数组",id_array);
+                  layer.close(multiselectmodal_index);
+                  return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+            });
+        });
+    }
+
+    function multi_selectsearch(that){
+            var _inputstr = $(that).siblings("#multi_selectsearchinput_wrap").find(".layui-input").val();
+            console.log("输入的值",_inputstr);
+            if (_inputstr) {
+                    console.log("checkbox个数",$("#multi_selectform .multi_selectcheckbox").length);
+                    $("#multi_selectform .multi_selectcheckbox").each(function(){
+                           if($(this).val().indexOf(_inputstr) == -1){
+                                    $(this).next(".layui-form-checkbox").hide();
+                                    //layui.form.render();
+                           }else{
+                                    $(this).next(".layui-form-checkbox").show();
+                           }
+                    });  
+            }else{
+                    $("#multi_selectform .layui-form-checkbox").show();
+            }
+    }
+</script>

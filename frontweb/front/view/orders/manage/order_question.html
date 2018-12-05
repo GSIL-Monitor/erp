@@ -1,0 +1,520 @@
+<style type="text/css">
+    td > .layui-table-cell {
+        height: 60px;
+    }
+
+    #importM p {
+        line-height: 22px;
+    }
+
+    .fail_box {
+        height: 400px;
+        overflow: auto;
+    }
+</style>
+<br>
+<form class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">订单流水号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="orderId" placeholder="订单流水号" autocomplete="off" class="layui-input">
+        </div>
+        <label class="layui-form-label">运单号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="transNo" placeholder="运单号" autocomplete="off" class="layui-input">
+        </div>
+        <label class="layui-form-label">录入时间</label>
+        <div class="layui-input-inline">
+            <input type="hidden" name="inputTimeBegin" id="inputTimeBegin">
+            <input type="hidden" name="inputTimeEnd" id="inputTimeEnd">
+            <input type="text" name="inputTime" placeholder="录入时间" autocomplete="off" class="layui-input"
+                   id="inputTime">
+        </div>
+        <label class="layui-form-label">处理时间</label>
+        <div class="layui-input-inline">
+            <input type="hidden" name="handleTimeBegin" id="handleTimeBegin">
+            <input type="hidden" name="handleTimeEnd" id="handleTimeEnd">
+            <input type="text" name="handleTime" placeholder="处理时间" autocomplete="off" class="layui-input"
+                   id="handleTime">
+        </div>
+
+        <label class="layui-form-label">地区</label>
+        <div class="layui-input-inline">
+            <select id="department_select_zone" name="zoneId">
+                <option value="">不限</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">物流线路</label>
+        <div class="layui-input-inline">
+            <select name="logisticId" id="logisticId">
+                <option value="">不限</option>
+            </select>
+        </div>
+        <label class="layui-form-label">部门</label>
+        <div class="layui-input-inline">
+            <select id="department_treenode_dept" name="departmentId">
+                <option value="">不限</option>
+            </select>
+        </div>
+
+        <label class="layui-form-label">处理状态</label>
+        <div class="layui-input-inline">
+            <select name="orderQuestionStatusEnum">
+                <option value="">不限</option>
+            </select>
+        </div>
+
+        <label class="layui-form-label">处理人</label>
+        <div class="layui-input-inline">
+            <input name="dealUserId" class="auto_complateval layui-hide">
+            <input type="text" class="auto_matchinput layui-input" style="width: 196px"
+                   oninput="input_match(this)" onblur="blur_event(this)" placeholder="处理人"/>
+            <div class="auto_matchwrap layui-anim layui-anim-upbit layui-select-group"
+                 style="display: none; position: absolute;background-color: #fff;z-index: 999; ">
+            </div>
+        </div>
+
+        <!--用于按钮显示-->
+        <div id="button_area">
+            <button lay-submit class="layui-btn" lay-filter="search">搜索</button>
+            <button type="reset" class="layui-btn layui-btn-primary" lay-filter="reset">重置</button>
+        </div>
+
+    </div>
+</form>
+<br>
+<br>
+<table id="order_question" lay-filter="order_question"></table>
+
+
+<div id="inputModule" style="display: none;">
+    <div class="layui-row" style="padding: 20px;">
+        <div class="layui-col-sm7">
+            <form class="layui-form">
+                <div class="layui-form-item layui-form-text">
+                    <!--<div class="layui-input-block">-->
+                    <textarea name="content" lay-verify="required" placeholder="请从Excel中复制物流登记日期、运单号、问题类型、原因描述"
+                              class="layui-textarea" style="height: 500px;"></textarea>
+                    <!--</div>-->
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block" style="text-align: center;">
+                        <button class="layui-btn" lay-submit lay-filter="inputSubmit">导入</button>
+                        <button type="button" class="layui-btn layui-btn-primary" id="cancelAndCloseModel"
+                                onclick="layui.layer.close(inputModule);">取消
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+        <div class="layui-col-sm5" id="importResult" style="padding-left: 20px;">
+            <p style="color: red">操作技巧：</p>
+            <p>按住ctrl键，可以直接在excel多选数据列</p>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    var inputModule, dealModule;//页面弹窗
+    var new_obj;
+
+
+    layui.use(['layer', 'table', 'element', 'form', 'laytpl', 'laydate'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0, {time: 5 * 1000});
+        var table = layui.table;
+        var form = layui.form;
+        var laytpl = layui.laytpl;
+        var laydate = layui.laydate;
+
+        //table渲染
+        table.render({
+            elem: '#order_question'
+            , id: 'order_question'
+            , url: '/orders/manage/order_question/find' //数据接口
+            , method: 'post'
+            , cellMinWidth: 110
+            , height: 'full-250'
+            , page: true //开启分页
+            , limit: 20
+            , request: {
+                pageName: 'pageIndex' //页码的参数名称，默认：page
+                , limitName: 'pageSize' //每页数据量的参数名，默认：limit
+            }
+            , done: function (res, curr, count) {
+                var element = layui.element;
+                element.init();
+                layer.close(index);
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , cols: [[
+                {field: 'departmentInfo', title: '业务部门'}
+                , {field: 'zoneName', title: '地区'}
+                , {field: 'customerEmail', title: '邮箱', width: 120}
+                , {field: 'logisticName', title: '物流线路'}
+                , {field: '', templet: '#table_deliveryTime', title: '物流登记日期'}
+                , {field: 'transNo', title: '运单号'}
+                , {field: 'ordersId', title: '订单流水号'}
+                , {field: '', templet: '#table_questionType', title: '问题类型'}
+                , {field: 'questionDetail', title: '问题描述'}
+                , {field: 'customerName', title: '收件人'}
+                , {field: 'customerPhone', title: '收件人电话'}
+                , {field: '', templet: '#productinfoTpl', title: '内部名', width: 300}
+                , {field: 'totalAmount', title: '总价'}
+                , {field: 'sendTime', title: '发货时间'}
+                , {field: 'createAt', title: '导入时间'}
+                , {field: 'dealUsername', title: '处理人'}
+                , {field: 'dealFirstTime', title: '首次处理时间'}
+                , {field: 'dealLastTime', title: '处理时间'}
+                , {field: 'dealResult', fixed: 'right', title: '处理结果'}
+                , {field: 'dealMemo', fixed: 'right', title: '处理备注'}
+                , {field: '', title: '操作', templet: '#barDemo', fixed: 'right', width: 260, align: 'left'}
+            ]]
+        });
+
+        //导入、导出按钮模板渲染
+        laytpl(button_module.innerHTML).render({}, function (html) {
+            document.getElementById('button_area').innerHTML += html;
+        });
+
+        //监听工具
+        table.on('tool(order_question)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+            ordersId = obj.data.ordersId;
+
+            if (layEvent === 'view') { //查看订单详情
+                $.get('view/orders/manage/ordersDetail.html', function (str) {
+                    orderDetailPage = layer.open({
+                        type: 1
+                        , title: '订单详情'
+                        , content: str //注意，如果str是object，那么需要字符拼接。
+                        , maxmin: true
+                        , area: ['80%', '80%']
+                    });
+                });
+            }
+
+            if (layEvent === 'deal') { //问题件处理事件
+
+
+                dealType = $(this).attr('name');
+
+                var tmpDate = {};
+                tmpDate.dealType = dealType;
+                tmpDate.orderQuestionIdArray = data.id;
+                tmpDate.handleResult = $(this).text();
+
+                // $('#dealEventEnumName').val(dealType);
+                // $('#orderQuestionIdArray').val(data.id);
+                // $('#handleResult').text($(this).text());
+                //
+                // if ($(this).attr('name') == 'SureReject')
+                //     $('#check_apply_area').show();
+
+
+                dealModule = layer.open({
+                    type: 1
+                    , title: '操作确认'
+                    , content: template('dealModule', tmpDate)
+                    , shadeClose: true
+                    , area: ['600px', 'auto']
+                });
+
+
+                form.render('checkbox');
+                // }
+            }
+        });
+
+        //监听查询
+        form.on('submit(search)', function (data) {
+            //重构数据
+            new_obj = rft(data);
+            //重载表格
+            table.reload('order_question', {
+                where: new_obj,
+                page: {
+                    curr: 1
+                }
+            });
+            return false;
+        });
+        form.on('submit(import)', function (data) {
+            //绑定批量退货弹出一个模态框
+            inputModule = layer.open({
+                id: 'importM',
+                type: 1,
+                title: '问题件批量导入',
+                area: ['1000px', '700px'],
+                // resize: false,
+                shadeClose: true, //点击遮罩关闭
+                content: $("#inputModule").html()
+            });
+            return false;
+        });
+
+        //监听导入提交
+        form.on('submit(inputSubmit)', function (data) {
+            $.ajax({
+                type: 'POST',
+                url: "/orders/manage/order_question/import",
+                dataType: 'json',
+                data: data.field,
+                success: function (res) {
+                    if (res.success) {
+                        layer.msg("导入完成");
+                    } else {
+                        layer.msg(res.desc);
+                    }
+
+                    $('#importM #importResult').html(template('ImportResultModule', res.item));
+                    table.reload('order_question', {
+                        where: new_obj,
+                        page: {
+                            curr: 1 //重新从第 1 页开始
+                        }
+                    });
+                },
+                error: function () {
+                    layer.msg("提交失败");
+                }
+            });
+
+            return false;
+        });
+
+        form.on('submit(export)', function (data) {
+            new_obj = rft(data);
+            var form = document.forms[0];
+            form.method = 'POST';
+            form.action = '/orders/manage/order_question/export';
+            return true;
+        });
+
+
+        //监听处理提交
+        form.on('submit(deal)', function (data) {
+            $.ajax({
+                type: 'POST',
+                url: "/orders/manage/order_question/deal",
+                dataType: 'json',
+                data: data.field,
+                success: function (res) {
+                    if (res.success) {
+                        //生成申请单
+                        if (data.field.isCreateApply) {
+                            if (dealType == 'SureReject')// 拒收
+                                createAfterSaleApply(ordersId, "reject", "ordersquestion", "新建拒收单据");
+                            if (dealType == 'CanRetreat')// 退货
+                                createAfterSaleApply(ordersId, "returned", "ordersquestion");
+                        }
+                        layer.msg("处理成功");
+                        layer.close(dealModule);
+                        table.reload('order_question', {
+                            where: new_obj,
+                            page: {
+                                curr: 1 //重新从第 1 页开始
+                            }
+                        });
+
+
+                    } else {
+                        layer.msg("处理失败");
+                    }
+                }
+            });
+            return false;
+        });
+
+
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#inputTime' //指定元素
+            , type: 'datetime'
+            , range: '~' //或 range: '~' 来自定义分割字符
+
+
+        });
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#handleTime' //指定元素
+            , type: 'datetime'
+            , range: '~' //或 range: '~' 来自定义分割字符
+
+        });
+
+        // 问题件状态
+        $.ajax({
+            type: 'GET',
+            url: "/orders/common/enumList",
+            dataType: 'json',
+            success: function (res) {
+                state_response(res);
+                $("select[name='orderQuestionStatusEnum']").append(template('StatusEnumModule', res.item));
+                form.render();
+            }
+        });
+    });
+
+    //重构数据
+    function rft(data) {
+        var new_data = {};
+
+        new_data.departmentId = $.trim(data.field.departmentId);
+        new_data.logisticId = $.trim(data.field.logisticId);
+        new_data.zoneId = $.trim(data.field.zoneId);
+        new_data.orderId = $.trim(data.field.orderId);
+        new_data.transNo = $.trim(data.field.transNo);
+        new_data.dealUserId = $.trim(data.field.dealUserId);
+        new_data.orderQuestionStatusEnum = $.trim(data.field.orderQuestionStatusEnum);
+
+        var inputTime = data.field.inputTime.split("~");
+        var handleTime = data.field.handleTime.split("~");
+        new_data.inputTimeBegin = $.trim(inputTime[0]);
+        new_data.inputTimeEnd = $.trim(inputTime[1]);
+        new_data.handleTimeBegin = $.trim(handleTime[0]);
+        new_data.handleTimeEnd = $.trim(handleTime[1]);
+
+        document.getElementById("inputTimeBegin").value = new_data.inputTimeBegin;
+        document.getElementById("inputTimeEnd").value = new_data.inputTimeEnd;
+        document.getElementById("handleTimeBegin").value = new_data.handleTimeBegin;
+        document.getElementById("handleTimeEnd").value = new_data.handleTimeEnd;
+
+
+        return new_data;
+    }
+
+    function timeFormat() {
+
+    }
+</script>
+
+<!--下拉列表处理-->
+<script>
+    // 部门树
+    tree_formDept('department_treenode_dept', 'id');
+    zone_select('department_select_zone', 'id');
+    tms_shippingWayId_option('logisticId');
+</script>
+
+<!--template-->
+
+<script type="text/html" id="table_questionType">
+    {{d.questionType.display}}
+</script>
+
+<script type="text/html" id="table_deliveryTime">
+    {{ formate_time(d.logisticDeliveryTime) }}
+</script>
+
+<script type="text/html" id="button_module">
+    {{#  if(window.order_question_export == true){ }}
+    <button lay-submit class="layui-btn layui-btn-primary" lay-filter="export">导出</button>
+    {{#  } }}
+    {{#  if(window.order_question_import == true){ }}
+    <button lay-submit class="layui-btn layui-btn-normal" lay-filter="import">批量导入</button>
+    {{#  } }}
+</script>
+
+<script type="text/html" id="barDemo">
+    <!--[<a class="active_a" lay-event="view" href="javascript:;">订单详情</a>]-->
+    <button class="layui-btn layui-btn-xs" lay-event="view">查看</button>
+    {{# if(window.order_question_deal == true){ }}
+    {{# if(d.dealStatusEnum.name != "SureReject"){ }}
+    <button class="layui-btn layui-btn-primary layui-btn-xs" lay-event="deal" name="SureReject">确定拒收</button>
+    {{# } }}
+
+    {{# if(d.dealStatusEnum.name != "CanRetreat"){ }}
+    <button class="layui-btn layui-btn-primary layui-btn-xs" lay-event="deal" name="CanRetreat">可退</button>
+    {{# } }}
+    {{# if(d.dealStatusEnum.name != "CanNotRetreat"){ }}
+    <button class="layui-btn layui-btn-primary layui-btn-xs" lay-event="deal" name="CanNotRetreat">不可退</button>
+    {{# } }}
+    <br>
+    {{# if(d.dealStatusEnum.name != "HasSendEmail"){ }}
+    <button class="layui-btn layui-btn-primary layui-btn-xs" lay-event="deal" name="HasSendEmail">已发邮件</button>
+    {{# } }}
+    {{# if(d.dealStatusEnum.name != "ReDelivery"){ }}
+    <button class="layui-btn layui-btn-primary layui-btn-xs" lay-event="deal" name="ReDelivery">重新派送</button>
+    {{# } }}
+    {{# if(d.dealStatusEnum.name != "Linking"){ }}
+    <button class="layui-btn layui-btn-primary layui-btn-xs" lay-event="deal" name="Linking">联系中</button>
+    {{# } }}
+    {{# } }}
+</script>
+
+
+<script id="StatusEnumModule" type="text/html">
+    {{each orderQuestionStatusEnum value index}}
+    <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<!--table  内部名-->
+<script type="text/html" id="productinfoTpl">
+    {{#  layui.each(d.spuList, function(index, item){ }}
+    <div><a href="javascript:;" class="layui-table-link">{{item.spu}}{{item.title}}</a></div>
+    {{#  layui.each(item.skuList, function(index, item){ }}
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;{{item.sku}}&nbsp;&nbsp;{{item.attr}}&nbsp;<span class="text-red">x</span>&nbsp;{{item.qty}}
+    </div>
+    {{#  }); }}
+    {{#  }); }}
+</script>
+
+<script id="ImportResultModule" type="text/html">
+    <p>一共导入 {{totalCount}} 条</p>
+    <p>导入成功 {{successCount}} 条</p>
+    <p>导入失败 <span style="color: red;">{{failCount}}</span> 条</p>
+    <br>
+    {{if failList.length > 0}}
+    <p>失败运单号：</p>
+    <div class="fail_box">
+        {{each failList value index}}
+        <p><span style="color: red;">{{value.transNo}}</span><span
+                style="padding-left: 16px;">{{value.failReason}}</span>
+        </p>
+        {{/each}}
+    </div>
+    {{/if}}
+</script>
+
+<script id="dealModule" type="text/html">
+    <form class="layui-form" style="padding: 20px;">
+        <input type="hidden" id="orderQuestionIdArray" name="orderQuestionIdArray" value="{{orderQuestionIdArray}}">
+        <input type="hidden" id="dealEventEnumName" name="dealEventEnumName" value="{{dealType}}">
+        <h2 style="text-align: center; margin-bottom: 20px">处理结果：<span id="handleResult">{{handleResult}}</span></h2>
+        <div class="layui-form-item layui-form-text">
+            <textarea name="dealMemo" lay-verify="required" placeholder="备注"
+                      class="layui-textarea" style="height: 200px;"></textarea>
+        </div>
+        <div class="layui-inline" style="width: 180px;margin-left: 200px;">
+            <div class="layui-input-inline">
+                <button class="layui-btn" lay-submit lay-filter="deal">确定</button>
+                <button type="button" class="layui-btn layui-btn-primary"
+                        onclick="layer.close(dealModule);">取消
+                </button>
+            </div>
+        </div>
+        {{if (dealType == 'SureReject' || dealType == 'CanRetreat') }}
+        <div class="layui-inline">
+            <label class="layui-form-label">生成申请单</label>
+            <div class="layui-input-inline">
+                <input type="checkbox" name="isCreateApply" lay-skin="switch" lay-text="开启|关闭" checked>
+            </div>
+        </div>
+        {{/if}}
+    </form>
+</script>

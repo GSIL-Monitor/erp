@@ -1,0 +1,473 @@
+<style type="text/css">
+    .form-item-model{
+        width: 90%;
+        margin-top: 20px;
+    }
+</style>
+</br>
+<form class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">地区</label>
+        <div class="layui-input-inline">
+             <select name="zoneId" lay-search>
+                <option value="">不限</option>
+            </select>
+        </div>
+
+        <label class="layui-form-label">仓库</label>
+        <div class="layui-input-inline">
+            <select  id="demo-test-wms" name="warehouseId" lay-search>
+                <option value="">不限</option>
+            </select>
+        </div>
+
+        <label class="layui-form-label">状态</label>
+        <div class="layui-input-inline">
+            <select name="status" lay-search>
+                <option value="">不限</option>
+            </select>
+        </div>
+
+        <div id='authority_add_div'>
+            
+        </div>
+    </div>
+</form>
+<br>
+
+
+<table id="demo" lay-filter="test"></table>
+<script>
+    var addFormIndex = "";
+    var searchParam = {};
+
+    $("#authority_add_div").html(template('authority_add_tpl'));
+
+    layui.use(['table','form','layer'], function(){
+        var table = layui.table;
+        var form = layui.form;
+        var layer = layui.layer;
+
+        var element = layui.element;
+        element.init();
+
+
+        $.ajax({
+            type: 'GET',
+            url: "/product/base/zone/findAll",
+            dataType: 'json',
+            success: function (res) {
+                state_response(res);
+                // $("#zoneIdSelect").append(template('deptZoneRel_option_tpl3', res));
+                $("select[name='zoneId']").append(template('deptZoneRel_option_tpl3', res));
+                form.render(); //更新全部
+            }
+        });
+
+
+        store_wmsId_option('demo-test-wms', {type:''});
+        store_wmsId_option('demo-test-wms1', {type:''});
+
+        $.ajax({
+            type: 'GET',
+            url: "/orders/common/enumList",
+            dataType: 'json',
+            data: '',
+            success: function (res) {
+                state_response(res);
+                var obj = new Object;
+                obj.item = res.item.useableEnum;
+                $("select[name='status']").append(template('option-enum-tpl', obj));
+                form.render(); 
+            }
+        });
+
+
+        //第一个实例
+        table.render({
+            elem: '#demo'
+            ,id: 'demo'
+            ,url: '/orders/zone_warehouse/find' //数据接口
+            ,height: 'full-200'
+            ,method: 'post'
+            ,done: function(res, curr, count){
+                layui.use('element', function(){
+                    var element = layui.element;
+                    element.init();
+                });
+            }
+            ,response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                ,statusCode: 'OK' //成功的状态码，默认：0
+                ,msgName: 'desc' //状态信息的字段名称，默认：msg
+                ,countName: 'total' //数据总数的字段名称，默认：count
+                ,dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            ,page: true //开启分页
+            ,cols: [[ //表头
+                {field: 'zoneId', title: '地区编号',width:'5%'}
+                ,{field: 'zoneName', title: '地区',width:'15%'}
+                ,{field: 'warehouseId', title: '仓库编号',width:'5%'}
+                ,{field: 'warehouseName', title: '仓库',width:'15%'}
+                ,{field: 'priority', title: '排序值',width:'10%'}
+                ,{field: 'forbidSpu', title: '禁用SPU',width:'20%'}
+                ,{title: '状态',templet: '#statusTpl',width:'10%'}
+                // ,{field: 'creator', title: '创建人'}
+                // ,{field: 'createAt', title: '创建时间'}
+                ,{field: '', title: '操作', templet: '#barDemo', fixed: 'right',width:'19%',align: 'center'}
+                
+            ]]
+        });
+
+        //监听工具条
+        table.on('tool(test)', function(obj){ //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+            if(layEvent === 'edit'){ //编辑
+                $.ajax({
+                    type: 'GET',
+                    url : "/orders/zone_warehouse/detail",
+                    data: {
+                        "id": data.id
+                    },
+                    dataType: 'json',
+                    success: function(data){
+                         state_response(data);
+                         addFormIndex = layer.open({
+                            type:1,
+                            area: ['80%', '80%'],
+                            resize:false,
+                            content:  $('#formAdd').html(),
+                            success: function(layero, index){
+                                layero.find("#id").val(data.item.id);
+                                layero.find("#zoneId").val(data.item.zoneId);
+                                layero.find("#demo-test-wms1").val(data.item.warehouseId);
+                                layero.find("#priority").val(data.item.priority);
+                                layero.find("#status").val(data.item.status.name);
+                                // layero.find("#forbidSku").val(data.item.forbidSku.split(',').join("\n"));
+                                layero.find("#forbidSpu").val(data.item.forbidSpu.split(',').join("\n"));
+                                form.render();
+                              }
+                        });
+                    },
+                    error: function(data){
+                        layer.msg(data.desc);
+                    }
+                })
+            }else if(layEvent === 'enable'){ //启用
+                $.ajax({
+                    type: 'POST',
+                    url : "/orders/zone_warehouse/enable",
+                    data: {
+                        "id": data.id
+                    },
+                    dataType: 'json',
+                    success: function(data){
+                        if(data.code == 'FAIL'){
+                            layer.msg(data.desc);
+                            return; 
+                        };
+                        if(data.code == 'NOTICE'){
+                            layer.msg(data.desc);
+                        };
+                        table.reload('demo', {
+                            where: searchParam
+                        });
+                    },
+                    error: function(data){
+                        layer.msg(data.desc);
+                    }
+                })
+            }else if(layEvent === 'disable'){ //禁用
+                $.ajax({
+                    type: 'POST',
+                    url : "/orders/zone_warehouse/disable",
+                    data: {
+                        "id": data.id
+                    },
+                    dataType: 'json',
+                    success: function(data){
+                        if(data.code == 'FAIL'){
+                            layer.msg(data.desc);
+                            return; 
+                        };
+                        if(data.code == 'NOTICE'){
+                            layer.msg(data.desc);
+                        };
+                        table.reload('demo', {
+                            where: searchParam
+                        });
+                    },
+                    error: function(data){
+                        layer.msg(data.desc);
+                    }
+                })
+            }else if(layEvent === 'delete'){ //删除
+                layer.confirm('真的删除行么', function(index){
+                    $.ajax({
+                        type: 'POST',
+                        url : "/orders/zone_warehouse/delete",
+                        data: {
+                            "id": data.id
+                        },
+                        dataType: 'json',
+                        success: function(data){
+                            if(data.code == 'FAIL'){
+                                layer.msg(data.desc);
+                                return; 
+                            };
+                            layer.close(index);
+                            layer.msg(data.desc);
+                            table.reload('demo', {
+                                where: searchParam
+                                ,page: {
+                                    curr: 1 
+                                }
+                            });
+                        },
+                        error: function(data){
+                            layer.close(index);
+                            layer.msg(data.desc);
+                        }
+                    })
+                });
+            }
+        });
+
+
+        $('#add').on('click',function () {
+            addFormIndex = layer.open({
+                type:1,
+                area: ['800px', '500px'],
+                resize:false,
+                content:  $('#formAdd').html(),
+            });
+            form.render();
+            return false;
+        })
+
+
+        //监听提交
+        form.on('submit(formDemo1)', function(data){
+            searchParam = data.field;
+            //上述方法等价于
+            table.reload('demo', {
+                where: searchParam    //设定异步数据接口的额外参数，任意设
+                ,page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+            });
+            return false;
+        });
+
+
+        //添加监听提交
+        form.on('submit(formAdd)', function(data){
+            $('button').addClass("layui-disabled");
+            $('button').attr("disabled","disabled")
+
+            var filed = data.field;
+            filed.warehouseName = $("select[id=demo-test-wms1]").find("option:selected").text();
+            filed.zoneName = $("select[id=zoneId]").find("option:selected").text();
+            filed.forbidSpu =  filed.forbidSpu.split('\n').join(",");
+            console.log(filed);
+            //调用添加接口
+            if(filed.id == null || filed.id == ""){//添加
+                $.ajax({
+                    type: 'POST',
+                    url : "/orders/zone_warehouse/add",
+                    data: filed,
+                    dataType: 'json',
+                    success: function(data){
+                        $('button').removeAttr("disabled");
+                        $('button').removeClass("layui-disabled");
+
+                        if(data.code == "FAIL"){
+                            layer.msg(data.desc);
+                            return;
+                        }
+
+                        layer.close(addFormIndex);
+                        table.reload('demo', {
+                            where: searchParam    //设定异步数据接口的额外参数，任意设
+                            ,page: {
+                                curr: 1 //重新从第 1 页开始
+                            }
+                        });
+                    },
+                    error: function(data){
+                        $('button').removeAttr("disabled");
+                        $('button').removeClass("layui-disabled");
+                        layer.msg(data.desc);
+                    }
+                })
+
+            }else{//更新
+                $.ajax({
+                    type: 'POST',
+                    url : "/orders/zone_warehouse/update",
+                    data: filed,
+                    dataType: 'json',
+                    success: function(data){
+                        $('button').removeAttr("disabled");
+                        $('button').removeClass("layui-disabled");
+                        if(data.code == "FAIL"){
+                            layer.msg(data.desc);
+                            return;
+                        }
+
+                        layer.close(addFormIndex);
+                        table.reload('demo', {
+                            where: searchParam    //设定异步数据接口的额外参数，任意设
+                        });
+                    },
+                    error: function(data){
+                        $('button').removeAttr("disabled");
+                        $('button').removeClass("layui-disabled");
+                        layer.msg(data.desc);
+                    }
+                })
+            }
+            
+            return false;
+        });
+
+    });
+
+    function closeAddFormModel() {
+        layer.close(addFormIndex);
+    }
+</script>
+
+<script id="authority_add_tpl" type="text/html">
+    <div>
+        <button class="layui-btn" lay-submit lay-filter="formDemo1">搜索</button>
+        {{ if $imports.$window.order_write }}
+            <button class="layui-btn" id="add">新增</button>
+        {{ /if }}
+    </div>
+</script>
+
+
+<script id="statusTpl" type="text/html">
+    {{d.status.display}}
+</script>
+
+<script type="text/html" id="barDemo">
+    <div class="layui-form">
+        {{# if(window.order_write){ }}
+            <button class="layui-btn layui-btn-xs" lay-event="edit">编辑</button>
+            {{#  if(d.status.name == "use" ){ }}
+                <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="disable">关闭</button>
+            {{# } }}
+            {{#  if(d.status.name == "unuse" ){ }}
+                <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">删除</button>
+                <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="enable">开启</button>
+            {{# } }}
+        {{#  } }}
+    </div>
+</script>
+
+<script id="deptZoneRel_option_tpl3" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.title}}</option>
+    {{/each}}
+</script>
+
+<script id="wmsId-option-tpl" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.name}}</option>
+    {{/each}}
+</script>
+
+<script id="option-enum-tpl" type="text/html">
+    {{each item value index}}
+        <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<script id="#spu-tpl" type="text/html">
+    {{d.forbidSpu.split(',').join("\n")}}
+</script>
+
+
+
+
+
+
+<div style="display: none">
+    <div id="formAdd">
+        <form class="layui-form form-item-model" action="">
+            <div class="layui-form-item" hidden="true">
+                <label class="layui-form-label">编号</label>
+                <div class="layui-input-block">
+                    <input name="id" id="id" class="layui-input"></input>
+                </div>
+            </div>            
+            <div class="layui-form-item">
+                <label class="layui-form-label">地区</label>
+                 <div class="layui-input-block">
+                     <select name="zoneId" id="zoneId" lay-verify="required" lay-search>>
+                        <option value=""></option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">仓库</label>
+                <div class="layui-input-block">
+                    <select name="warehouseId" id="demo-test-wms1" lay-verify="required" lay-search>
+                        <option value=""></option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+               <label class="layui-form-label">排序值</label>
+               <div class="layui-input-block">
+                   <input type="text" name="priority" id="priority" lay-verify="required|number" placeholder="" autocomplete="off" class="layui-input">
+               </div>
+           </div>
+
+           
+
+
+            <!-- <div class="layui-form-item">
+               <label class="layui-form-label">禁用Sku</label>
+               <div class="layui-input-block">
+                   <textarea name="forbidSku" id="forbidSku" placeholder="请输入sku,多个sku以回车隔开" class="layui-textarea"></textarea>
+               </div>
+           </div> -->
+           
+
+           <div class="layui-form-item">
+            <label class="layui-form-label">禁用Spu</label>
+            <div class="layui-input-block">
+                <textarea name="forbidSpu" id="forbidSpu" placeholder="请输入spu,多个spu以回车隔开" class="layui-textarea"></textarea>
+            </div>
+           </div>
+
+           <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-block">
+                    <select id="status" name="status" lay-verify="required" lay-search>
+                        <!-- <option value=""></option> -->
+                    </select>
+                </div>
+          </div>
+
+
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button type="button" onclick="closeAddFormModel()" class="layui-btn layui-btn-primary">取消</button>
+                    <button class="layui-btn" lay-submit lay-filter="formAdd">立即提交</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+

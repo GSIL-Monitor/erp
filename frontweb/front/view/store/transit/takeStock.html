@@ -1,0 +1,407 @@
+<style type="text/css">
+    td > .layui-table-cell {
+        height: 100px;
+        line-height: 28px;
+        padding: 0 15px;
+        position: relative;
+        overflow-y: auto;
+    }
+</style>
+<br>
+
+<div class="layui-form">
+    <div class="layui-form-item">
+
+        <label class="layui-form-label">仓库</label>
+        <div class="layui-input-inline">
+            <select name="wmsId" id="sto_takeStock_wms">
+                <option value="">不限</option>
+            </select>
+        </div>
+
+        <label class="layui-form-label">状态</label>
+        <div class="layui-input-inline">
+            <select name="state" id="sto_takeStockState">
+                <option value="">不限</option>
+            </select>
+        </div>
+
+        <label class="layui-form-label">产品名</label>
+        <div class="layui-input-inline">
+            <input type="text" name="innerName" lay-verify="" placeholder="请输产品名" autocomplete="off"
+                   class="layui-input">
+        </div>
+
+        <label class="layui-form-label">盘点单号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="id" lay-verify="" placeholder="请输盘点单号" autocomplete="off" class="layui-input">
+        </div>
+
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">SKU</label>
+        <div class="layui-input-inline">
+            <input type="text" name="sku" lay-verify="" placeholder="请输SKU" autocomplete="off" class="layui-input">
+        </div>
+
+        <label class="layui-form-label">审核人</label>
+        <div class="layui-input-inline">
+            <input type="text" name="approver" lay-verify="" placeholder="请输审核人" autocomplete="off" class="layui-input">
+        </div>
+
+        <label class="layui-form-label">创建时间</label>
+        <div class="layui-input-inline">
+            <input name="createTime" type="text" class="layui-input" id="sto_takeStock_createTime">
+        </div>
+        <button class="layui-btn layui-btn-normal" lay-submit lay-filter="btnSearch">搜索</button>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+
+
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="sto_takeStock_firstAuditPassBat"
+                    id="sto_takeStock_firstAuditPassBat"
+                    style="display: none">同意(初审)
+            </button>
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="sto_takeStock_passFinanceBat"
+                    id="sto_takeStock_passFinanceBat"
+                    style="display: none">同意(财务)
+            </button>
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="sto_takeStock_rejectFirstBat"
+                    id="sto_takeStock_rejectFirstBat" style="display: none">不同意(初审)
+            </button>
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="sto_takeStock_rejectFinanceBat"
+                    id="sto_takeStock_rejectFinanceBat" style="display: none">不同意(财务)
+            </button>
+        </div>
+    </div>
+</div>
+
+<br>
+<table id="demo" lay-filter="test"></table>
+
+<script type="text/html" id="sto_takeStock_option">
+    <form class="layui-form">
+
+        {{# if(window.takeStock_firstAuditPass == true && d.state == 'waitAudit'){ }}
+        <!-- 待审核 -->
+        <button type="button" class="layui-btn layui-btn-xs" lay-event="firstAuditPass">同意(初审)</button>
+        <button type="button" class="layui-btn layui-btn-xs layui-btn-warm " lay-event="rejectFirst">不同意(初审)</button>
+        {{# } }}
+
+        <!-- 复审审核权限 -->
+        {{# if(window.takeStock_passFinance == true && d.state == 'waitFinanceAudit'){ }}
+        <button type="button" class="layui-btn layui-btn-xs" lay-event="passFinance">同意(财务)</button>
+        <button type="button" class="layui-btn layui-btn-xs layui-btn-warm " lay-event="rejectFinance">不同意(财务)</button>
+        {{# } }}
+
+        <button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="detail">查看详情</button>
+    </form>
+</script>
+
+
+<script id="takeStockState-option-tpl" type="text/html">
+    {{each takeStockStateEnum value index}}
+    <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<script type="text/html" id="takeStockStateTpl">
+    {{d.takeStockStateEnum.display}}
+</script>
+
+<script>
+    //调拨单明细参数
+    var sto_takeStock_itemReq = {};
+    //table和查询条件
+    var sto_takeStock_tab, sto_takeStock_tab_query;
+
+    layui.use(['layer', 'table', 'element', 'form', 'laydate'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0, {time: 5 * 1000});
+        var table = layui.table;
+        var laydate = layui.laydate;
+        var form = layui.form;
+
+//        window.takeStock_firstAuditPass = true;
+//        window.takeStock_passFinance = true;
+
+
+        if (window.takeStock_firstAuditPass == true) {
+            $('#sto_takeStock_firstAuditPassBat').show();
+            $('#sto_takeStock_rejectFirstBat').show();
+        }
+        if (window.takeStock_passFinance == true) {
+            $('#sto_takeStock_passFinanceBat').show();
+            $('#sto_takeStock_rejectFinanceBat').show();
+        }
+
+        //转寄仓下拉
+        store_wmsId_option('sto_takeStock_wms', {type: 1});
+
+        $.ajax({
+            type: 'GET',
+            url: "/store/common/enumList",
+            dataType: 'json',
+            data: '',
+            success: function (res) {
+                console.log("请求-下拉框数据", res);
+                state_response(res);
+                $("#sto_takeStockState").append(template('takeStockState-option-tpl', res.item));
+                form.render('select'); //刷新select选择框渲染
+            }
+        });
+        form.render();
+        sto_takeStock_tab = table.render({
+            elem: '#demo'
+            , url: '/store/takeStock/search' //数据接口
+            , method: 'post'
+            , height: 870 - 200
+            , page: true //开启分页
+            , even: true  //开启隔行背景
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+
+            }
+            , cols: [[ //表头
+                {checkbox: true}
+                , {field: 'id', title: '盘点单号', width: 120}
+                , {templet: '#takeStockStateTpl', title: '状态', width: 120}
+                , {field: 'stockName', title: '仓库', width: 150}
+                , {field: 'inventoryLossesQty', title: '盘亏数', width: 120}
+                , {field: 'approver', title: '审核人', width: 120}
+                , {field: 'creator', title: '创建人', width: 100}
+                , {field: 'createAt', title: '创建时间', width: 120}
+                , {
+                    field: '',
+                    title: '操作',
+                    templet: '#sto_takeStock_option',
+                    fixed: 'right',
+                    width: 350,
+                    align: 'center'
+                }
+            ]]
+
+        });
+        layer.close(index);
+
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#sto_takeStock_createTime' //指定元素
+            , type: 'date'
+            , range: '~' //或 range: '~' 来自定义分割字符
+            , max: 'new Date()'
+            , theme: 'molv'
+        });
+
+        //搜索
+        form.on('submit(btnSearch)', function (data) {
+            sto_takeStock_tab_query = setReqParam(data);
+
+            //上述方法等价于
+            sto_takeStock_tab.reload({
+                method: 'post',
+                where: sto_takeStock_tab_query,    //设定异步数据接口的额外参数，任意设
+                loading: true,
+                page: {
+                    page: 1 //重新从第 1 页开始
+                }
+            });
+            return false;
+        });
+
+        //主管审批
+        form.on('submit(sto_takeStock_firstAuditPassBat)', function (data) {
+            console.log(JSON.stringify(data.field));
+            console.log(data.field.type);
+            var checkStatus = table.checkStatus('demo'); //test即为基础参数id对应的值
+            console.log('checkStatus:' + JSON.stringify(checkStatus));
+            if (checkStatus.data.length) {
+                var ids = [];
+
+                $.each(checkStatus.data, function (i, n) {
+                    if (n.state == 'waitAudit') {
+                        ids.push(n.id);
+                    } else {
+                        layer.msg('请去掉不能勾选的单据再提交', {icon: 3});
+                        return false;
+                    }
+                });
+                postAjaxBat('store/takeStock/firstAuditPassBat', {ids: ids});
+            } else {
+                layer.msg('请勾选要操作的行', {icon: 3});
+            }
+
+            return false;
+        });
+        //财务审批
+        form.on('submit(sto_takeStock_passFinanceBat)', function (data) {
+            layer.msg(JSON.stringify(data.field));
+            console.log(JSON.stringify(data));
+            console.log(data.field.type);
+            var checkStatus = table.checkStatus('demo'); //test即为基础参数id对应的值
+            console.log('checkStatus:' + JSON.stringify(checkStatus));
+            if (checkStatus.data.length) {
+                var ids = [];
+
+                $.each(checkStatus.data, function (i, n) {
+                    if (n.state == 'waitFinanceAudit') {
+                        ids.push(n.id);
+                    } else {
+                        layer.msg('请去掉不能勾选的单据再提交', {icon: 3});
+                        return false;
+                    }
+                });
+                console.log('select_id:' + ids);
+                postAjaxBat('store/takeStock/passFinanceBat', {ids: ids});
+            } else {
+                layer.msg('请勾选要操作的行', {icon: 3});
+            }
+            return false;
+        });
+        //主管审批不通过
+        form.on('submit(sto_takeStock_rejectFirstBat)', function (data) {
+            console.log(JSON.stringify(data.field));
+            console.log(data.field.type);
+            var checkStatus = table.checkStatus('demo'); //test即为基础参数id对应的值
+            console.log('checkStatus:' + JSON.stringify(checkStatus));
+            if (checkStatus.data.length) {
+                var ids = [];
+
+                $.each(checkStatus.data, function (i, n) {
+                    if (n.state == 'waitAudit') {
+                        ids.push(n.id);
+                    } else {
+                        layer.msg('请去掉不能勾选的单据再提交', {icon: 3});
+                        return false;
+                    }
+                });
+                postAjaxBat('store/takeStock/rejectFirstBat', {ids: ids});
+            } else {
+                layer.msg('请勾选要操作的行', {icon: 3});
+            }
+            return false;
+        });
+        //财务审批不通过
+        form.on('submit(sto_takeStock_rejectFinanceBat)', function (data) {
+            var checkStatus = table.checkStatus('demo'); //test即为基础参数id对应的值
+            console.log('checkStatus:' + JSON.stringify(checkStatus));
+            if (checkStatus.data.length) {
+                var ids = [];
+
+                $.each(checkStatus.data, function (i, n) {
+                    if (n.state == 'waitFinanceAudit') {
+                        ids.push(n.id);
+                    } else {
+                        layer.msg('请去掉不能勾选的单据再提交', {icon: 3});
+                        return false;
+                    }
+                });
+                console.log('select_id:' + ids);
+                postAjaxBat('store/takeStock/rejectFinanceBat', {ids: ids});
+            } else {
+                layer.msg('请勾选要操作的行', {icon: 3});
+            }
+            return false;
+        });
+
+        //监听工具条
+        table.on('tool(test)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+            if (layEvent === 'firstAuditPass') { //
+                postAjax('store/takeStock/firstAuditPass', data.id);
+            } else if (layEvent === 'passFinance') { //
+                postAjax('store/takeStock/passFinance', data.id);
+            } else if (layEvent === 'rejectFirst') { //
+                postAjax('store/takeStock/rejectFirst', data.id);
+            } else if (layEvent === 'rejectFinance') { //
+                postAjax('store/takeStock/rejectFinance', data.id);
+            } else if (layEvent === 'detail') {
+                console.log('into detail...');
+                sto_takeStock_itemReq = data;
+                $.get('view/store/transit/takeStockItem.html', function (str) {
+                    var takeStockItemIndex = layer.open({
+                        type: 1
+                        , title: '盘点单明细'
+                        , content: str //注意，如果str是object，那么需要字符拼接。
+                        , maxmin: true
+                        , area: ['60%', '80%']
+                    });
+                });
+            }
+        });
+
+        function setReqParam(data) {
+            var new_obj = data.field;
+
+            var createTime = data.field.createTime.split("~");
+            new_obj.createAtStartTime = $.trim(createTime[0]);//创建时间开始时间
+
+            if (createTime[1] != undefined && createTime[1] != '') {
+                new_obj.createAtEndTime = $.trim(createTime[1]) + ' 23:59:59';  //创建时间结束时间
+            } else {
+                new_obj.createAtEndTime = '';
+            }
+
+            console.log("search入参：", JSON.stringify(new_obj));
+            return new_obj;
+
+        }
+
+        function postAjaxBat(url, data) {
+            $.ajax({
+                type: 'POST',
+                url: url,
+                dataType: 'json',
+                traditional: true,
+                data: data,
+                success: function (res) {
+                    console.log('...res:' + JSON.stringify(res));
+                    state_response(res);
+                    sto_takeStock_tab.reload({
+                        where: sto_takeStock_tab_query
+                    });
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    layer.msg('操作失败，请重试');
+                }
+            });
+        }
+
+        function postAjax(url, data) {
+            $.ajax({
+                type: 'POST',
+                url: url,
+                dataType: 'json',
+                data: {id: data},
+                success: function (res) {
+                    state_response(res);
+                    sto_takeStock_tab.reload({
+                        where: sto_takeStock_tab_query
+                    });
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    layer.msg('操作失败，请重试');
+                }
+            });
+        }
+
+    });
+
+</script>
+
+
+
+

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	</head>
+	<body>
+	<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+	<script type="text/javascript">
+        $(function(){
+            $.ajax({
+                url: 'http://admin.stosz.com/currentUser',
+                dataType: 'json',
+                type: 'POST',
+                xhrFields: {
+                    withCredentials: true
+                },
+                headers: { 'x-requested-with': 'XMLHttpRequest' },
+                crossDomain: true,
+                contentType: "application/json",
+                success: function (res) {
+                    console.log("请求用户信息", res);
+
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    console.log(XMLHttpRequest);
+                }
+            });
+		})
+
+	</script>
+	</body>
+</html>

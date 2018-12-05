@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>配货程序模拟页面</title>
+    <link rel="stylesheet" href="http://luckydog-erp-front-dev.stosz.com/lib/layui/css/layui.css">
+</head>
+<body style="width: 80%;margin-left: 50px;">
+<form class="layui-form layui-form-pane">
+<blockquote class="layui-elem-quote">订单审核通过</blockquote>
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">订单流水号</label>
+            <div class="layui-input-block">
+            <input type="text" name="orderId" placeholder="请输入订单流水号" class="layui-input">
+
+            </div>
+        </div>
+        <div class="layui-inline">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="orderAuditPassBtn">订单审核通过</button>
+            </div>
+        </div>
+    </div>
+</form>
+<form class="layui-form layui-form-pane">
+    <blockquote class="layui-elem-quote">库存数增加</blockquote>
+    <div class="layui-form-item">
+
+        <div class="layui-inline">
+            <label class="layui-form-label">sku</label>
+            <div class="layui-input-block">
+                <select name="sku" lay-verify="required" class="layui-input">
+                    <option value="1314384" >太陽能充電寶</option>
+                    <option value="1033978" >黑色</option>
+                    <option value="1316888" >天然黑曜石本命佛</option>
+                    <option value="1322360" selected="selected">小黑傘</option>
+                </select>
+            </div>
+        </div>
+
+
+        <div class="layui-inline">
+            <label class="layui-form-label">部门ID</label>
+            <div class="layui-input-block">
+                <select name="dept" lay-verify="required" class="layui-input">
+                    <option value="62" selected="selected">2部1营1组(艾聪)</option>
+                    <option value="81">6部1营1组(葛尧)</option>
+                    <option value="85" >金鹰特训营</option>
+                </select>
+            </div>
+        </div>
+
+
+
+
+        <div class="layui-inline">
+            <label class="layui-form-label">仓库选择</label>
+            <div class="layui-input-block">
+                <select name="warehouseId" lay-verify="required" class="layui-input">
+                    <option value="1021" >泰国XXX仓</option>
+                    <option value="8" selected="selected">测试自建仓</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="layui-inline">
+            <label class="layui-form-label">可配数量</label>
+            <div class="layui-input-block">
+                <input type="number" name="canAssignQty" placeholder="请输入可以配货的数量" class="layui-input" value="10">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="storeNumIncreaseBtn">仓储库存增加</button>
+            </div>
+        </div>
+    </div>
+
+
+</form>
+<div>
+    <blockquote class="layui-elem-quote">状态机历史</blockquote>
+    <table class="layui-table" lay-size="sm" id="fsmLogTable" lay-filter="fsmLogTable"></table>
+</div>
+<div>
+    <blockquote class="layui-elem-quote">订单需求</blockquote>
+</div>
+<div>
+    <blockquote class="layui-elem-quote">库存占用结果</blockquote>
+</div>
+<div>
+    <blockquote class="layui-elem-quote">仓库配货情况</blockquote>
+</div>
+
+
+
+
+
+
+</body>
+<script src="http://luckydog-erp-front-dev.stosz.com/lib/layui/layui.js"></script>
+<script src="http://luckydog-erp-front-dev.stosz.com/lib/jquery/jquery.min.js"></script>
+<script src="http://luckydog-erp-front-dev.stosz.com/lib/arttemplate/arttemplate.min.js"></script>
+<script type="text/javascript">
+    layui.use(['table','layer','jquery','form'],function () {
+        var table = layui.table;
+        var layer = layui.layer;
+        var $     = layui.$;
+        var form  = layui.form;
+
+        form.on('submit(orderAuditPassBtn)',function (data) {
+
+
+            $.post("/test/orderAuditPass.do",data.field,function(res){
+
+                showMonitorData(res);
+                layer.msg(res.desc);
+
+
+            },'json');
+
+            return false;
+        });
+
+
+        form.on('submit(storeNumIncreaseBtn)',function (data) {
+
+            $.post("/test/storeNumIncrease.do",data.field,function(res){
+
+                showMonitorData(res);
+
+                layer.msg(res.desc);
+            },'json');
+
+            return false;
+        });
+
+
+        function showMonitorData(res) {
+
+            if(res.item &&  res.item.fsmLog)
+            {
+                table.render({
+                    elem:'#fsmLogTable',
+                    data:res.item.fsmLog,
+                    size:'sm',
+                    cols:[[
+                        {field:'createAt',title:'状态时间'},
+                        {field:'objectId',title:'订单流水号'},
+                        {field:'eventNameDisplay',title:'事件或者动作'},
+                        {field:'srcStateDisplay',title:'原状态'},
+                        {field:'dstStateDisplay',title:'目标状态'},
+                        {field:'memo',title:'备注'}
+                    ]]
+                });
+            }
+
+
+
+
+
+
+        }
+
+
+
+
+    });
+</script>
+</html>

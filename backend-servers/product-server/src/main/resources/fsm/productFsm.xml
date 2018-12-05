@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FSM EntityName="Product" EntityDao="ProductMapper" ParentEntityName="">
+
+	<States>
+		<State Name="start" Description="开始">
+			<Event Name="create" Description="创建" DstState="waitFill" />
+		</State>
+
+		<State Name="waitFill" Description="待填充">
+			<Event Name="fill" Description="填充" DstState="archiving" Before="productWaitFillAfter"/>
+			<Event Name="cancel" Description="消档" DstState="disappeared"/>
+		</State>
+		<State Name="archiving" Description="建档中">
+			<Event Name="archive" Description="建档" DstState="onsale"/>
+			<Event Name="revoke" Description="撤回" DstState="waitFill" Before="productRevokeBefore"/>
+			<Event Name="cancel" Description="消档" DstState="disappeared" />
+		</State>
+
+		<State Name="onsale" Description="已上架">
+			<Event Name="cancel" Description="消档" DstState="disappeared" />
+			<Event Name="offsale" Description="下架" DstState="offsale"/>
+		</State>
+
+		<State Name="offsale" Description="已下架">
+			<Event Name="archiving" Description="建档中" DstState="archiving" After=""/>
+		</State>
+
+		<State Name="disappeared" Description="已消档">
+			<Event Name="archiving" Description="建档中" DstState="archiving" After=""/>
+		</State>
+	</States>
+
+</FSM>

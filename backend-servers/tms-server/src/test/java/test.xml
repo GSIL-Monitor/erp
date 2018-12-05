@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StatusReport DateFirst="2000-12-31T17:00:00+00:00"
+	DateLast="2017-12-12T08:58:27+00:00">
+	<Order ActNumber="1" Number="2ae634d02d774f31a1696e327f4956"
+		DispatchNumber="1067012539" DeliveryDate="+08:00" RecipientName="">
+		<Status Date="2017-12-12T05:49:10+00:00" Code="1" Description="Создан"
+			CityCode="16769" CityName="Суйфэньхэ, Хэйлунцзян">
+			<State Date="2017-12-12T05:49:00+00:00" Code="1" Description="Создан"
+				CityCode="12683" CityName="Шанхай, Шанхай" />
+			<State Date="2017-12-12T05:49:10+00:00" Code="1" Description="Создан"
+				CityCode="16769" CityName="Суйфэньхэ, Хэйлунцзян" />
+		</Status>
+		<Reason Code="" Description="" Date=""></Reason>
+		<DelayReason Code="" Description="" Date=""></DelayReason>
+	</Order>
+</StatusReport>
+
+<!-- 
+<?xml version="1.0" encoding="UTF-8"?>
+<StatusReport DateFirst="2000-12-31T17:00:00+00:00"
+	DateLast="2017-07-07T03:26:43+00:00">
+	<Order ActNumber="1602171" DeliveryDate="2017-02-21T14:05:00+00:00"
+		DispatchNumber="1041341982" Number="BL59215" RecipientName="Юлия">
+		<Status CityCode="261" CityName="Оренбург" Code="4"
+			Date="2017-02-21T09:50:09+00:00" Description="Вручен">
+			<State CityCode="506" CityName="Воронеж" Code="1"
+				Date="2017-02-16T13:41:41+00:00" Description="Создан" />
+			<State CityCode="506" CityName="Воронеж" Code="3"
+				Date="2017-02-16T15:44:27+00:00" Description="Принят на склад отправителя" />
+			<State CityCode="506" CityName="Воронеж" Code="6"
+				Date="2017-02-16T19:55:49+00:00" Description="Выдан на отправку в г.-отправителе" />
+			<State CityCode="506" CityName="Воронеж" Code="7"
+				Date="2017-02-17T00:20:38+00:00" Description="Сдан перевозчику в г.-отправителе" />
+			<State CityCode="506" CityName="Воронеж" Code="21"
+				Date="2017-02-17T02:12:56+00:00" Description="Отправлен в г.-транзит" />
+			<State CityCode="428" CityName="Саратов" Code="13"
+				Date="2017-02-17T10:55:55+00:00" Description="Принят на склад транзита" />
+			<State CityCode="428" CityName="Саратов" Code="19"
+				Date="2017-02-17T10:55:55+00:00" Description="Выдан на отправку в г.-транзите" />
+			<State CityCode="428" CityName="Саратов" Code="20"
+				Date="2017-02-17T10:56:19+00:00" Description="Сдан перевозчику в г.-транзите" />
+			<State CityCode="428" CityName="Саратов" Code="21"
+				Date="2017-02-17T11:24:19+00:00" Description="Отправлен в г.-транзит" />
+			<State CityCode="430" CityName="Самара" Code="13"
+				Date="2017-02-18T19:08:16+00:00" Description="Принят на склад транзита" />
+			<State CityCode="430" CityName="Самара" Code="19"
+				Date="2017-02-19T12:20:50+00:00" Description="Выдан на отправку в г.-транзите" />
+			<State CityCode="430" CityName="Самара" Code="20"
+				Date="2017-02-19T12:30:29+00:00" Description="Сдан перевозчику в г.-транзите" />
+			<State CityCode="261" CityName="Оренбург" Code="9"
+				Date="2017-02-20T04:40:01+00:00" Description="Встречен в г.-получателе" />
+			<State CityCode="261" CityName="Оренбург" Code="12"
+				Date="2017-02-20T06:51:26+00:00" Description="Принят на склад до востребования" />
+			<State CityCode="261" CityName="Оренбург" Code="4"
+				Date="2017-02-21T09:50:09+00:00" Description="Вручен" />
+		</Status>
+		<Reason Code="" Date="" Description="" />
+		<DelayReason Code="" Date="" Description="" />
+	</Order>
+</StatusReport>
+ -->

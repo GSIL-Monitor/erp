@@ -1,0 +1,354 @@
+<style>
+    .right-confirm{
+        float: right;
+        margin-top: 40px;
+    }
+    /*#upload_box{*/
+        /*width: 87.2%;*/
+        /*margin-left: 109px;*/
+        /*height: 100px;*/
+        /*border: 1px dashed #999;*/
+    /*}*/
+    #new_add_imageUpload{
+        width: 80.2%;
+        text-align: center;
+    }
+    .my_img{
+      width: 150px; height: 150px;
+    }
+    .ctrlv_tip{
+        text-align: center;
+        padding: 42px;
+    }
+</style>
+<div class="layui-form border1ccc padding30" id="ctrlv_box">
+    <input type="hidden" name="main_image_url" id="upload_img_url">
+    <div class="layui-form-item">
+        <label class="layui-form-label">SPU</label>
+        <div class="layui-input-block">
+            <input type="text" name="spu" lay-filter="spu_filter" id="addNew_Spu" onblur="skuOnblur()" lay-verify="spu" autocomplete="off" placeholder="请输入SPU" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="required_mark">*</span>一级分类</label>
+        <div class="layui-input-block">
+            <select lay-search name="topCategoryId" id="productNrw_topCategory_add" lay-verify="required">
+                <option value="">不限</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="required_mark">*</span>产品标题</label>
+        <div class="layui-input-block">
+            <input type="text" name="title" id="addNew_title" lay-verify="required" placeholder="请输入" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="required_mark">*</span>内部名</label>
+        <div class="layui-input-block">
+            <input type="text" name="innerName" id="addNew_innerName" lay-verify="required" placeholder="请输入" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="required_mark">*</span>新品特性</label>
+        <div class="layui-input-block">
+            <select name="classifyEnum" id="addNew_classify" lay-verify="required" lay-filter="aihao">
+                <option value="">请选择</option>
+                <option value="D">带电</option>
+                <option value="Y">液体</option>
+                <option value="S">普通</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="required_mark">*</span>新品类别</label>
+        <div class="layui-input-block">
+            <select name="customEnum" id="addNew_custom" lay-verify="required" lay-filter="aihao">
+                <option value="">请选择</option>
+                <option value="normal">标品</option>
+                <option value="custome">定制</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="required_mark">*</span>上架目标</label>
+        <div class="layui-input-block">
+            <select name="goalEnum" lay-verify="required" lay-filter="aihao">
+                <option value="">请选择</option>
+                <option value="normal">正品</option>
+                <option value="clearing">清库存</option>
+                <option value="accessory">配件</option>
+                <option value="gift">赠品</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="required_mark">*</span>来源</label>
+        <div class="layui-input-block">
+            <select name="sourceEnum" id="addNew_source" lay-verify="required" lay-filter="aihao">
+                <option value="">请选择</option>
+                <option value="market">市场</option>
+                <option value="taobao">淘宝</option>
+                <option value="alibaba">阿里巴巴</option>
+                <option value="other">其他</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="required_mark">*</span>来源URL</label>
+        <div class="layui-input-block">
+            <input type="tel" name="sourceUrl" id="addNew_sourceUrl" lay-verify="required|url" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="required_mark">*</span>图片</label>
+        <div class="layui-upload-drag" id="new_add_imageUpload">
+            <i class="layui-icon"></i>
+            <p>点击上传，或将文件拖拽到此处,也可以直接按ctrl-v粘贴</p>
+            <!--<p class="ctrlv_tip">点击这里也可以直接按ctrl-v粘贴</p>-->
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label"><span class="required_mark">*</span>属性描述</label>
+        <div class="layui-input-block">
+            <textarea placeholder="示例:&#13;&#10;颜色:白色,红色&#13;&#10;内存:8G,16G" id="addNew_attrDesc" lay-verify="required" name="attributeDesc" class="layui-textarea"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            <textarea placeholder="请输入内容" name="memo" id="addNew_memo" class="layui-textarea"></textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="right-confirm">
+            <input type="hidden" name="categoryId" id="addNew_categoryId" class="layui-input">
+            <input type="hidden" name="purchaseUrl" id="addNew_purchaseUrl" class="layui-input">
+            <input type="hidden" name="creatorId" id="addNew_creatorId" class="layui-input">
+            <input type="hidden" name="creator" id="addNew_creator" class="layui-input">
+            <input type="hidden" name="createAt" id="addNew_createAt" class="layui-input">
+            <button class="layui-btn layui-btn-normal float-r" lay-submit lay-filter="addProductNewForm"><i class="layui-icon">&#xe618;</i>确定</button>
+        </div>
+    </div>
+</div>
+<script>
+    document.getElementById("ctrlv_box").addEventListener('paste', function (event) {
+
+        var isChrome = false;
+        if(spu){
+            return;
+        }
+        if ( event.clipboardData || event.originalEvent ) {
+            //not for ie11   某些chrome版本使用的是event.originalEvent
+            var clipboardData = (event.clipboardData || event.originalEvent.clipboardData);
+            if ( clipboardData.items ) {
+                // for chrome
+                var    items = clipboardData.items,
+                    len = items.length,
+                    blob = null;
+                isChrome = true;
+                if(len>1){
+                    return;
+                }
+
+                //items.length比较有意思，初步判断是根据mime类型来的，即有几种mime类型，长度就是几（待验证）
+                //如果粘贴纯文本，那么len=1，如果粘贴网页图片，len=2, items[0].type = 'text/plain', items[1].type = 'image/*'
+                //如果使用截图工具粘贴图片，len=1, items[0].type = 'image/png'
+                //如果粘贴纯文本+HTML，len=2, items[0].type = 'text/plain', items[1].type = 'text/html'
+                // console.log('len:' + len);
+                // console.log(items[0]);
+                // console.log(items[1]);
+                // console.log( 'items[0] kind:', items[0].kind );
+                // console.log( 'items[0] MIME type:', items[0].type );
+                // console.log( 'items[1] kind:', items[1].kind );
+                // console.log( 'items[1] MIME type:', items[1].type );
+
+                //阻止默认行为即不让剪贴板内容在div中显示出来
+//                event.preventDefault();
+//                return;
+                //在items里找粘贴的image,据上面分析,需要循环
+                for (var i = 0; i < len; i++) {
+                  if (items[i].type.indexOf("image") !== -1) {
+                        // console.log(items[i]);
+                        // console.log( typeof (items[i]));
+
+                        //getAsFile()  此方法只是living standard  firefox ie11 并不支持
+                        blob = items[i].getAsFile();
+                    }
+                }
+                if ( blob !== null ) {
+                    var reader = new FileReader();
+                    reader.onload = function (event) {
+                        // event.target.result 即为图片的Base64编码字符串
+                        var base64_str = event.target.result
+                        console.log("base64_str",event);
+                        //可以在这里写上传逻辑 直接将base64编码的字符串上传（可以尝试传入blob对象，看看后台程序能否解析）
+                        uploadImgFromPaste(blob, 'paste', isChrome);
+                    }
+                    reader.readAsDataURL(blob);
+                }
+            }
+        }
+    })
+
+    function uploadImgFromPaste (file, type, isChrome) {
+        var formData = new FormData();
+        formData.append('file', file);
+        formData.append('type', 'productNew');
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/product/commons/upload');
+        xhr.onload = function () {
+            if ( xhr.readyState === 4 ) {
+                if ( xhr.status === 200 ) {
+                    var res = JSON.parse( xhr.responseText );
+                    if ( isChrome ) {
+                        res.mainImageUrl = res.item;
+                        res.productImgPrefix = window.product_img_host;
+                        $('#new_add_imageUpload').html(template('newAdd_imageUpLoadTpl', res));
+                    }
+                } else {
+                    console.log( xhr.statusText );
+                }
+            };
+        };
+        xhr.onerror = function (e) {
+            console.log( xhr.statusText );
+        }
+        xhr.send(formData);
+    }
+</script>
+<script type="text/javascript">
+    var spu=0;
+    var uploadImagefix = "http://erp-front-local.stosz.com/front";
+    layui.use(['form','table','upload'], function () {
+        var product_addProductNew_form = layui.form;
+        var product_addProductNew_table = layui.table;
+        var product_addProductNew_upload = layui.upload;
+
+        //广告一级品类
+        $.ajax({
+            type: 'GET',
+            url: "/product/base/category/findSelfFirstLevel?userType=advertis",
+            dataType: 'json',
+            success: function (res) {
+                $("#productNrw_topCategory_add").append(template('productNew_option_tpl3', res));
+                product_addProductNew_form.render(); //刷新select选择框渲染
+            }
+        });
+        //监听提交
+        product_addProductNew_form.on('submit(addProductNewForm)', function (data) {
+            preventRepeat(data);
+            $.ajax({
+                type: 'POST',
+                url: "/product/productNewManage/add",
+                data: data.field,
+                dataType: 'json',
+                success: function (res) {
+                    state_response(res, data);
+                    if(res.code==='NOTICE') {
+                        layer.close(index);         //此时你只需要把获得的index，轻轻地赋予layer.close即可
+                        product_addProductNew_table.reload('productNewId');
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                }
+            });
+            return false;
+        });
+        //拖拽上传
+        product_addProductNew_upload.render({
+            elem: '#new_add_imageUpload',
+            url: '/product/commons/upload',
+            size: 5000,
+            field:'file',
+            method: 'post',
+            data :{
+                type:'productNew'
+            },
+            done: function(res){
+                if(res.code === "OK"){
+                    res.mainImageUrl = res.item;
+                    res.productImgPrefix = window.product_img_host;
+                    $('#new_add_imageUpload').html(template('newAdd_imageUpLoadTpl', res));
+                }
+            },
+            error: function(index, upload){
+            }
+        });
+
+    });
+
+    //新品spu添加
+    function skuOnblur() {
+        spu = document.getElementById("addNew_Spu").value;
+        spu = spu.replace(/^\s+|\s+$/g,"");
+        if ((spu == "" || spu == undefined || spu == null)) {
+            document.getElementById("addNew_Spu").value = "";
+            return false;
+        }
+        $.ajax({
+            type: 'POST',
+            url: "/product/productNewManage/findProductNewBySpu",
+            dataType: 'json',
+            data: {
+                spu: spu
+            },
+            success: function (res) {
+                state_response(res);
+                if (res.code === 'OK'){
+                    var data = res.item;
+                    data.productImgPrefix = window.product_img_host;
+                    document.getElementById("addNew_title").value = data.title;
+                    $('#addNew_title').addClass("layui-disabled").attr("disabled", true);
+                    document.getElementById("addNew_innerName").value = data.innerName;
+                    $('#addNew_innerName').addClass("layui-disabled").attr("disabled", true);
+                    if(!(data.sourceUrl == "" || data.sourceUrl == undefined || data.sourceUrl == null)){
+                        document.getElementById("addNew_sourceUrl").value = data.sourceUrl;
+                        $('#addNew_sourceUrl').addClass("layui-disabled").attr("disabled", true);
+                    }
+                    document.getElementById("addNew_attrDesc").value = data.attributeDesc;
+                    document.getElementById("addNew_memo").value = data.memo;
+
+                    document.getElementById("addNew_categoryId").value = data.categoryId;
+                    document.getElementById("addNew_purchaseUrl").value = data.purchaseUrl;
+                    document.getElementById("addNew_creatorId").value = data.creatorId;
+                    document.getElementById("addNew_creator").value = data.creator;
+                    document.getElementById("addNew_createAt").value = data.createAt;
+                    //图片
+                    $('#new_add_imageUpload').html(template('newAdd_imageUpLoadTpl', data));
+                    $('#new_add_imageUpload').siblings(".layui-upload-file").attr("disabled",true);
+                    //多选
+                    $('#addNew_classify').html('<option value="'+res.item.classifyEnum+'">' + res.item.classifyEnumName + '</option>');
+                    $('#addNew_classify').addClass("layui-disabled").attr("disabled", true);
+
+                    $('#addNew_custom').html('<option value="'+res.item.customEnum+'">' + res.item.customEnumName + '</option>');
+                    $('#addNew_custom').addClass("layui-disabled").attr("disabled", true);
+
+                    if(!(data.sourceEnum == "" || data.sourceEnum == undefined || data.sourceEnum == null)){
+                        $('#addNew_source').html('<option value="'+res.item.sourceEnum+'">' + res.item.sourceEnumName + '</option>');
+                        $('#addNew_source').addClass("layui-disabled").attr("disabled", true);
+                    }
+
+                    $('#productNrw_topCategory_add').html('<option value="'+res.item.category.id+'">' + res.item.category.name + '</option>');
+                    $('#productNrw_topCategory_add').addClass("layui-disabled").attr("disabled", true);
+                    layui.form.render();
+                }else{
+                    document.getElementById("addNew_Spu").value = "";
+                }
+            }
+        });
+
+    }
+</script>
+<script id="productNew_option_tpl3" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.name}}</option>
+    {{/each}}
+</script>
+<!--图片模板-->
+<script type="text/html" id="newAdd_imageUpLoadTpl">
+    <img style=" width: 150px; height: 150px;" src="{{productImgPrefix}}/{{mainImageUrl}}" />
+    <input value="{{mainImageUrl}}" type="hidden" name="mainImageUrl" class="layui-input" required>
+</script>

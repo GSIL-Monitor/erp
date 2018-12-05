@@ -1,0 +1,183 @@
+<style type="text/css">
+    .layui-form-addReturn {
+        float: left;
+        display: block;
+        padding: 9px 15px;
+        width: 71px;
+        font-weight: 400;
+        line-height: 20px;
+        text-align: right;
+    }
+</style>
+<div class="layui-form border1ccc padding30" id="store_update">
+    <div class="border1ccc" style="margin-top: 30px;">
+        <div class="clear-float" style="background-color: #f2f2f2;padding: 20px;">
+            <div class="layui-col-md2">产品信息</div>
+            <div class="layui-col-md1" style="padding-left: 62px;">sku</div>
+            <div class="layui-col-md10" style="padding-left: 187px;">
+                <div class="layui-col-md2" style="padding-left: 68px;">
+                    部门
+                </div>
+                <div class="layui-col-md1">
+                    采购数
+                </div>
+                <div class="layui-col-md1" style="padding-left: 32px;">
+                    入库数
+                </div>
+                <div class="layui-col-md1" style="padding-left: 38px;">
+                    在途数
+                </div>
+                <div class="layui-col-md2" style="padding-left: 49px;">
+                    sku可用库存
+                </div>
+                <div class="layui-col-md1">
+                    已采退数
+                </div>
+                <div class="layui-col-md1">
+                    采购单价
+                </div>
+            </div>
+        </div>
+
+        <div id="purchase_return_item_wrap" class="clear-float padding30" style=""></div>
+    </div>
+
+
+    <div id="return_detail_wrap"></div>
+</div>
+
+
+
+<script  type="text/html" id="return_detail_tpl">
+    <div class="layui-form-item" pane="">
+        <label class="layui-form-label"><span class="text-red">*</span>采退类型</label>
+        <div class="layui-input-inline">
+            <input value="{{ if returnType == 0}}在库采退{{/if }}{{ if returnType == 1}}在途采退{{/if }}" type="text" class="layui-input" disabled="disabled" >
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="text-red">*</span>退款成本</label>
+        <div class="layui-input-inline">
+            <input value="{{amount}}" type="text" class="layui-input" disabled="disabled" >
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="text-red">*</span>退款金额</label>
+        <div class="layui-input-inline" >
+            <input value="{{payAmount}}" type="text" class="layui-input" disabled="disabled" >
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="text-red">*</span>退货地址</label>
+        <div class="layui-input-inline" >
+            <input value="{{refundAddress}}" type="text" class="layui-input" disabled="disabled" >
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="text-red">*</span>退货快递</label>
+        <div class="layui-input-inline" >
+            <input value="{{ if shippingId == 0}}顺丰{{/if }}{{ if shippingId == 1}}圆通{{/if }}" type="text" class="layui-input" disabled="disabled" >
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label"><span class="text-red">*</span>备注</label>
+        <div class="layui-input-inline" >
+            <input value="{{memo}}" type="text" class="layui-input" disabled="disabled" >
+        </div>
+    </div>
+</script>
+
+<!--获取采购需求明细的tpl-->
+<script type="text/html" id="purchase_return_tpl">
+    <input type="hidden" name="purchaseId" value={{purchaseId}}>
+    {{each item value index}}
+    <div class="clear-float" id="required_{{value.spu}}" style="height: 100%">
+        <div class="layui-form float-l layui-col-md2">
+            <img src="/front/productNew/0.png" width="80%">
+            <br>
+            <div style="width: 80%;">
+                <div style="margin: 10px 0px;">
+                    <input type="hidden"  value="{{value.spu}}">
+                    <input type="hidden"  value="{{value.buDeptId}}">
+                    <input type="hidden"  value="{{value.productTitle}}">
+                    <input type="hidden"  value="{{value.mainImageUrl}}">
+                    <a href="#" title="{{value.productTitle}}"
+                       style="color:#01AAED;width: 80%;text-overflow:ellipsis;overflow: hidden">
+                        {{value.productTitle}}
+                    </a>
+                </div>
+                <div style="margin: 10px 0px;">
+                    <span style="color: #01AAED;">SPU:{{value.spu}}</span>
+                </div>
+            </div>
+        </div>
+        <div class="float-l layui-col-md10 border1ccc">
+            {{each value.purchaseReturnSkus val idx}}
+            <hr>
+            <form id="{{value.spu}}_{{val.sku}}" class="layui-form float-l layui-col-md12"
+                  style="margin-bottom: 20px; margin-left: 20px;">
+                <div class="float-l layui-col-md1"
+                     style="background-color: #f2f2f2;margin-right: 10px;border-radius: 30px; padding-left:10px; ">
+                    <div class="clear-float">
+                        <div>
+
+                            <input type="checkbox" class="switch_{{value.spu}}" name="switch_{{val.sku}}"
+                                   lay-skin="switch" lay-filter="sku_checkbox" lay-text="选定|取消">
+                        </div>
+                        <div class="float-l">
+                            <div class="" style="color: #01AAED;">
+                                <br>
+                                <span>SKU:{{val.sku}}</span>
+                                <br>
+                                <span>SKU名称:{{val.skuTitle}}</span>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="float-l layui-col-md10"
+                     style="background-color: #eeeeee;margin-bottom: 16px; padding: 10px;border-radius:30px;padding-left: 84px;">
+                    {{each val.deptSkuQties val2 idx2}}
+                    <div class="layui-col-md12" style="margin-top: 6px;">
+                        <input type="hidden"  value="{{val2.purchaseItemId}}"/>
+                        <div class="layui-form-addReturn">{{val2.deptName}}</div>
+                        <div class="layui-form-addReturn">{{val2.quantity}}</div>
+                        <input type="hidden" value="{{val2.purchaseQty}}"/>
+                        <div class="layui-form-addReturn">{{val2.instockQty}}</div>
+                        <div class="layui-form-addReturn">{{val2.intransitQty}}</div>
+                        <div class="layui-form-addReturn">{{val2.useQty}}</div>
+                        <div class="layui-form-addReturn">{{val2.intransitCancleQty}}</div>
+                        <div class="layui-form-addReturn">{{val.price}}</div>
+                    </div>
+                    {{/each}}
+                </div>
+            </form>
+            {{/each}}
+        </div>
+    </div>
+    <hr>
+    <br>
+    {{/each}}
+</script>
+
+<script type="text/javascript">
+
+    layui.use(['form', 'table'], function () {
+        var layer = layui.layer;
+        var table = layui.table;
+        var sto_wms_eidt_form = layui.form;
+        sto_wms_eidt_form.render();
+    });
+
+</script>
+
+
+
+
+
+

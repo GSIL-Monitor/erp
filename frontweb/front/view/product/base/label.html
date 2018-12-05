@@ -1,0 +1,220 @@
+<style>
+    .right-confirm{
+        float: right;
+        margin-top: 25px;
+    }
+</style>
+<div class="layui-row" style="margin-top: 15px">
+    <div class="layui-col-md3 margin-l-30" >
+        <div id="tree_label"></div>
+    </div>
+
+    <div class="layui-col-md8 border1ccc " style="margin-left: 60px" id="labelNode_infoId">
+    </div>
+</div>
+<!--标签节点信息模板-->
+<script type="text/html" id="labelNode_infoTpl">
+    <div class="layui-form padding30">
+        <div class="layui-form-item">
+            <label class="layui-form-label">名称:</label>
+            <div class="layui-input-inline">
+                <input value="{{name}}" type="text" name="name" required lay-verify="required" placeholder="填写标签名"
+                       autocomplete="off" class="layui-input">
+            </div>
+            <label class="layui-form-label">备注:</label>
+            <div class="layui-input-inline">
+                <input value="{{remark}}" type="text" name="remark" placeholder="填写备注信息" class="layui-input">
+            </div>
+            <label class="layui-form-label">创建人:</label>
+            <div class="layui-input-inline">
+                <input value="{{creator}}" type="text" disabled class="layui-input layui-disabled">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">ID:</label>
+            <div class="layui-input-inline">
+                <input value="{{id}}" type="text" name="id" disabled lay-verify="required"
+                       autocomplete="off" class="layui-input layui-disabled">
+            </div>
+            <label class="layui-form-label">父级ID:</label>
+            <div class="layui-input-inline">
+                <input value="{{parentId}}" type="text" name="parentId" disabled lay-verify="required"
+                       autocomplete="off" class="layui-input layui-disabled">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">创建时间:</label>
+            <div class="layui-input-inline">
+                <input value="{{createAt}}" type="text" disabled class="layui-input layui-disabled">
+            </div>
+            <label class="layui-form-label">更新时间:</label>
+            <div class="layui-input-inline">
+                <input value="{{updateAt}}" type="text" disabled class="layui-input layui-disabled">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <button class="layui-btn " lay-submit lay-filter="label_update_but"><i class="layui-icon" >&#xe642;</i>修改本标签</button>
+            <button class="layui-btn layui-btn-danger" lay-submit lay-filter="label_delete_submit"><i class="layui-icon">&#xe640;</i>删除本标签</button>
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="label_add_children"><i class="layui-icon">&#xe654;</i>新增子标签</button>
+        </div>
+    </div>
+</script>
+<script type="text/html" id="lable_addChildren_tpl">
+    <div class="layui-form padding30">
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>名称:</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" required lay-verify="required" placeholder="填写标签名"
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <!--<div class="layui-form-item">
+        <label class="layui-form-label"><span class="required_mark">*</span>上级标签:</label>
+            <div class="layui-input-inline">
+                <input readonly="readonly" type="text" class="layui-input component_input" />
+                <i class="layui-icon empty_inputbtn" onclick="empty_inputfunc(this);">&#x1006;</i>
+                <span class="layui-btn layui-btn-xs componentchoose_btn label_parentId_val" onclick="start_treeselect('/product/base/label/tree',this,'name','id');">选择</span>
+            </div>
+        </div>-->
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>上级标签:</label>
+            <div class="layui-input-block">
+                <input type="text" value="{{name}}" disabled class="layui-input layui-disabled">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">备注:</label>
+            <div class="layui-input-block">
+                <input type="text" name="remark" placeholder="填写备注" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item right-confirm">
+            <input value="{{id}}" type="hidden" name="parentId" lay-verify="required" class="layui-input">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="add_children_submit"><i class="layui-icon">&#xe618;</i>确认</button>
+        </div>
+    </div>
+</script>
+<script type="text/javascript">
+    layui.use(['tree', 'form', 'layer', 'table'], function () {
+        var label_layer = layui.layer;
+        var label_form = layui.form;
+        var label_tree = layui.tree;
+        var label_table = layui.table;
+        var labelAddChildren_index;
+
+        loadLabelTree(label_form, label_table, label_tree);
+
+        label_form.on('submit(label_update_but)', function (obj) {
+            labelUpdateBut(label_form, label_table, label_tree, obj);
+        });
+        label_form.on('submit(label_add_children)', function (obj) {
+            labelAddChildren_index = labelAddChildren(label_layer, labelAddChildren_index, obj);
+        });
+        label_form.on('submit(add_children_submit)', function (obj) {
+            addChildrenSubmit(label_layer, label_form, label_table, label_tree, labelAddChildren_index, obj);
+        });
+        label_form.on('submit(label_delete_submit)', function (obj) {
+            labelDeleteSubmit(label_form, label_table, label_tree, obj);
+        });
+    });
+
+//    标签的删除
+    function labelDeleteSubmit(label_form, label_table, label_tree, obj) {
+        preventRepeat(obj);
+        $.ajax({
+            type: 'POST',
+            url: "/product/base/label/delete",
+            dataType: 'json',
+            data: {
+                id: obj.field.id
+            },
+            success: function (result) {
+                state_response(result, obj);
+                if (result.code === 'NOTICE'){
+                    loadLabelTree(label_form, label_table, label_tree);
+                    $("#labelNode_infoId").html(template('labelNode_infoTpl', new Object()));
+                }
+            }
+        });
+    }
+
+//    标签新增确认
+    function addChildrenSubmit(label_layer, label_form, label_table, label_tree, labelAddChildren_index, obj){
+        preventRepeat(obj);
+        $.ajax({
+            type: 'POST',
+            url: "/product/base/label/add",
+            dataType: 'json',
+            data: obj.field,
+            success: function (result) {
+                state_response(result, obj);
+                if (result.code === 'NOTICE'){
+                    label_layer.close(labelAddChildren_index);
+                    loadLabelTree(label_form, label_table, label_tree);
+                }
+            }
+        });
+    }
+//    子标签的添加
+    function labelAddChildren(label_layer, labelAddChildren_index, obj) {
+        labelAddChildren_index = label_layer.open({
+            type: 1,
+            title: '新增标签',
+            content: template('lable_addChildren_tpl', obj.field),
+            area: ['50%', '40%'],
+            success: function (res) {
+            }
+        });
+        return labelAddChildren_index;
+    }
+//    标签的修改
+    function labelUpdateBut(label_form, label_table, label_tree, obj) {
+        preventRepeat(obj);
+        $.ajax({
+            type: 'POST',
+            url: "/product/base/label/update",
+            dataType: 'json',
+            data: obj.field,
+            success: function (result) {
+                state_response(result, obj)
+                if (result.code === 'NOTICE'){
+                    loadLabelTree(label_form, label_table, label_tree);
+                }
+            }
+        });
+    }
+    
+    //标签树的加载
+    function loadLabelTree(from, table, tree) {
+        var allPower = window.product_label_all;
+        var materialPower = window.product_label_material;
+        var classify = window.product_label_classify;
+        if (allPower == undefined || allPower == 'undefined') allPower = "false";
+        if (materialPower == undefined || allPower == 'undefined') materialPower = "false";
+        if (classify == undefined || allPower == 'undefined') classify = "false";
+        $("#tree_label").html("<ul id='label_nodeId'></ul>");
+        $.ajax({
+            type: 'GET',
+            url: "/product/base/label/tree?allPower=" + allPower +"&materialPower=" + materialPower +"&classify=" + classify,
+            dataType: 'json',
+            success: function (res) {
+                state_response(res);
+                global_tree = tree({
+                    elem: '#label_nodeId', //传入元素选择器
+                    nodes: res.item.children,
+                    click: function (node) {
+                        console.log("节点数据", node);//node即为当前点击的节点数据
+                        $("#labelNode_infoId").html(template('labelNode_infoTpl', node));
+                        if (node.children === null){
+                            console.log("叶子节点");
+                        }else{
+                            console.log("非叶子节点");
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+</script>
+

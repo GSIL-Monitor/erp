@@ -1,0 +1,722 @@
+<br>
+<div class="layui-fluid">
+    <div class="layui-form border1ccc">
+        <div class="layui-form-item" style="margin-top: 16px">
+            <label class="layui-form-label">部门</label>
+            <div class="layui-input-inline">
+                <select id="errorGoods_dept_select" name="buDeptId">
+                    <option value=""></option>
+                </select>
+            </div>
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-inline">
+                <select id="errorGoods_state_select" name="state">
+                    <option value=""></option>
+                </select>
+            </div>
+            <label class="layui-form-label">错货单号</label>
+            <div class="layui-input-inline">
+                <input value="" name="no" type="text"
+                       class="layui-input">
+            </div>
+            <label class="layui-form-label">采退单号</label>
+            <div class="layui-input-inline">
+                <input value="" name="purchaseReturnedNo" type="text"
+                       class="layui-input">
+            </div>
+            <label class="layui-form-label">产品</label>
+            <div class="layui-input-inline">
+                <input value="" name="productTitle" type="text"
+                       class="layui-input">
+            </div>
+
+        </div>
+        <div class="layui-form-item" style="margin-top: 16px">
+            <label class="layui-form-label">创建日期</label>
+            <div class="layui-input-inline">
+                <input type="text" name="createAt" class="layui-input" id="errorGoods_range" placeholder=" - ">
+            </div>
+
+            <label class="layui-form-label">SKU</label>
+            <div class="layui-input-inline">
+                <input value="" name="sku" type="text"
+                       class="layui-input">
+            </div>
+            <label class="layui-form-label">创建人</label>
+            <div class="layui-input-inline">
+                <input type="text" name="creator" class="auto_matchinput layui-input" style="width: 196px"
+                       oninput="input_match(this)" onblur="blur_event(this)"/>
+                <input type="hidden" name="creatorId" class="auto_complateval">
+                <div class="auto_matchwrap layui-anim layui-anim-upbit layui-select-group"
+                     style="display: none; position: absolute;background-color: #fff;z-index: 999; ">
+                </div>
+            </div>
+            <label class="layui-form-label">供应商</label>
+            <div class="layui-input-inline">
+                <input value="" name="supplierName" type="text"
+                       class="layui-input">
+            </div>
+
+            <label class="layui-form-label"></label>
+            <div class="layui-input-inline" style="width: 240px;">
+                <div style="float: left;margin-right: 10px;">
+                    <button class="layui-btn" lay-submit lay-filter="errorGoods_search">搜索</button>
+                    <button class="layui-btn layui-btn-warm" lay-submit lay-filter="errorGoods_export">导出</button>
+                </div>
+                <div id="addErrorGoodsBtn">
+                    <button class="layui-btn layui-btn-normal" lay-submit lay-filter="errorGoods_add">新增</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <table id="errorGoods_table" lay-filter="errorGoods_table_demo"></table>
+</div>
+
+<script id="errorGoods_stateDemo" type="text/html">
+    {{#  if(d.state == 'draft'){  }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #5FB878;" lay-event="showHistory">草稿</a>
+    {{#  }else if(d.state == 'waitBusinessApprove'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #1E9FFF;" lay-event="showHistory">待业务审核</a>
+    {{# }else if(d.state == 'businessDisagree'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #FF5722;" lay-event="showHistory">业务不同意</a>
+    {{# }else if(d.state == 'executing'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #009688;" lay-event="showHistory">执行中</a>
+    {{# }else if(d.state == 'completed'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #13e2f5;" lay-event="showHistory">已完成</a>
+    {{# }else if(d.state == 'cancel'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #c2c2c2;" lay-event="showHistory">已取消</a>
+    {{# } }}
+
+</script>
+
+<script id="errorGoods_barDemo" type="text/html">
+    <a class="layui-btn layui-btn layui-btn-xs" lay-event="errorGoodsShowDetail">详情</a>
+    {{# if((d.state == 'waitBusinessApprove'|| d.state == 'businessDisagree')&& window.purchase_errorGoods_cancel){ }}
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="disagreeByBusiness">取消</a>
+    {{# } }}
+</script>
+
+
+<!--部门下拉的tpl-->
+<script id="errorGoods_dept_option" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.departmentName}}</option>
+    {{/each}}
+</script>
+
+<!--状态下拉的tpl-->
+<script id="errorGoods_state_option" type="text/html">
+    {{each errorGoodsState value index}}
+    <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<!--错货单详情-->
+<script id="errorGoods_detail_tpl" type="text/html">
+    <br>
+    <div class="layui-fluid">
+        <div class="layui-form border1ccc">
+            <div class="layui-form-item" style="margin-top: 16px">
+                <label class="layui-form-label">错货单号</label>
+                <div class="layui-input-inline">
+                    <span type="text" class="layui-form-label">{{no}}</span>
+                </div>
+                <label class="layui-form-label">供应商</label>
+                <div class="layui-input-inline">
+                    <span type="text" class="layui-form-label" style="width: 200px;">{{supplierName}}</span>
+                </div>
+            </div>
+            <div class="layui-form-item" style="margin-top: 16px">
+                <label class="layui-form-label">产品信息</label>
+                <div class="layui-input-inline">
+                    <span type="text" class="layui-form-label">{{productTitle}}</span>
+                </div>
+            </div>
+        </div>
+
+
+        <table id="errorGoods_detail_table" lay-filter="errorGoods_detail_table_demo"></table>
+    </div>
+</script>
+
+
+<!--添加错货单详情-->
+<script id="errorGoods_add_tpl" type="text/html">
+    <br>
+    <div class="layui-fluid">
+        <div class="layui-form border1ccc margin-b-30">
+            <div class="layui-form-item" style="margin-top: 16px">
+                <label class="layui-form-label">采购单号</label>
+                <div class="layui-input-inline">
+                    <input value="" name="purchaseNo" type="text"
+                           class="layui-input">
+                </div>
+                <label class="layui-form-label"></label>
+                <div class="layui-input-inline">
+                    <button class="layui-btn" lay-submit lay-filter="errorGoods_add_search">搜索</button>
+                </div>
+            </div>
+        </div>
+        <div id="errorGoodsAddPurchase"></div>
+    </div>
+</script>
+
+<script id="errorGoodsAddPurchaseTpl" type="text/html">
+    <br>
+    <div class="layui-form">
+
+        <input type="hidden" name="originalPurchaseNo" value="{{purchaseNo}}"/>
+        <input type="hidden" name="wmsId" value="{{wmsId}}"/>
+        <input type="hidden" name="wmsSysCode" value="{{wmsSysCode}}"/>
+        <input type="hidden" name="wmsName" value="{{wmsName}}"/>
+
+        <div class="border1ccc" style="margin: 30px 0px;">
+            <div class="clear-float" style="background-color: #f2f2f2;padding: 20px;">
+                <div class="layui-col-md2">产品信息</div>
+                <div class="layui-col-md2" style="padding-left: 10px;">sku</div>
+                <div class="layui-col-md8">
+                    <div class="layui-col-md2">
+                        部门
+                    </div>
+                    <div class="layui-col-md1">
+                        采购数
+                    </div>
+                    <div class="layui-col-md1">
+                        入库数
+                    </div>
+                    <div class="layui-col-md1">
+                        在途数
+                    </div>
+                    <div class="layui-col-md1">
+                        可用库存
+                    </div>
+                    <div class="layui-col-md1">
+                        已采退数
+                    </div>
+                    <div class="layui-col-md1">
+                        错货数
+                    </div>
+                    <div class="layui-col-md1">
+                        采购单价
+                    </div>
+                    <div class="layui-col-md1">
+                        实际到货SKU
+                    </div>
+                </div>
+            </div>
+
+            <div id="purchase_detail_update_wrap" class="clear-float padding10" style="">
+                <div class="clear-float" style="height: 100%">
+                    <div class="float-l layui-col-md2">
+                        <img src="/front/productNew/0.jpg" width="80%">
+                        <br>
+                        <div style="width: 80%;">
+                            <div style="margin: 10px 0px;">
+                                <div title="{{product.title}}"
+                                     style="color:#01AAED;text-overflow:ellipsis;overflow: hidden">
+                                    {{product.title}}
+                                    <input type="hidden" name="productTitle" value="{{product.title}}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="float-l layui-col-md10 border1ccc">
+                        {{each purchaseSkuDtoList val idx}}
+                        <hr>
+                        <div class="layui-form float-l layui-col-md12"
+                             style="margin-bottom: 20px; margin-left: 4px;">
+                            <div class="float-l layui-col-md2">
+                                <div class="layui-col-md12"
+                                     style="background-color: #f2f2f2;border-radius: 30px; padding-left:14px;margin-left: 10px; ">
+                                    <div class="clear-float">
+                                        <div class="float-l">
+                                            <div class="originalSku" style="color: #01AAED;">
+                                                <br>
+                                                <span>SKU:{{val.sku}}</span>
+                                                <br>
+                                                <span>SKU名称:{{val.skuTitle}}</span>
+                                            </div>
+                                            <br>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="float-l layui-col-md10" style="padding-right: 40px;">
+                                <div class="layui-col-md12"
+                                     style="background-color: #eeeeee;margin-bottom: 16px;border-radius:30px;margin-left: 20px;">
+                                    <div class="layui-col-md12">
+                                        <div style="height: 20px">
+                                            <div class="layui-col-md2" style="float: left;padding: 9px 15px;">小计</div>
+                                            <div class="layui-col-md1" style="float: left;padding: 9px 15px;">
+                                                {{val.totalQuantity}}
+                                            </div>
+                                            <div class="layui-col-md1" style="float: left;padding: 9px 15px;">
+                                                {{val.totalInstockQty == null?0 : val.totalInstockQty}}
+                                            </div>
+                                            <div class="layui-col-md1" style="float: left;padding: 9px 15px;">
+                                                {{val.totalIntransitQty == null?0 : val.totalIntransitQty}}
+                                            </div>
+                                            <div class="layui-col-md1" style="float: left;padding: 9px 15px;">
+                                                {{val.totalUseAbleQty == null?0 : val.totalUseAbleQty}}
+                                            </div>
+                                            <div class="layui-col-md1" style="float: left;padding: 9px 15px;">
+                                                {{val.totalReturnedQty == null?0 : val.totalReturnedQty}}
+                                            </div>
+                                            <div class="layui-col-md1" id="errorGoodsTotalAmount_{{val.sku}}" style="float: left;padding: 9px 15px;">
+                                                0
+                                            </div>
+                                            <div class="layui-col-md1" style="float: left;padding: 9px 15px;">
+                                                {{val.price}}
+                                            </div>
+                                            <div class="layui-col-md1" style="float: left;padding: 9px 15px;">
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{each val.purchaseItemList val2 idx2}}
+                                    <div class="layui-col-md12" style="margin-top: 10px;">
+
+                                        <div class="layui-col-md2" style="float: left;padding: 9px 15px;">
+                                            {{val2.deptName}}
+                                        </div>
+                                        <div class="layui-col-md1" style="float: left;padding: 9px 15px;">
+                                            {{val2.quantity}}
+                                        </div>
+                                        <div class="layui-col-md1" style="float: left;padding: 9px 15px;">
+                                            {{val2.instockQty == null ? 0 : val2.instockQty}}
+                                        </div>
+                                        <div class="layui-col-md1" style="float: left;padding: 9px 15px;">
+                                            {{val2.quantity - val2.instockQty}}
+                                        </div>
+                                        <div class="layui-col-md1" style="float: left;padding: 9px 15px;">
+                                            {{val2.useableQty == null ? 0 : val2.useableQty }}
+                                        </div>
+                                        <div class="layui-col-md1" style="float: left;padding: 9px 15px;">
+                                            {{val2.intransitCancleQty}}
+                                        </div>
+                                        <div class="layui-col-md1" style="float: left;padding: 0px 15px;">
+                                            <input type="text" name="errorGoodsAmount" placeholder="" required onblur="setTotalAmount(this)" id="quantity_{{val2.id}}" autocomplete="off" data-sku="{{val.sku}}" data-price="{{val2.price}}" data-dept="{{val2.deptName}}" data-deptId="{{val2.deptId}}" data-spu="{{val2.spu}}" data-deptNo="{{val2.deptNo}}" data-skuTitle="{{val.skuTitle}}" class="layui-input errorGoodsAmount_{{val.sku}}" value="">
+                                        </div>
+                                        <div class="layui-col-md1 sku_price"
+                                             style="float: left;padding: 9px 15px;">
+                                            {{val2.price}}
+                                        </div>
+                                        <div class="layui-col-md1 sku_price" id="price_{{val2.id}}"
+                                             style="float: left;padding: 0px 15px;">
+                                            <input type="text" name="quantity" placeholder=""
+                                                    id="realSku_{{val2.id}}" autocomplete="off"
+                                                   class="layui-input " value="">
+                                        </div>
+                                    </div>
+                                    {{/each}}
+                                </div>
+                            </div>
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+                <hr>
+
+                <div>
+                    <div class="layui-form-item" style="margin-top: 16px">
+                        <label class="layui-form-label">退款成本</label>
+                        <div class="layui-input-inline">
+                            <input type="text"  placeholder="" id="errorGoodsReturnedCost"
+                                    disabled  autocomplete="off"
+                                   class="layui-input layui-disabled" value="">
+                        </div>
+                    </div>
+                    <div class="layui-form-item" style="margin-top: 16px">
+                        <label class="layui-form-label">退款金额</label>
+                        <div class="layui-input-inline">
+                            <input type="text"  placeholder="" required lay-verify="required"
+                                   disabled  autocomplete="off" id="errorGoodsReturnedAmount"
+                                   class="layui-input layui-disabled" value="">
+                        </div>
+                    </div>
+                    <div class="layui-form-item" style="margin-top: 16px">
+                        <label class="layui-form-label">退货地址</label>
+                        <div class="layui-input-inline">
+                            <input type="text"  placeholder="" required lay-verify="required"
+                                   disabled  autocomplete="off" class="layui-input layui-disabled" value="{{supplierName}}">
+                            <input type="hidden"   name="supplierId"    class="layui-input " value="{{supplierId}}">
+                            <input type="hidden"   name="buDeptId"    class="layui-input " value="{{buDeptId}}">
+                            <input type="hidden"   name="buDeptNo"    class="layui-input " value="{{buDeptNo}}">
+                            <input type="hidden"   name="buDeptName"    class="layui-input " value="{{buDeptName}}">
+                        </div>
+                    </div>
+                    <div class="layui-form-item" style="margin-top: 16px">
+                        <label class="layui-form-label">备注</label>
+                        <div class="layui-input-inline" style="width: 20%">
+                            <textarea name="memo" placeholder="请输入" class="layui-textarea"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <br>
+            </div>
+
+            <div style="margin-bottom: 14px;padding-left: 40px;">
+                <button lay-submit lay-filter="errorGoods_add_submit"
+                        class="layui-btn layui-btn-normal">
+                    确定
+                </button>
+                <button lay-submit lay-filter="errorGoods_cancel_add"
+                        class="layui-btn layui-btn-warm">
+                    取消
+                </button>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+<script type="text/html" id="errorGoods_showHistory_tpl">
+    <table id="errorGoods_fsm_history_tpl" lay-filter="errorGoods_fsm_history_demo"></table>
+
+    </table>
+</script>
+
+<!--主函数-->
+<script type="text/javascript">
+    layui.use(['layer', 'form', 'table', 'element', 'laydate'], function () {
+        var errorGoods_layer = layui.layer;
+        var errorGoods_index = layer.load(0, {time: 5 * 1000});
+        var errorGoods_form = layui.form;
+        var errorGoods_table = layui.table;
+        var errorGoods_laydate = layui.laydate;
+
+        if(!window.purchase_errorGoods_add){
+            $('#addErrorGoodsBtn').html('');
+        }
+
+        //初始化部门信息
+        initDeptSelect(errorGoods_form);
+        initStateSelect(errorGoods_form);
+        errorGoods_form.render();
+        //初始化表单
+        errorGoods_table.render({
+            elem: '#errorGoods_table'
+            , url: "/purchase/manage/errorGoods/find"
+            , even: true //开启隔行背景
+            , method: 'GET'
+            , height: 'full-260'
+            , request: {
+                limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , page: true //关闭分页
+            , done: function (res, curr, count) {
+                var element = layui.element;
+                element.init();
+                layer.close(errorGoods_index);
+            }
+            , cols: [[ //表头
+                {field: 'id', title: 'ID', fixed: 'left', minWidth: 90}
+                , {field: 'no', title: '错货申请编号', minWidth: 110}
+                , {field: 'originalPurchaseNo', title: '原采购单号', minWidth: 110}
+                , {field: 'purchaseReturnedNo', title: '采退单号', minWidth: 110}
+                , {field: 'productTitle', title: '产品信息', minWidth: 110}
+                , {field: 'newPurchaseNo', title: '新采购单号', minWidth: 110}
+                , {field: 'buDeptName', title: '部门', minWidth: 100}
+                , {field: 'quantity', title: '错货数', minWidth: 100}
+                , {field: 'amount', title: '错货总价', minWidth: 100}
+                , {field: 'supplierName', title: '供应商', minWidth: 100}
+                , {field: 'creator', title: '创建人', minWidth: 100}
+                , {field: 'createAt', title: '创建时间', minWidth: 100}
+                , {field: '', title: '状态', align: 'center', toolbar: '#errorGoods_stateDemo', minWidth: 160}
+                , {field: 'memo', title: '备注', minWidth: 100}
+                , {
+                    field: '',
+                    title: '操作',
+                    fixed: 'right',
+                    align: 'center',
+                    toolbar: '#errorGoods_barDemo',
+                    minWidth: 200
+                }
+            ]]
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+        });
+
+
+        //日期范围
+        errorGoods_laydate.render({
+            elem: '#errorGoods_range'
+            , type: 'datetime'
+            , range: '～'
+        });
+
+        //搜索
+        errorGoods_form.on('submit(errorGoods_search)', function (data) {
+            console.log(data.field);
+            var createAt = data.field.createAt;
+            if (createAt != null) {
+                data.field.minCreateAt = createAt.split("～")[0];
+                data.field.maxCreateAt = createAt.split("～")[1];
+                data.field.createAt = undefined;
+            }
+            console.log(data.field);
+            layer.msg(JSON.stringify(data.field));
+            errorGoods_table.reload('errorGoods_table', {
+                where: data.field
+            });
+        });
+
+        //新增错货单的弹窗
+        errorGoods_form.on('submit(errorGoods_add)', function (data) {
+            errorGoods_index = layer.open({
+                type: 1,
+                title: '新增错货单',
+                content: $('#errorGoods_add_tpl').html(),
+                maxmin: true,
+                area: ['100%', '100%']
+            });
+        });
+
+
+        //查询采购单的按钮
+        errorGoods_form.on('submit(errorGoods_add_search)', function (data) {
+            $(this).html('<i class="layui-icon">&#xe63d;</i>正在查询');
+            preventRepeat(data);
+            $.ajax({
+                type: 'POST',
+                url: 'purchase/manage/errorGoods/getPurchaseDtoByNo',
+                dataType: 'json',
+                data: {purchaseNo: data.field.purchaseNo},
+                success: function (res) {
+                    console.log(res);
+                    state_response(res);
+                    $(data.elem).removeClass("layui-disabled");
+                    $(data.elem).attr("disabled", false);
+                    $(data.elem).html('搜索');
+                    res.item.purchaseNo = data.field.purchaseNo;
+                    if (res.code === 'OK') {
+                        $("#errorGoodsAddPurchase").html(template('errorGoodsAddPurchaseTpl', res.item));
+                    } else {
+                        $("#errorGoodsAddPurchase").html("<span style='color: red;'>"+res.desc+"</span>");
+                    }
+                }
+            })
+        });
+
+        errorGoods_form.on('submit(errorGoods_add_submit)',function (obj) {
+            obj.field.errorGoodsItemList = new Array();
+            var canSubmit = true;
+            $("input[name=errorGoodsAmount]").each(function () {
+                var item = {};
+                var originalSku = $(this).attr('data-sku');
+                var quantity = $(this).val();
+                var id = $(this).attr('id').replace('quantity_','');
+                var realSku = $('#realSku_'+id).val();
+                if(quantity != ''&& realSku !=''){
+                    item.originalSku = originalSku;
+                    item.quantity = quantity;
+                    item.realSku = realSku;
+                    item.deptName = $(this).attr('data-dept');
+                    item.spu = $(this).attr('data-spu');
+                    item.deptNo = $(this).attr('data-deptNo');
+                    item.deptId = $(this).attr('data-deptId');
+                    item.price = $(this).attr('data-price');
+                    item.originalSkuTitle = $(this).attr('data-skuTitle');
+                    item.productTitle = obj.field.productTitle;
+                    item.originalPurchaseItemId = id;
+                    obj.field.errorGoodsItemList.push(item);
+
+                }else if(quantity == '' && realSku == ''){
+                }else {
+                    var deptName = $(this).attr('data-dept');
+                    layer.msg('sku为【'+originalSku+'】部门为【'+deptName+'】的记录信息不完全！');
+                    canSubmit = false;
+                    return false;
+                }
+            });
+            if(canSubmit){
+                delete obj.field.errorGoodsAmount;
+                console.log(obj.field);
+                $.ajax({
+                    type:'POST',
+                    url:'purchase/manage/errorGoods/add',
+                    data:{errorGoodsStr:JSON.stringify(obj.field)},
+                    dataType:'json',
+                    success:function (res) {
+                        state_response(res);
+                        if(res.code === 'NOTICE'){
+                            layer.close(errorGoods_index);
+                            errorGoods_table.reload('errorGoods_table_demo');
+                        }
+                    }
+                })
+            }
+        });
+
+        errorGoods_table.on('tool(errorGoods_table_demo)', function (obj) {
+            console.log(obj);
+            var data = obj.data;
+            var layEvent = obj.event;
+            var tr = obj.tr;
+            if (layEvent === 'errorGoodsShowDetail') {
+                $.ajax({
+                    type: 'POST',
+                    url: 'purchase/manage/errorGoods/getById',
+                    data: {id: obj.data.id},
+                    dataType: 'json',
+                    success: function (res) {
+                        errorGoods_index = layer.open({
+                            type: 1,
+                            title: '错货单详情',
+                            content: template('errorGoods_detail_tpl', res.item),
+                            maxmin: true,
+                            area: '50%',
+                            success: function () {
+                                errorGoods_table.render({
+                                    elem: '#errorGoods_detail_table'
+                                    , even: true //开启隔行背景
+                                    , data: res.item.errorGoodsItemList
+                                    , cols: [[ //表头
+                                        {field: 'id', title: 'ID', fixed: 'left'}
+                                        , {field: 'deptName', title: '部门名称'}
+                                        , {field: 'originalSku', title: '原SKU'}
+                                        , {field: 'realSku', title: '真实到货SKU'}
+                                        , {field: 'quantity', title: '错货数'}
+                                        , {field: 'amount', title: '错货总价'}
+                                        , {
+                                            field: '',
+                                            title: '状态',
+                                            align: 'center',
+                                            toolbar: '#errorGoods_stateDemo',
+                                            minWidth: 160
+                                        }
+                                    ]]
+                                });
+                            }
+                        });
+                    }
+                });
+
+            } else if (layEvent === 'disagreeByBusiness') {
+                layer.confirm('你确定要取消该错货单吗?', {icon: 3, title: '提示'}, function (index) {
+                    console.log('提交', obj);
+                    $.ajax({
+                        type: 'POST',
+                        url: '/purchase/manage/errorGoods/cancel',
+                        dataType: 'json',
+                        data: {
+                            id: obj.data.id,
+                            memo: this.text + '错货单'
+                        },
+                        success: function (res) {
+                            state_response(res);
+                            layer.close(index);
+                            errorGoods_table.reload('errorGoods_table');
+                        }
+                    })
+                });
+            } else if(layEvent === 'showHistory'){
+                showHistory(obj,errorGoods_table,errorGoods_index)
+            }
+
+        });
+    });
+
+
+    function showHistory(obj,errorGoods_table,errorGoods_index) {
+        errorGoods_index = layer.open({
+            type: 1,
+            title: '错货单历史',
+            content: template('errorGoods_showHistory_tpl', obj.data),
+            maxmin: false,
+            offset:'10%',
+            area: '50%',
+            success: function () {
+                errorGoods_table.render({
+                    elem: '#errorGoods_fsm_history_tpl'
+                    , url: "/purchase/manage/errorGoods/queryFsmHistory?errorGoodsId="+obj.data.id
+                    , even: true //开启隔行背景
+                    , method: 'POST'
+                    , height: 'full-260'
+                    ,limit: 10
+                    , request: {
+                        pageName: 'page' //页码的参数名称，默认：page
+                        ,limitName: 'limit' //每页数据量的参数名，默认：limit
+                    }
+                    , page: true //关闭分页
+                    , done: function (res, curr, count) {
+                        var element = layui.element;
+                        element.init();
+                    }
+                    , cols: [[ //表头
+                        {field: 'srcStateDisplay', title: '原始状态',width:"15%"}
+                        ,{field: 'eventNameDisplay', title: '事件',width:"15%"}
+                        ,{field: 'dstStateDisplay', title: '目标状态',width:"15%"}
+                        ,{field: 'optUid', title: '用户',width:"15%"}
+                        ,{field: 'createAt', title: '时间',width:"20%"}
+                        ,{field: 'memo', title: '备注',width:"20%"}
+                    ]]
+                    , response: {
+                        statusName: 'code' //数据状态的字段名称，默认：code
+                        , statusCode: 'OK' //成功的状态码，默认：0
+                        , msgName: 'desc' //状态信息的字段名称，默认：msg
+                        , countName: 'total' //数据总数的字段名称，默认：count
+                        , dataName: 'item' //数据列表的字段名称，默认：data
+                    }
+                })
+            }
+        });
+    }
+
+    function setTotalAmount(that) {
+        var sku = $(that).attr("data-sku");
+        var price = parseFloat($(that).attr("data-price"));
+        var quantity = 0;
+        var parten = /^[0-9]\d*$/;//正浮点数
+        if (!parten.exec($(that).val()) && $(that).val() != 0) {
+            $(that).val('');
+            layer.msg('请输入正确的数量！');
+            return;
+        }
+        $(".errorGoodsAmount_"+ sku).each(function () {
+            if($(this).val()!=''){
+                quantity += parseInt($(this).val());
+            }
+        });
+        console.log(quantity);
+        var totalAmount = (quantity* price).toFixed(2);
+        $('#errorGoodsTotalAmount_'+sku).text(quantity);
+        $('#errorGoodsReturnedCost').val(totalAmount);
+        $('#errorGoodsReturnedAmount').val(totalAmount);
+    }
+
+    //初始化部门下拉
+    function initDeptSelect(required_form) {
+        $.ajax({
+            type: 'POST'
+            , dataType: 'json'
+            , url: '/purchase/base/userBuDeptRel/findBuDeptByCurrentUser'
+            , success: function (res) {
+                $("#errorGoods_dept_select").append(template('errorGoods_dept_option', res));
+                required_form.render('select');
+            }
+        })
+    }
+
+    //初始化状态下拉
+    function initStateSelect(required_form) {
+        $.ajax({
+            type: 'GET'
+            , dataType: 'json'
+            , url: '/purchase/common/enumList'
+            , success: function (res) {
+                console.log(res);
+                $("#errorGoods_state_select").append(template('errorGoods_state_option', res.item));
+                required_form.render('select');
+            }
+        })
+    }
+</script>
+

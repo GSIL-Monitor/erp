@@ -1,0 +1,278 @@
+<div class="layui-form border1ccc padding30" id="store_update">
+    <div class="layui-form-item">
+        <label class="layui-form-label">*区域</label>
+        <div class="layui-input-inline">
+            <select id="sto_add_department_select_zone" name="zoneId">
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*仓库类型</label>
+        <div class="layui-input-inline">
+            <select name="type" id="add_storeType" lay-verify="required" lay-search>
+                <option value="" name="">请选择</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*仓库名称</label>
+        <div class="layui-input-inline">
+            <input value="" type="text" name="name" required lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input" id="sto_add_wmsName">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*详细地址</label>
+        <div class="layui-input-inline">
+            <input type="text" name="address" required lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input" value="" id="sto_add_address">
+        </div>
+    </div>
+    <div class="layui-form-item" pane="">
+        <label class="layui-form-label">*是否用wms</label>
+        <div class="layui-input-block" id="sto_usesWms_radio">
+        </div>
+    </div>
+    <div class="layui-form-item" id="sto_wmsCode_display">
+        <label class="layui-form-label">wms编码</label>
+        <div class="layui-input-inline">
+            <input value="" type="text" name="wmsSysCode" required lay-verify="" placeholder=""
+                   autocomplete="off" id="sto_add_wmsCode"
+                   class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">*寄件公司</label>
+        <div class="layui-input-inline">
+            <input type="text" name="sender" required lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">*寄件联系人</label>
+        <div class="layui-input-inline">
+            <input type="text" name="linkman" required lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*寄件人邮箱</label>
+        <div class="layui-input-inline">
+            <input type="text" name="senderEmail" required lay-verify="required|email" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*寄件人联系电话</label>
+        <div class="layui-input-inline">
+            <input type="text" name="mobile" required lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*寄件省份</label>
+        <div class="layui-input-inline">
+            <input type="text" name="senderProvince" required lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*寄件城市</label>
+        <div class="layui-input-inline">
+            <input type="text" name="senderCity" required lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*寄件区/县</label>
+        <div class="layui-input-inline">
+            <input type="text" name="senderTown" required lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*寄件邮编</label>
+        <div class="layui-input-inline">
+            <input type="text" name="senderZipcode" required lay-verify="required|number" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="addElementForm">确定</button>
+        </div>
+    </div>
+</div>
+
+
+<script id="wmsType-option-tpl" type="text/html">
+    {{each wmsTypeEnum value index}}
+    <option value={{value.ordinal}}>{{value.display}}</option>
+    {{/each}}
+</script>
+<script id="usesWms-radio-tpl" type="text/html">
+    {{if $imports.$window.sto_wms_edit_sel_data}}
+        {{each usesWmsEnum value index}}
+            {{if value.display == $imports.$window.sto_wms_edit_sel_data.usesWmsEnum.display}}
+            <input type="radio" name="useWms" value={{value.ordinal}} title="{{value.display}}"
+                   lay-filter="sto_usesWms_radio" checked>
+            {{else}}
+            <input type="radio" name="useWms" value={{value.ordinal}} title="{{value.display}}"
+                   lay-filter="sto_usesWms_radio">
+            {{/if}}
+        {{/each}}
+    {{else}}
+        {{each usesWmsEnum value index}}
+            {{if value.name=='yes'}}
+        <input type="radio" name="useWms" value={{value.ordinal}} title="{{value.display}}"
+               lay-filter="sto_usesWms_radio">
+            {{else}}
+            <input type="radio" name="useWms" value={{value.ordinal}} title="{{value.display}}"
+                   lay-filter="sto_usesWms_radio" checked>
+            {{/if}}
+        {{/each}}
+    {{/if}}
+</script>
+
+<script type="text/javascript">
+
+    layui.use(['form', 'table','layer'], function () {
+        var layer = layui.layer;
+        var sto_wms_eidt_form = layui.form;
+
+        console.log('sele_data:' + JSON.stringify(sto_wms_edit_sel_data));
+
+        $.ajax({
+            type: 'GET',
+            url: "/store/common/enumList",
+            dataType: 'json',
+            data: '',
+            success: function (res) {
+                console.log("请求枚举-下拉框数据", res);
+                state_response(res);
+                $("#add_storeType").append(template('wmsType-option-tpl', res.item));
+                $("#sto_usesWms_radio").append(template('usesWms-radio-tpl', res.item));
+                !!sto_wms_edit_sel_data ? $("#sto_wmsCode_display").show(): $("#sto_wmsCode_display").hide();
+                $("input:radio[name='useWms']:checked").val()==1 ? $("#sto_wmsCode_display").show(): $("#sto_wmsCode_display").hide();
+                sto_wms_eidt_form.render();
+                if (sto_wms_edit_sel_data != null) {
+                    $("#add_storeType").val(sto_wms_edit_sel_data.type);
+                    $("#sto_add_wmsName").val(sto_wms_edit_sel_data.name);
+                    $("#sto_add_address").val(sto_wms_edit_sel_data.address);
+                    $('#sto_add_wmsCode').val(sto_wms_edit_sel_data.wmsSysCode);
+
+                    $("input[name='sender']").val(sto_wms_edit_sel_data.sender);
+                    $("input[name='linkman']").val(sto_wms_edit_sel_data.linkman);
+                    $("input[name='senderEmail']").val(sto_wms_edit_sel_data.senderEmail);
+                    $("input[name='mobile']").val(sto_wms_edit_sel_data.mobile);
+                    $("input[name='senderProvince']").val(sto_wms_edit_sel_data.senderProvince);
+                    $("input[name='senderCity']").val(sto_wms_edit_sel_data.senderCity);
+                    $("input[name='senderTown']").val(sto_wms_edit_sel_data.senderTown);
+                    $("input[name='senderZipcode']").val(sto_wms_edit_sel_data.senderZipcode);
+
+                }
+            }
+        });
+
+        //区域下拉框
+        $.ajax({
+            type: 'GET',
+            url: '/product/base/zone/findAll',
+            dataType: 'json',
+            success: function (res) {
+                console.log("查询区域", res);
+                state_response(res);
+                $('#sto_add_department_select_zone').append(template('select_zone_tpl', res));
+                if (sto_wms_edit_sel_data != null) {
+                    $("#sto_add_department_select_zone").val(sto_wms_edit_sel_data.zoneId);
+                }
+                sto_wms_eidt_form.render('select'); //刷新select选择框渲染
+            }
+        });
+
+        sto_wms_eidt_form.on('radio(sto_usesWms_radio)', function (data) {
+            console.log(data.elem); //得到radio原始DOM对象
+            console.log(data.value); //被点击的radio的value值
+            if (data.value == 0) {
+                $('#sto_wmsCode_display').hide();
+            } else {
+                $('#sto_wmsCode_display').show();
+            }
+
+        });
+
+        //监听提交
+        sto_wms_eidt_form.on('submit(addElementForm)', function (data) {
+            var params = data.field;
+            if (params.useWms == 1 && params.wmsSysCode == '') {
+                //使用wms
+                layer.msg("请输入Wms编码");
+                return false;
+            }
+            console.log('data:'+JSON.stringify(params))
+            if (sto_wms_edit_sel_data == null) {
+                sto_wms_edit_sel_data= {};
+            }
+            sto_wms_edit_sel_data.type = params.type;
+            sto_wms_edit_sel_data.name = params.name;
+            sto_wms_edit_sel_data.address = params.address;
+            sto_wms_edit_sel_data.useWms = params.useWms;
+
+            sto_wms_edit_sel_data.sender = params.sender;
+            sto_wms_edit_sel_data.linkman = params.linkman;
+            sto_wms_edit_sel_data.senderEmail = params.senderEmail;
+            sto_wms_edit_sel_data.mobile = params.mobile;
+            sto_wms_edit_sel_data.senderProvince = params.senderProvince;
+            sto_wms_edit_sel_data.senderCity = params.senderCity;
+            sto_wms_edit_sel_data.senderTown = params.senderTown;
+            sto_wms_edit_sel_data.senderZipcode = params.senderZipcode;
+
+            if (params.useWms == 0) {
+                sto_wms_edit_sel_data.wmsSysCode = '';
+            } else {
+                sto_wms_edit_sel_data.wmsSysCode = params.wmsSysCode;
+            }
+            sto_wms_edit_sel_data.zoneId = params.zoneId;
+            sto_wms_edit_sel_data.zoneName = $.trim($("#sto_add_department_select_zone").find("option:selected").text());
+
+            delete  sto_wms_edit_sel_data.wmsTypeEnum;
+            delete  sto_wms_edit_sel_data.usesWmsEnum;
+            delete  sto_wms_edit_sel_data.wmsStateEnum;
+
+            console.log('params:' + JSON.stringify(sto_wms_edit_sel_data));
+            $.ajax({
+                type: 'POST',
+                url: "/store/addOrUpdate",
+                data: sto_wms_edit_sel_data,
+                dataType: 'json',
+                success: function (res) {
+                    console.log("新增元素返回值", res);
+                    if (res.code == 'OK') {
+                        sto_wms_table.reload({
+                            where: queryParam
+                        });
+                        layer.close(sto_addWms_index);
+                        layer.msg('操作成功');
+                    } else if (res.code === 'NOTICE') {
+                        layer.msg(res.desc, {icon: 1});
+                    } else {
+                        layer.msg(res.desc, {icon: 2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                }
+            });
+            return false;
+        });
+
+
+    });
+
+</script>
+

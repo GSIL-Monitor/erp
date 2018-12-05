@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>快速下单</title>
+    <link rel="stylesheet" href="http://luckydog-erp-front-dev.stosz.com/lib/layui/css/layui.css">
+</head>
+<body style="width: 80%;margin-left: 50px;">
+<form class="layui-form layui-form-pane">
+<blockquote class="layui-elem-quote">快速下单</blockquote>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">部门</label>
+        <div class="layui-input-inline">
+            <div class="layui-input-inline">
+                <select id="department_treenode_dept" name="departmentId">
+                    <option value=""></option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-inline">
+            <label class="layui-form-label">产品ID</label>
+            <div class="layui-input-block">
+                <input type="text" name="orderId" placeholder="请输入产品ID" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="quickOrder">下单</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+</body>
+<script src="http://luckydog-erp-front-dev.stosz.com/lib/layui/layui.js"></script>
+<script src="http://luckydog-erp-front-dev.stosz.com/lib/jquery/jquery.min.js"></script>
+<script src="http://luckydog-erp-front-dev.stosz.com/lib/arttemplate/arttemplate.min.js"></script>
+<script type="text/javascript">
+    layui.use(['table','layer','jquery','form'],function () {
+        var table = layui.table;
+        var layer = layui.layer;
+        var $     = layui.$;
+        var form  = layui.form;
+
+        form.on('submit(quickOrder)',function (data) {
+
+
+            $.post("/test/orderAuditPass.do",data.field,function(res){
+
+                showMonitorData(res);
+                layer.msg(res.desc);
+
+
+            },'json');
+
+            return false;
+        });
+
+
+
+
+    });
+</script>
+</html>

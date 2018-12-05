@@ -1,0 +1,90 @@
+<div class="layui-form border1ccc padding30">
+    <div class="layui-form-item">
+        <label class="layui-form-label">名称</label>
+        <div class="layui-input-inline">
+            <input value="" type="text" name="name" required lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">英文名称</label>
+        <div class="layui-input-inline">
+            <input type="text" name="ename" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">二字码</label>
+        <div class="layui-input-inline">
+            <input type="text" name="wordCode" required lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">三字码</label>
+        <div class="layui-input-inline">
+            <input type="text" name="countryCode" required lay-verify="required" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">币种</label>
+        <div class="layui-input-inline" >
+            <select lay-search name="currencyCode" lay-verify="required" id="country_add_id">
+                <option value="">不限</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="addCountryForm"><i class="layui-icon">&#xe618;</i>确认</button>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    layui.use(['form','table'], function () {
+        var product_add_country_form = layui.form;
+        var product_add_country_table = layui.table;
+
+        //币种
+        $.ajax({
+            type: 'GET',
+            url: "/product/base/currency/findAll",
+            dataType: 'json',
+            data: {
+                usable: true
+            },
+            success: function (res) {
+                $("#country_add_id").append(template('countryAddTpl3', res));
+                product_add_country_form.render();
+            }
+        });
+        //监听提交
+        product_add_country_form.on('submit(addCountryForm)', function (data) {
+            $.ajax({
+                type: 'POST',
+                url: "/product/base/country/add",
+                data: data.field,
+                dataType: 'json',
+                success: function (res) {
+                    if(res.code==='NOTICE') {
+                        layer.close(index);         //此时你只需要把获得的index，轻轻地赋予layer.close即可
+                        product_add_country_table.reload('countryId');
+                        layer.msg('新增成功', {icon: 1});
+                    }else{
+                        layer.msg(res.desc,{icon:2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                }
+            });
+            return false;
+        });
+    });
+</script>
+<script id="countryAddTpl3" type="text/html">
+    {{each item value index}}
+    <option value="{{value.currencyCode}}">{{value.name}}</option>
+    {{/each}}
+</script>

@@ -1,0 +1,938 @@
+<style>
+    .layui-table-cell {
+        height: 100%;
+        width: 100%;
+    }
+    .right-confirm{
+         float: right;
+         margin-top: 25px;
+    }
+    .layui-table img {
+        max-width: none;
+        max-height: none;
+    }
+    .product-span-font{
+        color: #f5334a;
+    }
+</style>
+
+<div class="layui-fluid">
+    </br>
+    <div class="layui-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label">创建时间</label>
+            <div class="layui-input-inline">
+                <input type="text" class="layui-input" id="createTime" name="createTimeName" placeholder="请选择时间">
+            </div>
+            <label class="layui-form-label">新品标题</label>
+            <div class="layui-input-inline">
+                <input type="text" name="title" placeholder="" autocomplete="off" class="layui-input">
+            </div>
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-inline">
+                <select name="state" >
+                    <option value="">不限</option>
+                    <option value="checkOk">通过</option>
+                    <option value="draft" >草稿</option>
+                    <option value="archived">已建档</option>
+                    <option value="waitCheck">待排查</option>
+                    <option value="waitAssign">待细化分类</option>
+                    <option value="waitApprove">待审批</option>
+                    <option value="checkWarn">有风险</option>
+                    <option value="duplication">重复产品</option>
+                    <option value="disappeared">已销档</option>
+                    <option value="cancel">取消</option>
+                </select>
+            </div>
+            <label class="layui-form-label">一级品类</label>
+            <div class="layui-input-inline">
+                <select lay-search name="topCategoryId" id="productNew_topCategory">
+                    <option value="">不限</option>
+                </select>
+            </div>
+
+            <button class="layui-btn" lay-submit lay-filter="searchProductNew"><i class="layui-icon">&#xe615;</i>搜索</button>
+            <button class="layui-btn layui-btn-normal" onclick="addbtn()"><i class="layui-icon">&#xe654;</i>新增</button>
+        </div>
+    </div>
+    <table id="productNewId" lay-filter="productNew"></table>
+</div>
+    <script>
+        layui.use(['layer', 'table', 'element', 'form', 'laydate', 'upload'], function () {
+            var crrentProductNewEntity;
+            var product_productNew_layer = layui.layer;
+            var product_productNew_index = layer.load(0,{time:5*1000});
+            var product_productNew_form = layui.form;
+            var product_productNew_table = layui.table;
+            var product_productNew_upload = layui.upload;
+            product_productNew_form.render();
+
+            var product_productNew_date = layui.laydate;
+            product_productNew_date.render({
+                elem : '#createTime',
+                range : '~'
+            });
+            //一级品类
+            $.ajax({
+                type: 'GET',
+                url: "/product/base/category/findAllFirstLevel",
+                dataType: 'json',
+                success: function (res) {
+                    $("#productNew_topCategory").append(template('new_advert_topcateTpl', res));
+                    product_productNew_form.render(); //刷新select选择框渲染
+                }
+            });
+
+            product_productNew_table.render({
+                elem: '#productNewId',
+                url: "/product/productNewManage/new_ad",
+                even: true,     //开启隔行背景
+                page: true,    //关闭分页
+                height: 'full-200',
+                done: function (res, curr, count) {
+                    var element = layui.element;
+                    element.init();
+                    product_productNew_layer.close(product_productNew_index);
+                },
+                cols: [[ //表头
+                    {field: 'topCategoryName', title: '一级分类', unresize : true },
+                    {field: '', title: '图片', templet: '#newImgTpl' },
+                    {field: '', title: '新品信息', toolbar: '#productNewTpl' },
+                    {field: 'departmentName', title: '所属部门' },
+                    {field: '', title: '区域', templet: '#newZoneTpl' },
+                    {field: '', title: '来源', templet: '#newSourceTpl' },
+                    {field: 'checker', title: '审核人' },
+                    {field: '', title: '状态', templet: '#newStateTpl' },
+                    {field: 'memo', title: '备注' },
+                    {field:'',fixed: 'right',title:'操作',  align:'center', toolbar: '#newProductAdbar'}  //这里的toolbar值是模板元素的选择器style: 'height: 150px; width: 150;',
+                ]],
+                response: {
+                    statusName: 'code', //数据状态的字段名称，默认：code
+                    statusCode: 'OK', //成功的状态码，默认：0
+                    msgName: 'desc', //状态信息的字段名称，默认：msg
+                    countName: 'total', //数据总数的字段名称，默认：count
+                    dataName: 'item' //数据列表的字段名称，默认：data
+                }
+            });
+
+            //搜索条件
+            product_productNew_form.on('submit(searchProductNew)', function(data){
+                var createTimeArray = data.field.createTimeName.split("~");
+                minTime = $.trim(createTimeArray[0]);
+                maxTime = $.trim(createTimeArray[1]);
+                if (minTime != '') minTime = minTime + " 00:00:00";
+                if (maxTime != '') maxTime = maxTime + " 23:59:59";
+                product_productNew_table.reload('productNewId', {
+                    where: {
+                        topCategoryId : data.field.topCategoryId,
+                        state : data.field.state,
+                        title : data.field.title,
+                        minCreateAt: minTime,
+                        maxCreateAt: maxTime
+                    } ,    //设定异步数据接口的额外参数，任意设
+                    page: {
+                        curr: 1 //重新从第 1 页开始
+                    }
+                });
+                return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+            });
+
+            //监听工具条
+            product_productNew_table.on('tool(productNew)', function(obj){ //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+                var layEvent = obj.event;           //获得 lay-event 对应的值
+                crrentProductNewEntity = obj.data;
+                if (layEvent === 'addZones'){
+                    productNewAddZone(product_productNew_form, product_productNew_layer, product_productNew_table, obj);
+                }
+                if (layEvent === 'newSubmitEvent'){
+                    crrentProductNewEntity.event = "submit";
+                    new_ad_index = product_productNew_layer.open({
+                        type: 1,
+                        title: "提交新品[" + obj.data.title +"]",
+                        content: template('newAd_noRequiredMemoTpl', obj),
+                        area: ['30%', '25%'],
+                        success: function (res) {
+                        }
+                    });
+                }
+                if (layEvent === 'newUpdateEvent'){
+                    new_ad_updateFun(product_productNew_layer, product_productNew_form, product_productNew_upload, crrentProductNewEntity);
+                }
+                if (layEvent === 'newDeleteEvent'){
+                    productNewDeleteIndex = layer.confirm("确认删除草稿状态的新品[" + obj.data.title + "]么?", function () {
+                        //向服务端发送删除指令
+                        $.ajax({
+                            type: 'POST',
+                            url: "/product/productNewManage/delete",
+                            data: {
+                                id: obj.data.id
+                            },
+                            dataType: 'json',
+                            success: function (res) {
+                                state_response(res);
+                                if (res.code === 'NOTICE'){
+                                    obj.del();
+//                                    product_productNew_layer.close(productNewDeleteIndex);
+                                }
+                            }
+                        });
+                    })
+                }
+                if (layEvent === 'waitApproveEvent'){
+                    crrentProductNewEntity.event = "verify";
+                    new_ad_index = product_productNew_layer.open({
+                        type: 1,
+                        title: "新品[" + obj.data.title +"]待审批",
+                        content: template('newAd_noRequiredMemoTpl', obj),
+                        area: ['30%', '25%'],
+                        success: function (res) {
+                        }
+                    });
+                }
+                if (layEvent === 'cancelEvent'){
+                    crrentProductNewEntity.event = "giveUp";
+                    new_ad_index = product_productNew_layer.open({
+                        type: 1,
+                        title: "新品[" + obj.data.title +"]取消",
+                        content: template('newAd_noRequiredMemoTpl', obj),
+                        area: ['30%', '25%'],
+                        success: function (res) {
+                        }
+                    });
+                }
+            });
+            //广告新品状态处理
+            product_productNew_form.on('submit(newAd_momoNoReqFilter)', function (obj) {
+                crrentProductNewEntity.currentMemo = obj.field.memo;
+                console.log(crrentProductNewEntity);
+                $.ajax({
+                    type: 'POST',
+                    url: "product/productNewManage/processEvent",
+                    dataType: 'json',
+                    data: {
+                        id: crrentProductNewEntity.id,
+                        state: crrentProductNewEntity.state,
+                        event: crrentProductNewEntity.event,
+                        spu: crrentProductNewEntity.spu,
+                        memo: crrentProductNewEntity.currentMemo
+                    },
+                    success: function (result) {
+                        state_response(result);
+                        product_productNew_layer.close(new_ad_index);
+                        product_productNew_table.reload('productNewId');
+                    }
+                });
+            });
+            product_productNew_form.on('submit(newAd_apdateFilter)', function (obj) {
+                preventRepeat(obj);
+                $.ajax({
+                    type: 'POST',
+                    url: "product/productNewManage/update",
+                    dataType: 'json',
+                    data: obj.field,
+                    success: function (res) {
+                        state_response(res, obj);
+                        if (res.code === 'NOTICE'){
+                            product_productNew_table.reload('productNewId');
+                            product_productNew_layer.close(new_ad_updateIndex);
+                        }
+                }
+                });
+            });
+
+            product_productNew_table.on('tool(productNewAddZoneTable)', function (obj) {
+                var data = obj.data;
+                var layEvent = obj.event;
+                if (layEvent === 'productNewZonedel'){
+                    product_productNew_layer.confirm("确定删除区域[" + data.zoneName + "]么?", function (product_productNew_index) {
+                        obj.del();
+                        product_productNew_layer.close(product_productNew_index);
+                        $.ajax({
+                            type: 'POST',
+                            url: "/product/productNewZone/delete",
+                            data: {
+                                id: data.id
+                            },
+                            dataType: 'json',
+                            success: function(result){
+                                if(res.code === 'NOTICE') {
+                                    product_productNew_layer.msg('删除成功', {icon: 3});
+                                    product_productNew_table.reload('productNewAddZoneTableId');
+                                }else{
+                                    product_productNew_layer.msg(res.desc, {icon: 2});
+                                    product_productNew_table.reload('productNewAddZoneTableId');
+                                }
+                            }
+                        });
+                    });
+                }
+            });
+
+            //新品区域的添加
+            product_productNew_form.on('submit(productNew_addZone_filter)', function (data) {
+                $.ajax({
+                    type: 'POST',
+                    url: "/product/productNewZone/add",
+                    data: data.field,
+                    dataType: 'json',
+                    success: function (res) {
+                        if(res.code==='NOTICE') {
+                            product_productNew_table.reload('productNewAddZoneTableId');
+                            layer.msg('新增成功', {icon: 1});
+                        }else{
+                            layer.msg(res.desc,{icon:2});
+                        }
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    }
+                });
+                return false;
+            });
+            //状态机历史查看
+//            product_productNew_form.on('submit(new_advert_lookHistory)', function (obj) {
+//                advert_fsmHistory(product_productNew_layer, product_productNew_table, obj);
+//            })
+
+        });
+
+        function new_advert_lookHistoryFun(id, title) {
+            productCenter_fsmHistory(id, title, "ProductNew");
+        }
+
+        //产品新品的更新
+        function new_ad_updateFun(product_productNew_layer, product_productNew_form, product_productNew_upload, crrentProductNewEntity){
+            console.log("图片前缀:", window.product_img_host);
+            crrentProductNewEntity.productImgPrefix = window.product_img_host;
+            new_ad_updateIndex = product_productNew_layer.open({
+                type: 1,
+                title: "修改新品[" + crrentProductNewEntity.title + "]信息",
+                content: template('newAd_updateInfoTpl', crrentProductNewEntity),
+                area: ['50%', '100%'],
+                success: function (res) {
+                    //广告一级品类
+                    $.ajax({
+                        type: 'GET',
+                        url: "/product/base/category/findSelfFirstLevel?userType=advertis",
+                        dataType: 'json',
+                        success: function (res) {
+                            res.topCategoryId = crrentProductNewEntity.topCategoryId;
+                            $(".new_ad_topCateClass").append(template('new_ad_topCategoryTpl', res));
+                            product_productNew_form.render('select'); //刷新select选择框渲染
+                        }
+                    });
+                    //新品信息修改图片上传
+                    product_productNew_upload.render({
+                        elem: '#new_update_imageUpload',
+                        url: '/product/commons/upload',
+                        size: 5000,
+                        field:'file',
+                        method: 'post',
+                        data :{
+                            type:'productNew'
+                        },
+                        done: function(res){
+                            if(res.code === "OK"){
+//                                res.imgurl = res.item.replace('\\/g', '/');
+//                                res.fullImgurl = res.imgurl;
+                                res.mainImageUrl = res.item;
+                                res.productImgPrefix = window.product_img_host;
+                                $('#new_update_imageUpload').html(template('newUpdate_imageUpLoadTpl', res));
+                            }
+                        },
+                        error: function(index, upload){
+                        }
+                    });
+                }
+            });
+        }
+
+        //广告新品添加
+        function addbtn(){
+            $.get('view/product/manage/add_productNew.html', function(str){
+                index = layer.open({
+                    type: 1 ,
+                    title :'新品添加' ,
+                    content: str ,//注意，如果str是object，那么需要字符拼接。
+//                    maxmin: true ,
+                    area: ['50%','100%']
+                });
+            });
+        }
+
+        //新品添加区域
+        function productNewAddZone(product_productNew_form, product_productNew_layer, product_productNew_table, obj){
+            productNewAddZoneIndex = product_productNew_layer.open({
+                type: 1,
+                title: '设置区域',
+                content: template('productNewAddZoneTpl', obj.data),
+//                maxmin: true,
+                area: ['50%', '60%'],
+                success: function () {
+                    $.ajax({
+                        type: 'GET',
+                        url: "/product/base/zone/findStintZone",
+                        dataType: 'json',
+                        success: function (result) {
+                            console.log(result);
+                            $("#productNewZone_infoId").append(template('productNewZone_infoTpl', result));
+                            product_productNew_form.render('select');
+                        }
+                    });
+                    product_productNew_table.render({
+                        elem: '#productNewAddZoneTableId',
+                        url: "/product/productNewZone/get?productNewId=" + obj.data.id,
+                        even: true,     //开启隔行背景
+                        page: false,    //关闭分页
+                        cols: [[ //表头
+                            {field: 'productNewId', title: '新品ID' },
+                            {field: 'zoneCode', title: '区域编码' },
+                            {field: 'zoneName', title: '区域名称' },
+                            {field: 'createAt', title: '创建时间' },
+                            {field:'',fixed: 'right',title:'操作', align:'center', toolbar: '#productNewAddZoneBar'}
+                        ]],
+                        response: {
+                            statusName: 'code', //数据状态的字段名称，默认：code
+                            statusCode: 'OK', //成功的状态码，默认：0
+                            msgName: 'desc', //状态信息的字段名称，默认：msg
+                            countName: 'total', //数据总数的字段名称，默认：count
+                            dataName: 'item' //数据列表的字段名称，默认：data
+                        }
+                    });
+                },
+                cancel: function(index, layero){
+                    product_productNew_table.reload('productNewId');
+                }
+            });
+            product_productNew_form.render();
+        }
+
+    </script>
+</div>
+
+<script type="text/html" id="newProductAdbar">
+    {{#  if(d.state === 'draft'){ }}
+    <div>
+        <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="newSubmitEvent" style="text-align: center;"><i class="layui-icon">&#xe609;</i>提交</button>
+    </div>
+    <div>
+        <button class="layui-btn layui-btn-xs layui-btn" lay-event="newUpdateEvent" style="text-align: center;"><i class="layui-icon">&#xe642;</i>修改</button>
+    </div>
+    <div>
+        <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="newDeleteEvent" style="text-align: center;"><i class="layui-icon">&#xe640;</i>删除</button>
+    </div>
+    {{#  }else if(d.state === 'duplication'){  }}
+    <div>
+        <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="waitApproveEvent" style="text-align: center;"><i class="layui-icon">&#xe602;</i>申请审批</button>
+    </div>
+    <div>
+        <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="cancelEvent" style="text-align: center;"><i class="layui-icon">&#x1007;</i>放弃</button>
+    </div>
+    {{#  } else { }}
+    {{#  }  }}
+</script>
+<script type="text/html" id="productNewAddZoneBar">
+    <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="productNewZonedel" style="text-align: center;"><i class="layui-icon"></i>删除</button>
+</script>
+<script id="new_advert_topcateTpl" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.name}}</option>
+    {{/each}}
+</script>
+<script type="text/html" id="productNewTpl" >
+    <div>
+        <span style="color: #1c29f5;">新品ID:{{ d.id }}</span>
+        <br/>
+        <span>新品名称:{{ d.title }}</span>
+        <br/>
+        {{# if(d.spu !== null && d.spu !== ''){ }}
+        <span style="color: #1c29f5;">SPU:{{ d.spu }}</span>
+        <br/>
+        {{# } }}
+        {{# if(d.classifyEnumName !== null && d.classifyEnumName !== ''){ }}
+        <span>特性:{{ d.classifyEnumName }}</span><br/>
+        {{# } }}
+        {{# if(d.customEnumName !== null && d.customEnumName !== ''){ }}
+        <span>类别:{{ d.customEnumName }}</span><br/>
+        {{# } }}
+        {{# if(d.goalEnumName !== null && d.goalEnumName !== ''){ }}
+        <span>目标:{{ d.goalEnumName }}</span>
+        {{# } }}
+    </div>
+</script>
+<script type="text/html" id="newZoneTpl">
+    <ul>
+        {{#  layui.each(d.productNewZones, function(index, item){ }}
+            <li>
+                <span>{{ item.zoneName }}</span>
+            </li>
+        {{#  }); }}
+        {{#  if(d.state == 'draft' ){ }}
+            <button lay-event="addZones" class="layui-btn layui-btn-xs"><i class="layui-icon">&#xe654;</i>设置区域</button>
+        {{# } }}
+    </ul>
+</script>
+<script type="text/html" id="newSourceTpl">
+    <div>
+        <span>{{ d.sourceEnumName }}</span>
+    </div>
+    <div>
+        <a href="{{ d.sourceUrl }}" class="layui-table-link" target="_Blank" >来源链接</a>
+    </div>
+</script>
+<script type="text/html" id="newStateTpl">
+    <div>
+        {{#  if(d.state === 'draft'){ }}
+        <span>草稿</span>
+        {{# } else if(d.state === 'waitAssign'){ }}
+        <span>待细化分类</span>
+        {{# } else if(d.state === 'waitCheck'){ }}
+        <span style="color: #f54ee2;">待排查</span>
+        {{# } else if(d.state === 'checkOk'){ }}
+        <span style="color: #12f54b;">通过</span>
+        {{# } else if(d.state === 'checkWarn'){ }}
+        <span style="color: #f5334a;">有风险</span>
+        {{# } else if(d.state === 'duplication'){ }}
+        <span style="color: #f5334a;">重复产品</span>
+        {{# } else if(d.state === 'waitApprove'){ }}
+        <span style="color: #ffe73c;">待审批</span>
+        {{# } else if(d.state === 'disappeared'){ }}
+        <span>已销档</span>
+        {{# } else if(d.state === 'archived'){ }}
+        <span style="color: #48ffb5;">已建档</span>
+        {{# } else if(d.state === 'cancel'){ }}
+        <span style="color: rgba(27,41,59,0.53);">取消</span>
+        {{# } else { }}
+        <span>{{d.state}}</span>
+        {{#  } }}
+    </div>
+    <div>
+        <a>{{ d.stateTime }}</a>
+    </div>
+    <div class="layui-form">
+        <!--<input value="{{d.id}}" type="hidden" name="objectId" lay-verify="required" class="layui-input" />-->
+        <!--<input value="{{d.title}}" type="hidden" name="title" lay-verify="required" class="layui-input" />-->
+        <!--<a style="color: #1c16f7" lay-submit lay-filter="new_advert_lookHistory">查看历史</a>-->
+        <a style="color: #1c16f7" onclick="new_advert_lookHistoryFun({{d.id}}, '{{d.title}}')">查看历史</a>
+    </div>
+</script>
+<script type="text/html" id="newImgTpl">
+    <div style=" width: 100%; height:100%">
+        <img src="{{window.product_img_host}}/{{d.mainImageUrl}}" class="clickamplify_img" style="width: 150px" height="150px"/>
+    </div>
+</script>
+<!--新品添加区域-->
+<script type="text/html" id="productNewAddZoneTpl">
+    <div class="layui-form" style="margin-top: 20px;">
+        <div class="layui-form-item">
+            <label class="layui-form-label">区域</label>
+            <div class="layui-input-inline" >
+                <select lay-search name="zoneId" id="productNewZone_infoId" lay-verify="required">
+                    <option value="">选择区域</option>
+                </select>
+            </div>
+            <input value="{{id}}" type="hidden" name="productNewId" lay-verify="required" class="layui-input">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="productNew_addZone_filter"><i class="layui-icon">&#xe654;</i>新增</button>
+        </div>
+    </div>
+    <div>
+        <table id="productNewAddZoneTableId" lay-filter="productNewAddZoneTable"></table>
+    </div>
+</script>
+
+<script type="text/html" id="productNewZone_infoTpl">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.title}}</option>
+    {{/each}}
+</script>
+<!--备注模板(非必填)-->
+<script type="text/html" id="newAd_noRequiredMemoTpl">
+    <div class="layui-form padding30">
+        <div class="layui-form-item">
+            <label class="layui-form-label">备注</label>
+            <div class="layui-input-block">
+                <input value="" type="text" name="memo" placeholder="" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="right-confirm" >
+                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="newAd_momoNoReqFilter"><i class="layui-icon">&#xe618;</i>确认</button>
+            </div>
+        </div>
+    </div>
+</script>
+
+<!--新品修改模板-->
+<script type="text/html" id="newAd_updateInfoTpl">
+    <div class="layui-form padding30">
+        {{ if spu === null}}
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>一级分类</label>
+            <div class="layui-input-block">
+                <select lay-search name="topCategoryId" required id="new_ad_topCateId" lay-verify="required" class="new_ad_topCateClass">
+                    <option value="">不限</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>产品标题</label>
+            <div class="layui-input-block">
+                <input value="{{title}}" type="text" required name="title" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>内部名</label>
+            <div class="layui-input-block">
+                <input value="{{innerName}}" type="text" required name="innerName" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>产品特性</label>
+            <div class="layui-input-block">
+                <select name="classifyEnum" lay-verify="required" >
+                    {{if classifyEnum === 'D' }}
+                    <option value="">请选择</option>
+                    <option value="D" selected>带电</option>
+                    <option value="Y">液体</option>
+                    <option value="S" >普通</option>
+                    {{ else if classifyEnum === 'Y' }}
+                    <option value="">请选择</option>
+                    <option value="D">带电</option>
+                    <option value="Y" selected>液体</option>
+                    <option value="S" >普通</option>
+                    {{ else if classifyEnum === 'S' }}
+                    <option value="">请选择</option>
+                    <option value="D">带电</option>
+                    <option value="Y">液体</option>
+                    <option value="S" selected>普通</option>
+                    {{ else }}
+                    <option value="">请选择</option>
+                    <option value="D">带电</option>
+                    <option value="Y">液体</option>
+                    <option value="S">普通</option>
+                    {{/if}}
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>新品类别</label>
+            <div class="layui-input-block">
+                <select name="customEnum" lay-verify="required" lay-filter="aihao">
+                    {{if customEnum === 'normal' }}
+                    <option value="">请选择</option>
+                    <option value="normal" selected >标品</option>
+                    <option value="custome" >定制</option>
+                    {{ else if customEnum === 'custome' }}
+                    <option value="">请选择</option>
+                    <option value="normal" >标品</option>
+                    <option value="custome" selected>定制</option>
+                    {{ else }}
+                    <option value="">请选择</option>
+                    <option value="normal" >标品</option>
+                    <option value="custome">定制</option>
+                    {{/if}}
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>上架目标</label>
+            <div class="layui-input-block">
+                <select name="goalEnum" lay-verify="required" >
+                    {{if goalEnum === 'normal' }}
+                    <option value="">请选择</option>
+                    <option value="normal" selected>正品</option>
+                    <option value="clearing">清库存</option>
+                    <option value="accessory">配件</option>
+                    <option value="gift">赠品</option>
+                    {{ else if goalEnum === 'clearing' }}
+                    <option value="">请选择</option>
+                    <option value="normal">正品</option>
+                    <option value="clearing" selected>清库存</option>
+                    <option value="accessory">配件</option>
+                    <option value="gift">赠品</option>
+                    {{ else if goalEnum === 'accessory' }}
+                    <option value="">请选择</option>
+                    <option value="normal" >正品</option>
+                    <option value="clearing">清库存</option>
+                    <option value="accessory" selected>配件</option>
+                    <option value="gift">赠品</option>
+                    {{ else if goalEnum === 'gift' }}
+                    <option value="">请选择</option>
+                    <option value="normal">正品</option>
+                    <option value="clearing">清库存</option>
+                    <option value="accessory">配件</option>
+                    <option value="gift" selected>赠品</option>
+                    {{ else }}
+                    <option value="">请选择</option>
+                    <option value="normal" selected>正品</option>
+                    <option value="clearing">清库存</option>
+                    <option value="accessory">配件</option>
+                    <option value="gift">赠品</option>
+                    {{/if}}
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>来源</label>
+            <div class="layui-input-block">
+                <select name="sourceEnum" lay-verify="required" >
+                    {{if sourceEnum === 'market' }}
+                    <option value="">请选择</option>
+                    <option value="market" selected>市场</option>
+                    <option value="taobao">淘宝</option>
+                    <option value="alibaba">阿里巴巴</option>
+                    <option value="other">其他</option>
+                    {{ else if sourceEnum === 'taobao' }}
+                    <option value="">请选择</option>
+                    <option value="market">市场</option>
+                    <option value="taobao" selected>淘宝</option>
+                    <option value="alibaba">阿里巴巴</option>
+                    <option value="other">其他</option>
+                    {{ else if sourceEnum === 'alibaba' }}
+                    <option value="">请选择</option>
+                    <option value="market">市场</option>
+                    <option value="taobao">淘宝</option>
+                    <option value="alibaba" selected>阿里巴巴</option>
+                    <option value="other">其他</option>
+                    {{ else if sourceEnum === 'other' }}
+                    <option value="">请选择</option>
+                    <option value="market">市场</option>
+                    <option value="taobao">淘宝</option>
+                    <option value="alibaba">阿里巴巴</option>
+                    <option value="other" selected>其他</option>
+                    {{ else }}
+                    <option value="">请选择</option>
+                    <option value="market">市场</option>
+                    <option value="taobao">淘宝</option>
+                    <option value="alibaba">阿里巴巴</option>
+                    <option value="other">其他</option>
+                    {{/if}}
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>来源url</label>
+            <div class="layui-input-block">
+                <input value="{{sourceUrl}}" type="tel" name="sourceUrl" lay-verify="required|url" autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>图片</label>
+            <div class="layui-upload-drag" id="new_update_imageUpload">
+                <img src="{{$imports.$window.product_img_host}}/{{mainImageUrl}}" style="width: 150px;height: 150px;" />
+                <input value="{{mainImageUrl}}" type="hidden" name="mainImageUrl" lay-verify="required" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label"><span class="required_mark">*</span>属性描述</label>
+            <div class="layui-input-block">
+                <textarea placeholder="示例:&#13;&#10;颜色:白色,红色&#13;&#10;内存:8G,16G" name="attributeDesc" lay-verify="required" class="layui-textarea">{{attributeDesc}}</textarea>
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">备注</label>
+            <div class="layui-input-block">
+                <textarea placeholder="请输入内容" name="memo" class="layui-textarea">{{memo}}</textarea>
+            </div>
+        </div>
+        {{else}}
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">SPU</label>
+            <div class="layui-input-block">
+                <input type="text" value="{{spu}}" name="spu" placeholder="不能添加" disabled autocomplete="off" class="layui-input layui-disabled">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>一级分类</label>
+            <div class="layui-input-block">
+                <select lay-search name="topCategoryId" lay-verify="required" disabled class="new_ad_topCateClass layui-disabled">
+                    <option value="">不限</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>产品标题</label>
+            <div class="layui-input-block">
+                <input value="{{title}}" type="text" required disabled name="title" class="layui-input layui-disabled">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>内部名</label>
+            <div class="layui-input-block">
+                <input value="{{innerName}}" type="text" required disabled name="innerName" class="layui-input layui-disabled">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>产品特性</label>
+            <div class="layui-input-block">
+                <select name="classifyEnum" lay-verify="required" disabled class="layui-disabled" >
+                    {{if classifyEnum === 'D' }}
+                    <option value="">请选择</option>
+                    <option value="D" selected>带电</option>
+                    <option value="Y">液体</option>
+                    <option value="S" >普通</option>
+                    {{ else if classifyEnum === 'Y' }}
+                    <option value="">请选择</option>
+                    <option value="D">带电</option>
+                    <option value="Y" selected>液体</option>
+                    <option value="S" >普通</option>
+                    {{ else if classifyEnum === 'S' }}
+                    <option value="">请选择</option>
+                    <option value="D">带电</option>
+                    <option value="Y">液体</option>
+                    <option value="S" selected>普通</option>
+                    {{ else }}
+                    <option value="">请选择</option>
+                    <option value="D">带电</option>
+                    <option value="Y">液体</option>
+                    <option value="S">普通</option>
+                    {{/if}}
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>新品类别</label>
+            <div class="layui-input-block">
+                <select name="customEnum" lay-verify="required" lay-filter="aihao" disabled class="layui-disabled">
+                    {{if customEnum === 'normal' }}
+                    <option value="">请选择</option>
+                    <option value="normal" selected >标品</option>
+                    <option value="custome" >定制</option>
+                    {{ else if customEnum === 'custome' }}
+                    <option value="">请选择</option>
+                    <option value="normal" >标品</option>
+                    <option value="custome" selected>定制</option>
+                    {{ else }}
+                    <option value="">请选择</option>
+                    <option value="normal" >标品</option>
+                    <option value="custome">定制</option>
+                    {{/if}}
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>上架目标</label>
+            <div class="layui-input-block">
+                <select name="goalEnum" lay-verify="required">
+                    {{if goalEnum === 'normal' }}
+                    <option value="">请选择</option>
+                    <option value="normal" selected>正品</option>
+                    <option value="clearing">清库存</option>
+                    <option value="accessory">配件</option>
+                    <option value="gift">赠品</option>
+                    {{ else if goalEnum === 'clearing' }}
+                    <option value="">请选择</option>
+                    <option value="normal">正品</option>
+                    <option value="clearing" selected>清库存</option>
+                    <option value="accessory">配件</option>
+                    <option value="gift">赠品</option>
+                    {{ else if goalEnum === 'accessory' }}
+                    <option value="">请选择</option>
+                    <option value="normal" >正品</option>
+                    <option value="clearing">清库存</option>
+                    <option value="accessory" selected>配件</option>
+                    <option value="gift">赠品</option>
+                    {{ else if goalEnum === 'gift' }}
+                    <option value="">请选择</option>
+                    <option value="normal">正品</option>
+                    <option value="clearing">清库存</option>
+                    <option value="accessory">配件</option>
+                    <option value="gift" selected>赠品</option>
+                    {{ else }}
+                    <option value="">请选择</option>
+                    <option value="normal" selected>正品</option>
+                    <option value="clearing">清库存</option>
+                    <option value="accessory">配件</option>
+                    <option value="gift">赠品</option>
+                    {{/if}}
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>来源</label>
+            <div class="layui-input-block">
+                <select name="sourceEnum" lay-verify="required" disabled class="layui-disabled">
+                    {{if sourceEnum === 'market' }}
+                    <option value="">请选择</option>
+                    <option value="market" selected>市场</option>
+                    <option value="taobao">淘宝</option>
+                    <option value="alibaba">阿里巴巴</option>
+                    <option value="other">其他</option>
+                    {{ else if sourceEnum === 'taobao' }}
+                    <option value="">请选择</option>
+                    <option value="market">市场</option>
+                    <option value="taobao" selected>淘宝</option>
+                    <option value="alibaba">阿里巴巴</option>
+                    <option value="other">其他</option>
+                    {{ else if sourceEnum === 'alibaba' }}
+                    <option value="">请选择</option>
+                    <option value="market">市场</option>
+                    <option value="taobao">淘宝</option>
+                    <option value="alibaba" selected>阿里巴巴</option>
+                    <option value="other">其他</option>
+                    {{ else if sourceEnum === 'other' }}
+                    <option value="">请选择</option>
+                    <option value="market">市场</option>
+                    <option value="taobao">淘宝</option>
+                    <option value="alibaba">阿里巴巴</option>
+                    <option value="other" selected>其他</option>
+                    {{ else }}
+                    <option value="">请选择</option>
+                    <option value="market">市场</option>
+                    <option value="taobao">淘宝</option>
+                    <option value="alibaba">阿里巴巴</option>
+                    <option value="other">其他</option>
+                    {{/if}}
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>来源url</label>
+            <div class="layui-input-block">
+                <input value="{{sourceUrl}}" type="tel" name="sourceUrl" lay-verify="required|url" autocomplete="off" class="layui-input layui-disabled" disabled >
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><span class="required_mark">*</span>图片</label>
+            <div class="layui-upload-drag" class="layui-disabled" >
+                <img src="{{$imports.$window.product_img_host}}/{{mainImageUrl}}" style="width: 150px;height: 150px;" />
+                <input value="{{mainImageUrl}}" type="hidden" name="mainImageUrl" lay-verify="required" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label"><span class="required_mark">*</span>属性描述</label>
+            <div class="layui-input-block">
+                <textarea placeholder="示例:&#13;&#10;颜色:白色,红色&#13;&#10;内存:8G,16G" name="attributeDesc" required class="layui-textarea">{{attributeDesc}}</textarea>
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">备注</label>
+            <div class="layui-input-block">
+                <textarea placeholder="请输入内容" name="memo" class="layui-textarea">{{memo}}</textarea>
+            </div>
+        </div>
+        {{/if}}
+        <div class="layui-form-item">
+            <div class="right-confirm">
+                <input value="{{id}}" type="hidden" name="id" lay-verify="required" class="layui-input">
+                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="newAd_apdateFilter"><i class="layui-icon">&#xe618;</i>确认</button>
+            </div>
+        </div>
+    </div>
+</script>
+
+<!--一级分类模板-->
+<script id="new_ad_topCategoryTpl" type="text/html">
+    {{each item value index}}
+    {{if value.id === topCategoryId}}
+        <option selected value="{{value.id}}">{{value.name}}</option>
+    {{else}}
+        <option value="{{value.id}}">{{value.name}}</option>
+    {{/if}}
+    {{/each}}
+</script>
+<!--图片模板-->
+<script type="text/html" id="newUpdate_imageUpLoadTpl">
+    <img style=" width: 150px; height: 150px;" src="{{productImgPrefix}}/{{mainImageUrl}}" />
+    <input value="{{mainImageUrl}}" type="hidden" name="mainImageUrl" class="layui-input" required>
+</script>

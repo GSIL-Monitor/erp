@@ -1,0 +1,141 @@
+.page-sidebar .page-sidebar-menu .sub-menu li>a, .page-sidebar-closed.page-sidebar-fixed .page-sidebar:hover .page-sidebar-menu .sub-menu li>a
+	{
+	display: block;
+	margin: 0;
+	padding: 6px 15px 12px 16px;
+	text-decoration: none;
+	font-size: 12px;
+	font-weight: 300;
+	background: 0 0;
+}
+
+.fixed-table-toolbar .bs-bars, .fixed-table-toolbar .columns,
+	.fixed-table-toolbar .search {
+	position: relative;
+	margin-top: 2px;
+	margin-bottom: 7px;
+	line-height: 34px;
+}
+
+.portlet.light {
+	padding: 12px 0px 0px;
+}
+
+.mt-element-step .step-line .active .mt-step-number {
+	color: #337ab7 !important;
+	border-color: #337ab7 !important;
+}
+
+.mt-element-step .step-line .active .mt-step-content, .mt-element-step .step-line .active .mt-step-title
+	{
+	color: #337ab7 !important;
+}
+
+.mt-element-step .step-line .active .mt-step-title:after,
+	.mt-element-step .step-line .active .mt-step-title:before {
+	background-color: #337ab7;
+}
+
+.portlet.light.portlet-fit>.portlet-body {
+	padding: 0px 0px 0px;
+}
+
+.table td, .table th {
+	font-size: 12px;
+}
+
+body {
+	font-size: 12px !important;
+}
+
+.title {
+	font-size: 12px !important;
+}
+
+.btn {
+	font-size: 12px !important;
+}
+
+.breadcrumb {
+	margin-bottom: 0px;
+	background-color: #ffffff;
+}
+
+.well {
+	padding: 10px;
+}
+
+/* å¬å±è¡¨åéç¨æ ·å¼ */
+.input-group-addon {
+	padding: 1px 2px;
+	font-size: 12px;
+	font-weight: 400;
+	line-height: 1;
+	color: #555;
+	text-align: center;
+	background-color: #eee;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+
+.table thead tr th {
+	font-size: 12px !important
+}
+
+.form-control, output {
+	font-size: 12px;
+	height: 24px;
+	padding: 2px 4px;
+}
+
+.input-group {
+	margin-bottom: 3px;
+}
+
+.well {
+	padding: 5px;
+}
+
+.table-toolbar {
+	margin-bottom: 5px;
+}
+
+<!--
+add by zhaobai -->.portlet-title {
+	padding-bottom: 0px !important;
+	margin-bottom: 0px !important
+}
+
+.table>thead>tr>th {
+	vertical-align: middle !important;
+}
+
+.page-content {
+	padding-top: 0 !important;
+	margin-left: 160px !important;
+}
+
+/* è¡¨æ ¼å·¦ä¸è§çCheckboxä¸å±ä¸­é®é¢ */
+th>div>.mt-checkbox {
+	margin-left: 10px !important;
+}
+
+/* å¼¹åºæ¡ */
+.layer-body {
+	padding: 20px
+}
+
+spanWidth {
+	width: 170px;
+}
+
+.style_top_line {
+	border-style: dashed;
+	border-width: thin 0px 0px 0px;
+	color: #89898a;
+}
+
+.op {
+	border-style: dotted;
+	border-width: 0px 0px thin 0px;
+}

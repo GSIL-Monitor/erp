@@ -1,0 +1,316 @@
+<div class="layui-fluid">
+    </br>
+    <div class="layui-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label">属性名称</label>
+            <div class="layui-input-inline">
+                <input type="text" name="title" placeholder="" autocomplete="off" class="layui-input">
+            </div>
+
+            <button class="layui-btn" lay-submit lay-filter="searchAttribute"><i class="layui-icon">&#xe615;</i>搜索</button>
+            <button class="layui-btn layui-btn-normal" id="attribute_addId" onclick="addbtn()"><i class="layui-icon">&#xe654;</i>新增</button>
+        </div>
+    </div>
+    <table id="attributeId" lay-filter="attribute"></table>
+
+    <script>
+        layui.use(['layer', 'table', 'element', 'form'], function () {
+            var product_attribute_layer = layui.layer;
+            var product_attribute_index = layer.load(0,{time:5*1000});
+            var product_attribute_form = layui.form;
+            var product_attribute_table = layui.table;
+            if (!window.product_write_power){
+                $('#attribute_addId').css('display', 'none');
+            }
+            product_attribute_table.render({
+                elem: '#attributeId',
+                url: "/product/base/attribute/find",
+                even: true,     //开启隔行背景
+                page: true,    //关闭分页
+                //height: 'full-200',
+                limit : 20,
+                done: function (res, curr, count) {
+                    var element = layui.element;
+                    element.init();
+                    product_attribute_layer.close(product_attribute_index);
+                },
+                cols: [[ //表头
+                    {field: 'id', title: 'ID' },
+                    {field: 'title', title: '属性名称',edit:'text'},
+                    {field: 'createAt', title: '创建时间' },
+                    {field:'',fixed: 'right',title:'属性语言包', width:200, align:'center', toolbar: '#butAttribute'},
+                    {field:'',fixed: 'right',title:'操作', width:200, align:'center', toolbar: '#barAttribute'}  //这里的toolbar值是模板元素的选择器
+                ]],
+                response: {
+                    statusName: 'code', //数据状态的字段名称，默认：code
+                    statusCode: 'OK', //成功的状态码，默认：0
+                    msgName: 'desc', //状态信息的字段名称，默认：msg
+                    countName: 'total', //数据总数的字段名称，默认：count
+                    dataName: 'item' //数据列表的字段名称，默认：data
+                }
+            });
+
+            //搜索条件
+            product_attribute_form.on('submit(searchAttribute)', function(data){
+                product_attribute_table.reload('attributeId', {
+                    where: {
+                        title: data.field.title
+                        } ,    //设定异步数据接口的额外参数，任意设
+                    page: {
+                        curr: 1 //重新从第 1 页开始
+                    }
+                });
+                return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+            });
+
+            //监听工具条
+            product_attribute_table.on('edit(attribute)', function(obj){    //注：tool是工具条事件名，country是table原始容器的属性 lay-filter="对应的值"
+                var data = obj.data; //获得当前行数据
+                $.ajax({
+                    type : 'POST',
+                    url : "/product/base/attribute/update",
+                    data: {
+                        id:data.id,
+                        title:data.title
+                    },
+                    dataType : 'json',
+                    success : function(res){
+                        if(res.code === 'NOTICE'){
+                            product_attribute_layer.msg('修改成功', {icon: 1});
+                        }else{
+                            product_attribute_layer.msg(res.desc, {icon: 2});
+                            product_attribute_table.reload('attributeId');
+                        }
+                    }
+                });
+            });
+
+            //属性的删除
+            product_attribute_table.on('tool(attribute)', function(obj){ //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+                var data = obj.data;                //获得当前行数据
+                var layEvent = obj.event;           //获得 lay-event 对应的值
+                if(layEvent === 'del'){
+                    product_attribute_layer.confirm("确认删除属性[ " + obj.data.title + " ]该元素么?", function(product_attribute_index){
+                        obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
+                        product_attribute_layer.close(product_attribute_index);
+                        //向服务端发送删除指令
+                        $.ajax({
+                            type : 'POST',
+                            url : "/product/base/attribute/delete",
+                            data: {
+                                id:data.id
+                            },
+                            dataType : 'json',
+                            success : function(res){
+                                if(res.code === 'NOTICE') {
+                                    product_attribute_layer.msg('删除成功', {icon: 3});
+                                }else{
+                                    product_attribute_layer.msg(res.desc, {icon: 2});
+                                    product_attribute_table.reload('attributeId');
+                                }
+                            }
+                        });
+                    });
+                }
+                if (layEvent === 'show_attrVal'){
+                    product_attribute_table = show_attrVal(obj, product_attribute_table);
+                }
+                if (layEvent === 'attribute_languageQuery'){
+                    product_attribute_layer.msg('玩儿命开发中,尽情期待!', {
+                        icon: 6
+                    });
+                }
+                if (layEvent === 'attribute_languageAdd'){
+                    product_attribute_layer.msg('玩儿命开发中,尽情期待!', {
+                        icon: 6
+                    });
+                }
+            });
+
+            //属性值的删除
+            product_attribute_table.on('tool(attVal_table)', function(obj){ //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+                var data = obj.data;                //获得当前行数据
+                var layEvent = obj.event;           //获得 lay-event 对应的值
+                if(layEvent === 'del'){
+                    product_attribute_layer.confirm('确认删除该元素么?', function(product_attribute_index){
+                        obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
+                        product_attribute_layer.close(product_attribute_index);
+                        $.ajax({
+                            type : 'POST',
+                            url : "/product/base/attributeValue/delete",
+                            data: {
+                                attributeValueId: data.id
+                            },
+                            dataType : 'json',
+                            success : function(res){
+                                if(res.code === 'NOTICE') {
+                                    product_attribute_layer.msg('删除成功', {icon: 3});
+                                }else{
+                                    product_attribute_layer.msg(res.desc, {icon: 2});
+                                    product_attribute_table.reload('attVal_table_id');
+                                }
+                            }
+                        });
+                    });
+                }
+            });
+
+            //属性值的修改
+            product_attribute_table.on('edit(attVal_table)', function(obj){
+                var data = obj.data; //获得当前行数据
+                $.ajax({
+                    type : 'POST',
+                    url : "/product/base/attributeValue/update",
+                    data: {
+                        id: data.id,
+                        title: data.title,
+                        attributeId: data.attributeId
+                    },
+                    dataType : 'json',
+                    success : function(res){
+                        if(res.code === 'NOTICE'){
+                            product_attribute_layer.msg('修改成功', {icon: 1});
+                        }else{
+                            product_attribute_layer.msg(res.desc, {icon: 2});
+                            product_attribute_table.reload('attVal_table_id');
+                        }
+                    }
+                });
+            });
+
+            product_attribute_form.on('submit(category_attribute_value_add)', function (data) {
+                console.log(data.field);
+                product_attribute_index = layer.open({
+                    type: 1 ,
+                    title: '新增属性值' ,
+                    content: template('category_attribute_value_addTpl', data.field) , //注意，如果str是object，那么需要字符拼接。
+                    maxmin: true ,
+                    area: '22%'
+                });
+            });
+
+            product_attribute_form.on('submit(attrValue_add_submit)',function (data) {
+                $.ajax({
+                    type: 'POST' ,
+                    url: '/product/base/attributeValue/add' ,
+                    data: data.field ,
+                    success: function (res) {
+                        state_response(res);
+                        if (res.code === 'FAIL') {
+                            product_attribute_layer.msg(res.desc, {icon: 2});
+                        } else {
+                            product_attribute_layer.close(product_attribute_index);
+                            product_attribute_table.reload('attVal_table_id');
+                        }
+                    }
+                })
+            });
+
+        });
+
+        function addbtn(){
+            $.get('view/product/base/add_attribute.html', function(str){
+                index = layer.open({
+                    type: 1 ,
+                    title :'新增属性' ,
+                    content: str ,//注意，如果str是object，那么需要字符拼接。
+                    maxmin: true ,
+                    area: '30%'
+                });
+            });
+        }
+
+        function show_attrVal(obj, product_attribute_table) {
+            console.log(obj.data);
+            product_attribute_index = layer.open({
+                type: 1 ,
+                title: '[' + obj.data.title + ']的属性值' ,
+                content: template('show_attrValTpl', obj.data) ,
+                maxmin: true ,
+                area: '50%'
+            });
+            product_attribute_table.render({
+                elem: '#attVal_table_id',
+                method: 'POST',
+                even: true ,
+                page: true ,
+                url: "product/base/attributeValue/findByAttributeId?attributeId=" + obj.data.id ,
+                cols: [[ //表头
+                {field: 'id', title: '属性值ID' },
+                {field: 'title', title: '名称',edit:'text'},
+                {field: 'createAt', title: '创建时间'},
+                {field: '', fixed: 'right', title: '语言包', align: 'center', toolbar: '#barAttrValLanguage'},
+                {field: '', fixed: 'right', title: '操作', align: 'center', toolbar: '#barAttrValDemo'} //这里的toolbar值是模板元素的选择器
+            ]],
+                response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                    , statusCode: 'OK' //成功的状态码，默认：0
+                    , msgName: 'desc' //状态信息的字段名称，默认：msg
+                    , countName: 'total' //数据总数的字段名称，默认：count
+                    , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            });
+            product_attribute_table.render('attVal_table_id');
+            return product_attribute_table;
+        }
+
+
+    </script>
+</div>
+<script type="text/html" id="butAttribute">
+    {{# if(window.product_attrLang_power){ }}
+    <button class="layui-btn layui-btn-xs " lay-event="attribute_languageQuery" style="text-align: center;"><i class="layui-icon">&#xe615;</i>查看</button>
+    <button class="layui-btn layui-btn-xs layui-btn-normal"lay-event="attribute_languageAdd" style="text-align: center;"><i class="layui-icon"></i>新增</button>
+    {{#  } }}
+</script>
+<script type="text/html" id="barAttribute">
+    {{# if(window.product_write_power){ }}
+        <button class="layui-btn layui-btn-xs " lay-event="show_attrVal" style="text-align: center;"><i class="layui-icon">&#xe623;</i>属性值</button>
+        <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del" style="text-align: center;"><i class="layui-icon"></i>删除</button>
+    {{#  } }}
+</script>
+<script type="text/html" id="barAttrValLanguage">
+    <button class="layui-btn layui-btn-xs " lay-event="" style="text-align: center;"><i class="layui-icon">&#xe615;</i>查看</button>
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="aaa" style="text-align: center;"><i class="layui-icon">&#xe654;</i>新增</button>
+</script>
+<script type="text/html" id="barAttrValDemo">
+    <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del" style="text-align: center;"><i class="layui-icon"></i>删除</button>
+</script>
+<script type="text/html" id="show_attrValTpl">
+    <div class="layui-tab-item layui-show">
+        <div class="layui-form layui-form-pane margin-l-30">
+            <br>
+            <div class="layui-form-item">
+                <input type="hidden" name="attributeId" value="{{id}}"/>
+                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="category_attribute_value_add"><i class="layui-icon">&#xe654;</i>新增属性值
+                </button>
+            </div>
+        </div>
+        <div>
+            <table id="attVal_table_id" lay-filter="attVal_table"></table>
+        </div>
+    </div>
+</script>
+
+<!--新增属性值的模板-->
+<script id="category_attribute_value_addTpl" type="text/html">
+    <div class="layui-form layui-form-pane margin-l-30">
+        <br>
+        <div class="layui-form-item">
+            <label class="layui-form-label">名称：</label>
+            <div class="layui-input-inline">
+                <input value="" type="text" name="title" required lay-verify="required" placeholder=""
+                       autocomplete="off" class="layui-input">
+                <input value="{{attributeId}}" type="hidden" name="attributeId" required lay-verify="required" placeholder=""
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-inline" style="float: right;">
+                <button class="layui-btn layui-btn" lay-submit lay-filter="attrValue_add_submit"
+                        style="text-align: center;">确认
+                </button>
+            </div>
+        </div>
+    </div>
+</script>

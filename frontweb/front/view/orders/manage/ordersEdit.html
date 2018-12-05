@@ -1,0 +1,570 @@
+<style>
+    .detail-row-space .layui-row{
+        margin-bottom: 5px;
+    }
+    .star-cls{
+        color:#FF0000;
+    }
+    #editContainer td > .layui-table-cell{
+        height:auto !important;
+    }
+    /*#bottomDiv{
+        position: fixed;bottom: 151px;width: 100%;left: 0px;
+    }*/
+    .layui-layer-content{
+        overflow: hidden !important;
+    }
+    .editContainerDiv{
+        width: 96%;
+    }
+</style>
+<div class="layui-container detail-row-space" id="editContainer">
+<script type="text/html" id="data-ordersEdit">
+    <form class="layui-form" action="">
+        <div  style="height: 650px;overflow-y: scroll;overflow-x: hidden;width: 104.8%;border-bottom:solid 1px #eee">
+            <div>
+                <div id="abstractInfo" class="editContainerDiv">
+                    <div style="margin: 10px auto">
+                        <button class="layui-btn" style="height: 50px;width: 100px;background-color:#eee;color:black;">
+                            {{item.orderInfo.orderStatusEnum}}
+                        </button>
+                    </div>
+                    <div style="margin: -66px 0px 0px 115px">
+                        <input type="hidden" name="orderId" value="{{item.orderInfo.orderId}}"/>
+                        <span class="">订单流水号:  {{item.orderInfo.orderId}}</span>
+                        <label class="" style="margin-left:100px;margin-right: 10px;">订单总价:</label>
+                        {{ if item.orderInfo.symbolLeft}}
+                        <span title="订单总价" style="border: 1px solid #ccc; background-color:#eee;border-radius:4px;padding:10px 12px;margin-right:-6px;">{{item.orderInfo.symbolLeft}}</span>
+                        {{/if}}
+                        <input type="text" title="订单总价" value="{{item.orderInfo.confirmAmount}}" class="layui-input" placeholder="订单总价"
+                               lay-verify="required|positiveNumer" style="width: 150px;display: inline;border-left: solid 1px #d2d2d2;" name="confirmAmount"/>
+                        {{ if item.orderInfo.symbolRight}}
+                        <span title="订单总价" style="border: 1px solid #ccc; background-color:#eee;border-radius:4px;padding:10px 12px;">{{item.orderInfo.symbolRight}}</span>
+                        {{/if}}
+                    </div>
+                    <div style="margin-left: 115px;">
+                        <span class="">{{item.orderInfo.departmentUserInfo}}</span>
+                        <span class="">{{item.orderInfo.seoUserName}}</span>
+                    </div>
+                </div>
+                {{if item.orderLink != null}}
+                <div id="cunstomeInfo"  class="editContainerDiv">
+                    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                        <legend>客户信息</legend>
+                    </fieldset>
+                    <div class="layui-form-item">
+                        <input type="hidden" name="linkId" value="{{item.orderLink.linkId}}">
+                        <label class="layui-form-label">姓:</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="lastName" name="lastName" value="{{item.orderLink.lastName}}" maxlength="30"
+                                   class="layui-input">
+                        </div>
+                        <label class="layui-form-label">名:</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="firstName" name="firstName" value="{{item.orderLink.firstName}}"
+                                   maxlength="30" class="layui-input">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label"><span class="star-cls">*</span>电话:</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="telphone" name="telphone" value="{{item.orderLink.telphone}}" maxlength="30"
+                                   lay-verify="required" class="layui-input">
+                        </div>
+                        <label class="layui-form-label">邮箱:</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="email" name="email" value="{{item.orderLink.email}}" maxlength="200"
+                                   lay-verify="email" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">省（洲）:</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="province" name="province" value="{{item.orderLink.province}}" maxlength="30"
+                                   class="layui-input">
+                        </div>
+                        <label class="layui-form-label">城市:</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="city" name="city" value="{{item.orderLink.city}}" maxlength="30"
+                                   class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">区域:</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="area" name="area" value="{{item.orderLink.area}}" maxlength="30"
+                                   class="layui-input">
+                        </div>
+                        <label class="layui-form-label"><span class="star-cls">*</span>地址:</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="address" name="address" lay-verify="required"
+                                   value="{{item.orderLink.address}}" maxlength="255" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">邮编:</label>
+                        <div class="layui-input-inline">
+                            <input type="text" id="zipcode" name="zipcode" value="{{item.orderLink.zipcode}}" maxlength="30"
+                                   class="layui-input">
+                        </div>
+                        <label class="layui-form-label">留言:</label>
+                        <div class="layui-form-label" style="text-align: left;width: 500px;">
+                            {{item.orderLink.customerMeassage}}
+                        </div>
+                    </div>
+                </div>
+                {{/if}}
+                {{if item.orderInfo != null}}
+                <div class="layui-collapse editContainerDiv">
+                    <div class="layui-colla-item">
+                        <h2 class="layui-colla-title" style="font-size: 20px;">订单信息</h2>
+                        <div class="layui-colla-content" id="orderInfo">
+                            <div class="layui-row layui-col-space15" layui-show>
+                                <div class="layui-col-md6">
+                                    <div class="layui-row">
+                                        <div class="layui-col-md3">
+                                            <div class="">物流状态:</div>
+                                        </div>
+                                        <div class="layui-col-md9">
+                                            <div class="">{{item.orderInfo.trackingStatusShow}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-col-md6">
+                                    <div class="layui-row">
+                                        <div class="layui-col-md3">
+                                            <div class="">下单时间:</div>
+                                        </div>
+                                        <div class="layui-col-md9">
+                                            <div class="">{{item.orderInfo.purchaserAt}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-row layui-col-space15">
+                                <div class="layui-col-md6">
+                                    <div class="layui-row layui-col-space15">
+                                        <div class="layui-col-md3">
+                                            <div class="">支付方式:</div>
+                                        </div>
+                                        <div class="layui-col-md9">
+                                            <div class="">{{item.orderInfo.paymentMethod}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-col-md6">
+                                    <div class="layui-row layui-col-space15">
+                                        <div class="layui-col-md3">
+                                            <div class="">支付状态</div>
+                                        </div>
+                                        <div class="layui-col-md9">
+                                            <div class="">{{item.orderInfo.payState}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-row layui-col-space15">
+                                <div class="layui-col-md6">
+                                    <div class="layui-row grid-demo layui-col-space15">
+                                        <div class="layui-col-md3">
+                                            <div class="">域名:</div>
+                                        </div>
+                                        <div class="layui-col-md9">
+                                            <div class="">{{item.orderInfo.domain}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-col-md6">
+                                    <div class="layui-row grid-demo layui-col-space15">
+                                        <div class="layui-col-md3">
+                                            <div class="">来源:</div>
+                                        </div>
+                                        <div class="layui-col-md9">
+                                            <div class="">{{item.orderInfo.orderFrom}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-row layui-col-space15">
+                                <div class="layui-col-md6">
+                                    <div class="layui-row grid-demo layui-col-space15">
+                                        <div class="layui-col-md3">
+                                            <div class="">商家:</div>
+                                        </div>
+                                        <div class="layui-col-md9">
+                                            <div class="">{{item.orderInfo.merchantEnum}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-col-md6">
+                                    <div class="layui-row grid-demo layui-col-space15">
+                                        <div class="layui-col-md3">
+                                            <div class="">商家订单号:</div>
+                                        </div>
+                                        <div class="layui-col-md9">
+                                            <div class="">{{item.orderInfo.merchantOrderNo}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-row layui-col-space15">
+                                <div class="layui-col-md6">
+                                    <div class="layui-row layui-col-space15">
+                                        <div class="layui-col-md3">
+                                            <div class="">地区:</div>
+                                        </div>
+                                        <div class="layui-col-md9">
+                                            <div class="">{{item.orderInfo.zoneName}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="layui-col-md6">
+                                    <div class="layui-row grid-demo layui-col-space15">
+                                        <div class="layui-col-md3">
+                                            <div class="">IP:</div>
+                                        </div>
+                                        <div class="layui-col-md9">
+                                            <div class="">{{item.orderInfo.ip}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{/if}}
+                <div id="skuInfo"  class="editContainerDiv">
+                    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                        <legend>商品信息</legend>
+                    </fieldset>
+                    {{if item.orderInfo != null}}
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md6">
+                            <div class="layui-row grid-demo layui-col-space15">
+                                <div class="layui-col-md3">
+                                    <div class="">下单数量:</div>
+                                </div>
+                                <div class="layui-col-md9">
+                                    <div class="">{{item.orderInfo.goodsQty}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md3">
+                            <div class="">套餐名:</div>
+                        </div>
+                        <div class="layui-col-md12">
+                            {{item.orderInfo.comboName}}
+                        </div>
+                    </div>
+                    {{/if}}
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md12">
+                            <table class="layui-table" id="orderItem" lay-filter="itemTb">
+                                <thead>
+                                <tr>
+                                    <th>图片</th>
+                                    <th>产品ID</th>
+                                    <th>SKU</th>
+                                    <th>产品名称</th>
+                                    <th>产品属性</th>
+                                    <th>数量</th>
+                                    <!--<th>单价</th>
+                                    <th>小计</th>-->
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody id="orderItem_list">
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md12">
+                            <button type="button" class="layui-btn" id="addOrders" onclick="addOrdersFun()">添加商品</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="remarKInfo"  class="editContainerDiv">
+                    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 40px;">
+                        <legend>备注信息</legend>
+                    </fieldset>
+                    <div class="layui-form-item layui-form-text">
+                        <label class="layui-form-label">备注</label>
+                        <div class="layui-input-block">
+                            <textarea name="memo" placeholder="请输入内容" maxlength="500" class="layui-textarea" value=""></textarea>
+                        </div>
+                    </div>
+                    <div id="fsmHistorys">
+                        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                            <legend>订单状态记录</legend>
+                        </fieldset>
+                        <div class="layui-row layui-col-space15">
+                            <div class="layui-col-md12">
+                                <table class="layui-table" id="fsmEditTable">
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br>
+        <div class="text-center" id="bottomDiv">
+            <button type="button" onclick="closeEditForm()" class="layui-btn layui-btn-primary">取消</button>
+            <button class="layui-btn" type="button" lay-submit lay-filter="submitApply" id="submitApply">确定</button>
+        </div>
+    </form>
+</script>
+</div>
+<script type="text/html" id="product_unit_tr">
+    {{ each item val index}}
+    <tr>
+        <td><div><img src="{{val.productImageUrl}}"/></div></td>
+        <td>{{val.productId}}</td>
+        <td>{{val.sku}}</td>
+        <td>{{val.productTitle}}</td>
+        <td>
+            {{if val.attrList.length >=2 }}
+                <select lay-ignore name="attrTitleArray" onchange="changeSku(this)" lay-verify="required">
+                    <option value="">请选择</option>
+                    {{ each val.attrList attr index}}
+                    {{attr}}
+                    {{ if attr.sku == val.sku}}
+                    <option value="{{attr.sku}}" selected>
+                        {{attr.attributeValueTitle}}
+                    </option>
+                    {{else}}
+                    <option value="{{attr.sku}}" >
+                        {{attr.attributeValueTitle}}
+                    </option>
+                    {{/if}}
+                    {{/each}}
+                </select>
+            {{/if}}
+        </td>
+        <td><input type="text" value="{{val.qty}}" lay-verify="required|positiveInteger"   name="qty" oninput="changeSubmitArray(this)" /></td>
+        <td><button class="layui-btn layui-btn-xs layui-btn-danger" type="button" onclick="deleteSubmitArrayItem(this,'{{val.productId}}')">删除</button></td>
+    </tr>
+    {{/each}}
+</script>
+
+<script type="text/html" id="editMemoTpl">
+    {{ layui.laytpl.fn( d.memo) }}
+</script>
+
+<script type="text/javascript">
+    var applyProductIndex="";
+    var webUrl="";
+    var form  ="";
+    var element;
+    var submitArray = new Array();//需要保存提交到后台的数据集合
+    layui.use(['element','table','form'], function(){
+        var table = layui.table;
+        form = layui.form;
+        layui.laytpl.fn = function (value){
+            return value.replace(new RegExp("\\*","gm"),"<br/>");
+        }
+        element = layui.element;
+
+        form.verify({
+            positiveInteger : [/^[0-9]*$/, '必须输入正整数'],
+            positiveNumer:[/^\d+(\.\d+)?$/, '必须输入正数']
+        });
+        //进行数据的提交操作
+        form.on('submit(submitApply)', function(data){
+            if(submitArray.length<=0){
+                layer.msg("商品信息不能为空,请确认您需要修改的数据是否合理");
+                return false;
+            }else{
+                var  orderLink = data.field;
+                var  orderInfo = data.field;
+                var params = {"orderInfo":orderInfo,"orderItems":submitArray,"orderLink":orderLink}
+                $('#submitApply').removeAttr("disabled");
+                $.ajax({
+                    type : 'POST',
+                    url : "/orders/orders/orderEdit",
+                    dataType : 'json',
+                    contentType:"application/json",
+                    data :  JSON.stringify(params),
+                    success : function(res){
+                        if(res.code=="NOTICE"){
+                            closeEditForm();
+                            $.ajax({
+                                type: 'POST',
+                                dataType: "json",
+                                url: "/orders/orders/find",
+                                method: 'post',
+                                data:searchParam,
+                                success: function (res) {
+                                    layer.close(index);
+                                    page_len=res.item.length;
+                                    if(page_len!=0){
+                                        $("#get_null").hide();
+                                        $('#table_tb').html(template('orderTableTpl', res));
+                                    }else{
+                                        $('#table_tb').html("");
+                                        $("#get_null").show();
+                                    }
+                                    done_render(res);
+                                }
+                            });
+                        }else{
+                            layer.msg(res.desc);
+                        }
+                    }
+                });
+            }
+        });
+        initTableData(table,form);
+    });
+    //添加商品
+    function addOrderItems(select_productarray){
+        var res = new Object();
+        var itemList = new Array();
+        $.each(select_productarray,function (index,obj) {
+            var object = new Object();
+            object.productImageUrl= obj.mainImageUrl;
+            object.productId= obj.id;
+            object.productTitle=obj.title;
+            object.spu=obj.spu;
+            object.sku=obj.sku;
+            object.attrList = new Array();
+            $.each(obj.skuList,function (index,e) {
+                object.attrList.push(e);
+            });
+            itemList.push(object);
+            submitArray.push(object);
+        });
+        res.item=itemList;
+        $("#orderItem_list").append(template("product_unit_tr",res));
+    }
+    function initTableData(table,form){
+        $.ajax({
+            type : 'GET',
+            url : "/orders/orders/order_abstract?orderId="+orderId,
+            dataType : 'json',
+            success : function(res){
+                state_response(res);
+                webUrl=res.item.orderInfo.webUrl;
+                $.each(res.item.orderItems,function(index,obj){
+                    submitArray.push(obj);
+                });
+                $("#editContainer").html(template('data-ordersEdit', res));
+                element.init();
+                var obj = new Object();
+                obj.item=res.item.orderItems;
+                $("#orderItem_list").append(template("product_unit_tr",obj));
+                loadFsmHistory(table);
+            }
+        });
+    }
+
+    function  loadFsmHistory(table) {
+        table.render({
+            elem: '#fsmEditTable',
+            id: 'fsmEditTable',
+            method: 'get',
+            url:  "/orders/orders/queryFsmHistory?orderId="+orderId,
+            page: true,
+            even:true,
+            limit: 10
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                ,limitName: 'limit' //每页数据量的参数名，默认：limit
+            } ,
+            response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            },cols: [[ //表头
+                {field: 'srcStateDisplay', title: '原始状态',width:"15%"}
+                ,{field: 'dstStateDisplay', title: '目标状态',width:"15%"}
+                ,{field: 'optUid', title: '用户',width:"15%"}
+                , {title: '详细',templet: '#editMemoTpl'}
+                ,{field: 'createAt', title: '时间',width:"20%"}
+            ]]
+        });
+    }
+    //在页面上删除商品信息
+    function deleteSubmitArrayItem(obj,deleteProductId){
+        if(submitArray.length==1){
+            layer.msg("商品项信息最少保留一条数据");
+            return;
+        }
+        layer.confirm('是否确定删除', function(index){
+            //obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
+            $(obj).parents("tr").remove();
+            //从需要提交的数据集中删除
+            for(var i = 0 ; i < submitArray.length ; i ++){
+                var item = submitArray[i];
+                if(item.productId == deleteProductId){
+                    submitArray.splice(i,1);
+                }
+            }
+            layer.close(index);
+        });
+
+    }
+    function addOrdersFun() {
+        $.get('view/orders/manage/order_produtList.html', function (str) {
+            applyProductIndex = layer.open({
+                type: 1
+                ,title: '商品列表'
+                , content: str //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , area: "35%"
+            });
+        });
+    }
+    function closeEditForm(){
+        layer.close(applyEditIndex);
+    }
+    //切换属性组合的时候去集合中查找对应的sku显示出来
+    function changeSku(that){
+        var attrValue = $(that).val();
+        var productId = $(that).parents("tr").find("td").eq(1).text();
+        //切换选择sku的时候需要看看是否有重复的数据
+        var ok = true;
+        $("#orderItem").find("tbody tr").not($(that).parents("tr")).each(function () {
+            if (attrValue == $(this).find("td").eq(2).text()) {
+                layer.alert("选择的商品信息重复，请确认");
+                ok = false;
+                return;
+            }
+        });
+        if(!ok){
+            return;
+        }
+        $.each(submitArray,function (index,obj) {
+            if(productId==obj.productId){
+                var attrList = obj.attrList;
+                $.each(attrList,function (inx,el) {
+                    if(el.sku == attrValue){
+                        $(that).parents("tr").find("td").eq("2").text(el.sku);
+                        obj.sku= el.sku;
+                        obj.attrTitleArray=el.attributeValueTitle;
+                        $(that).parents("tr").find("input[name=qty]").trigger("input");
+                        return;
+                    }
+                });
+            }
+        });
+    }
+    //改变数量的时候
+    function changeSubmitArray(obj){
+        var qty = $(obj).val();
+        var sku = $(obj).parents("tr").find("td").eq(2).text();
+        $.each(submitArray,function(index,object){
+            if(sku==object.sku){
+                object.qty=qty;
+            }
+        });
+    }
+</script>
+

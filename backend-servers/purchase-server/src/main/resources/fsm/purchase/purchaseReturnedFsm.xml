@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FSM EntityName="PurchaseReturned" EntityDao="PurchaseReturnedMapper" ParentEntityName="">
+	<States>
+		<State Name="start" Description="开始">
+			<Event Name="create" Description="创建" DstState="waitAuditor" After="purchaseReturnCreateAfter"/>
+			<Event Name="submit" Description="提交" DstState="stayRefund" After="purchaseReturnSubmitAfter"/>
+		</State>
+		<State Name="waitAuditor" Description="待业务审核">
+			<Event Name="agreeByBusiness" Description="业务审核通过" DstState="stayRefund" After="purchaseReturnAgreeAfter"/>
+
+		</State>
+		<State Name="stayRefund" Description="待申请退款">
+			<Event Name="returnByInWay" Description="错货采退" DstState="completed"/>
+			<Event Name="financeAffirmRefund" Description="财务确认退款" DstState="alreadyRefund" After="financeAffirmRefundAfter"/>
+			<Event Name="cancelRefund" Description="取消采退" DstState="cancel" After="returnCancelCreateAfter"/>
+		</State>
+		<State Name="alreadyRefund" Description="已申请退款">
+			<Event Name="returnByInStock" Description="在库退货" DstState="returnByStorage"/>
+			<Event Name="returnByInWay" Description="在途退货" DstState="completed"/>
+		</State>
+		<State Name="returnByStorage" Description="待仓储退货">
+			<Event Name="cancelRefund" Description="取消采退" DstState="cancel" />
+			<Event Name="deliveryStock" Description="出库" DstState="completed" />
+		</State>
+
+		<State Name="completed" Description="已完成">
+		</State>
+
+		<State Name="cancel" Description="已取消">
+		</State>
+	</States>
+</FSM>

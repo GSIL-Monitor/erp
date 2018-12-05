@@ -1,0 +1,272 @@
+<div class="layui-form  padding30" >
+    <input type="hidden" name="templateId" value="">
+    <input type="hidden" name="scheduleDate" value="">
+    <div class="layui-form-item">
+        <label class="layui-form-label" style="width: 100px">选择仓库:</label>
+        <div class="layui-input-inline">
+            <select name="wmsId" id="wmsIdAddSelect" lay-verify="required" lay-filter="wmsIdAddSelect" >
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label" style="width: 100px">选择物流线路:</label>
+        <div class="layui-input-inline">
+            <select name="shippingWayId" id="shippingWayIdAddSelect" lay-verify="required"  lay-filter="shippingWayIdAddSelect">
+                <option value="">请选择</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">普货数量</label>
+        <div class="layui-input-block">
+            <input type="text" name="generalCargoNum"  lay-verify="required|number" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">特货数量</label>
+        <div class="layui-input-block">
+            <input type="text" name="specialCargoNum"  lay-verify="required|number" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">所有数量</label>
+        <div class="layui-input-block">
+            <input type="text" name="cargoNum"  lay-verify="required|number" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">每次分配特货数量</label>
+        <div class="layui-input-block">
+            <input type="text" name="eachSpecialNum"  lay-verify="required|number" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">每次分配普货数量</label>
+        <div class="layui-input-block">
+            <input type="text" name="eachGeneralNum"  lay-verify="required|number" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">每次分配数量</label>
+        <div class="layui-input-block">
+            <input type="text" name="eachCargoNum"  lay-verify="required|number" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">优先顺序</label>
+        <div class="layui-input-block">
+            <input type="text" name="sorted"  lay-verify="required|number" placeholder="" autocomplete="off"
+                   class="layui-input" value="">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="addElementForm">确定</button>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    layui.use(['form','table'], function () {
+        var add_shipping_schedule_form = layui.form;
+        var add_shipping_schedule_table = layui.table;
+
+        store_wmsId_option('wmsIdAddSelect');
+
+        $.ajax({
+            type: 'POST',
+            url: "/tms/base/shippingway/query",
+            data: {
+                limit:100000,
+                shippingWayName:null
+            },
+            dataType: 'json',
+            success: function (res) {
+                console.log("获取物 流公司列表数据", res);
+                state_response(res);
+                $("#shippingWayIdAddSelect").append(template('option-shippingWayId', res));
+                add_shipping_schedule_form.render();
+            }
+        });
+
+        add_shipping_schedule_form.on('select(wmsIdAddSelect)', function(data){
+            var wmsId =  data.value;
+            var shippingWayId = $("#shippingWayIdAddSelect").find("option:selected").val();
+            if(wmsId != "" && shippingWayId != ""){
+                getTemplate(wmsId,shippingWayId,add_shipping_schedule_form);
+            }
+        });
+
+        add_shipping_schedule_form.on('select(shippingWayIdAddSelect)', function(data){
+            var shippingWayId =  data.value;
+            var wmsId=$("#wmsIdAddSelect").find("option:selected").val();
+            if(wmsId != "" && shippingWayId != ""){
+                getTemplate(wmsId,shippingWayId,add_shipping_schedule_form);
+            }
+        });
+
+        //监听提交
+        add_shipping_schedule_form.on('submit(addElementForm)', function (data) {
+            var field =  data.field;
+
+            if(!field.templateId){
+                layer.msg("模板ID为空，请选择仓库与物流线路",{icon:2});
+                return;
+            }
+
+            $.ajax({
+                type: 'POST',
+                url: "/tms/shippingSchedule/add",
+                data: data.field,
+                dataType: 'json',
+                success: function (res) {
+                    console.log("新增元素返回值", res);
+                    if(res.code==='NOTICE') {
+                        layer.close(add_shipping_schedule_index); //此时你只需要把获得的index，轻轻地赋予layer.close即可
+                        add_shipping_schedule_table.reload('demo');
+                        layer.msg('新增成功', {icon: 1});
+                    }else{
+                        layer.msg(res.desc,{icon:2});
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                }
+            });
+            return false;
+        });
+    });
+
+    function getTemplate(wmsId,shippingWayId,form){
+        $.ajax({
+            type: 'POST',
+            url: "/tms/allocationTemplate/query",
+            data:{
+                wmsId:wmsId,
+                shippingWayId:shippingWayId,
+                statr:1,
+                limit:1000
+            },
+            dataType: 'json',
+            success: function (res) {
+                console.log("获取模板信息数据", res);
+                state_response(res);
+                if(res.code==='OK') {
+                    var item = res.item;
+                    if(item == null){
+                        $('#shippingWayIdAddSelect option[value=""]').prop("selected", "selected");
+                        $('#wmsIdAddSelect option[value=""]').prop("selected", "selected");
+                        layer.msg("选择的仓库与物流线路没有关联模板数据,请重新选择",{icon:2});
+                        $('input[name=\'templateId\']').val(null);
+                    }else{
+                       var templateInfo  =  item[0];
+                        $('input[name=\'templateId\']').val(templateInfo.id);
+                        $('input[name=\'generalCargoNum\']').val(templateInfo.generalCargoNum);
+                        $('input[name=\'specialCargoNum\']').val(templateInfo.specialCargoNum);
+                        $('input[name=\'cargoNum\']').val(templateInfo.cargoNum);
+                        $('input[name=\'eachSpecialNum\']').val(templateInfo.eachSpecialNum);
+                        $('input[name=\'eachGeneralNum\']').val(templateInfo.eachGeneralNum);
+                        $('input[name=\'eachCargoNum\']').val(templateInfo.eachCargoNum);
+                        $('input[name=\'sorted\']').val(templateInfo.sorted);
+                        queryShippingWayStoreRelData(wmsId,shippingWayId,form);
+                    }
+                    form.render();
+                }else{
+                    layer.msg(res.desc,{icon:2});
+                }
+            }
+        });
+
+    }
+
+    function queryShippingWayStoreRelData(wmsId,shippingWayId,form){
+        $.ajax({
+            type: 'POST',
+            url: '/tms/shippingStoreRel/query',
+            data: {
+                shippingWayId:shippingWayId,
+                wmsId:wmsId
+            },
+            dataType: 'json',
+            success: function (res) {
+                if(res.code==='OK') {
+                    if(res.item){
+                        var shippingWayStoreRel =  res.item[0];
+                        if (shippingWayStoreRel.expressSheetType == 0){
+                            $("input[name='eachCargoNum']").prop("disabled",null);
+                            $("input[name='cargoNum']").prop("disabled",null);
+                            $("input[name='eachCargoNum']").prop("lay-verify","required|number|positiveNumber");
+                            $("input[name='cargoNum']").prop("lay-verify","required|number|positiveNumber");
+
+                            $("input[name='eachGeneralNum']").prop("disabled",'disabled');
+                            $("input[name='eachspecialNum']").prop("disabled",'disabled');
+                            $("input[name='generalCargoNum']").prop("disabled",'disabled');
+                            $("input[name='specialCargoNum']").prop("disabled",'disabled');
+
+                            $("input[name='eachGeneralNum']").prop("lay-verify","required|number");
+                            $("input[name='eachSpecialNum']").prop("lay-verify","required|number");
+                            $("input[name='generalCargoNum']").prop("lay-verify","required|number");
+                            $("input[name='specialCargoNum']").prop("lay-verify","required|number");
+
+                        }else{
+                            if (shippingWayStoreRel.allowedProductType == 0){
+                                $("input[name='eachGeneralNum']").prop("disabled",null);
+                                $("input[name='eachSpecialNum']").prop("disabled",null);
+                                $("input[name='generalCargoNum']").prop("disabled",null);
+                                $("input[name='specialCargoNum']").prop("disabled",null);
+                                $("input[name='eachGeneralNum']").prop("lay-verify","required|number|positiveNumber");
+                                $("input[name='eachSpecialNum']").prop("lay-verify","required|number|positiveNumber");
+                                $("input[name='generalCargoNum']").prop("lay-verify","required|number|positiveNumber");
+                                $("input[name='specialCargoNum']").prop("lay-verify","required|number|positiveNumber");
+
+                            }else  if (shippingWayStoreRel.allowedProductType == 1){
+                                $("input[name='eachGeneralNum']").prop("disabled",null);
+                                $("input[name='generalCargoNum']").prop("disabled",null);
+
+                                $("input[name='eachGeneralNum']").prop("lay-verify","required|number|positiveNumber");
+                                $("input[name='generalCargoNum']").prop("lay-verify","required|number|positiveNumber");
+
+                            }else  if (shippingWayStoreRel.allowedProductType == 2){
+                                $("input[name='eachSpecialNum']").prop("disabled",null);
+                                $("input[name='specialCargoNum']").prop("disabled",null);
+
+                                $("input[name='eachSpecialNum']").prop("lay-verify","required|number|positiveNumber");
+                                $("input[name='specialCargoNum']").prop("lay-verify","required|number|positiveNumber");
+
+                            }
+                            $("input[name='eachCargoNum']").prop("disabled",'disabled');
+                            $("input[name='cargoNum']").prop("disabled",'disabled');
+                            $("input[name='eachCargoNum']").prop("lay-verify","required|number");
+                            $("input[name='cargoNum']").prop("lay-verify","required|number");
+                        }
+                    }else{
+                        $('#shippingWayIdAddSelect option[value=""]').prop("selected", "selected");
+                        $('#wmsIdAddSelect option[value=""]').prop("selected", "selected");
+                        layer.msg("选择的仓库与物流线路没有关联,请重新选择",{icon:2});
+                    }
+                }else{
+                    $('#shippingWayIdAddSelect option[value=""]').prop("selected", "selected");
+                    $('#wmsIdAddSelect option[value=""]').prop("selected", "selected");
+                    layer.msg("查询仓库物流线路关系失败",{icon:2});
+                }
+                form.render();
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+            }
+        });
+
+    }
+
+</script>
+
+<script id="option-shippingWayId" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.shippingWayName}}</option>
+    {{/each}}
+</script>

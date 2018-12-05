@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FSM EntityName="TakeStock" EntityDao="TakeStockMapper" ParentEntityName="">
+
+	<States>
+		<State Name="start" Description="开始">
+			<Event Name="create" Description="创建" DstState="waitAudit" After="takeStockCreateAfter"/>
+		</State>
+
+		<State Name="waitAudit" Description="待审核">
+			<Event Name="firstAuditPass" Description="初审通过" DstState="waitFinanceAudit" After="takeStockPassFirstAfter"/>
+			<Event Name="rejectFirst" Description="初审不通过" DstState="rebutFirst" After="takeStockRejectFirstAfter"/>
+		</State>
+
+		<State Name="rebutFirst" Description="初审驳回">
+		</State>
+
+		<State Name="waitFinanceAudit" Description="待财务复核">
+			<Event Name="passFinance" Description="财务复核通过" DstState="auditPass" After="takeStockPassFinanceAfter"/>
+			<Event Name="rejectFinance" Description="财务复核不通过" DstState="rebutForFinance" After="takeStockRejectFinanceAfter"/>
+		</State>
+
+		<State Name="rebutForFinance" Description="财务驳回">
+		</State>
+
+		<State Name="auditPass" Description="已完成">
+		</State>
+
+	</States>
+
+</FSM>

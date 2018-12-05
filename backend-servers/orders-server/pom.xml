@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.stosz.erp</groupId>
+		<artifactId>backend-servers</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>orders-server</artifactId>
+	<packaging>war</packaging>
+	<name>orders-server【订单子系统】</name>
+	<url>http://maven.apache.org</url>
+	
+
+	<dependencies>
+
+
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>com.stosz.erp</groupId>
+			<artifactId>tms-ext</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.maxmind.geoip2</groupId>
+			<artifactId>geoip2</artifactId>
+		</dependency>
+
+
+        <dependency>
+            <groupId>com.github.pagehelper</groupId>
+            <artifactId>pagehelper</artifactId>
+        </dependency>
+		<dependency>
+			<groupId>com.stosz.erp</groupId>
+			<artifactId>store-ext</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.stosz.erp</groupId>
+			<artifactId>product-ext</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.stosz.erp</groupId>
+			<artifactId>orders-ext</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<finalName>orders-server</finalName>
+	</build>
+</project>

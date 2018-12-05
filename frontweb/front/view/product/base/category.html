@@ -1,0 +1,1089 @@
+<link rel="stylesheet" href="/layui/css/layui.css" media="all">
+<br>
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space30">
+        <br>
+        <div style="margin-top: 14px" class="layui-col-md3 margin-l-30 border1ccc ">
+            <div id="tree_wrap">
+            </div>
+        </div>
+
+        <div class="layui-col-md7 margin-l-70" id="category_detail_tpl">
+
+        </div>
+    </div>
+
+
+</div>
+
+
+<script type="text/javascript">
+
+    layui.use(['tree', 'form', 'layer', 'table', 'element'], function () {
+        var category_layer = layui.layer;
+        var category_form = layui.form;
+        var category_element = layui.element;
+        var global_tree;
+        var category_table = layui.table;
+        var category_index;
+        var category_tab;
+        var category_list;
+        category_updateTree(category_form, category_table);
+
+        //修改分类名称
+        category_form.on('submit(category_update_btn)', function (data) {
+            $.ajax({
+                type: 'POST',
+                url: "/product/base/category/update",
+                dataType: 'json',
+                data: data.field,
+                success: function (res) {
+                    state_response(res);
+                    if (res.code === 'FAIL') {
+                        layer.msg(res.desc, {icon: 2});
+                    }
+                    category_updateTree(category_form, category_table);
+                }
+            })
+        });
+
+        //添加子类弹窗
+        category_form.on('submit(category_add_children)', function (data) {
+            category_index = category_addChildren(data);
+        });
+        //品类语言包
+        category_form.on('submit(category_language)', function (obj) {
+            categoryLanguage(obj);
+        });
+
+        //添加子类按钮
+        category_form.on('submit(category_add_btn)', function (data) {
+            $.ajax({
+                type: 'POST',
+                url: "/product/base/category/add",
+                dataType: 'json',
+                data: data.field,
+                success: function (res) {
+                    state_response(res);
+                    if (res.code === 'FAIL') {
+                        layer.msg(res.desc, {icon: 2});
+                    } else {
+                        layer.close(category_index);
+                        category_updateTree(category_form, category_table);
+                        category_table.reload('category_table_filter');
+                    }
+                }
+            })
+        });
+
+        //模糊搜索按钮
+        category_form.on('submit(category_search)', function (data) {
+            category_table.reload('category_table_filter', {
+                where: {
+                    name: data.field.name
+                } //设定异步数据接口的额外参数
+                , page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+            });
+        });
+
+        //删除，移动
+        //监听工具条
+        category_table.on('tool(category_table_filter)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            var layEvent = obj.event; //获得 lay-event 对应的值
+            if (layEvent === 'del') {
+                category_del(obj);
+                category_updateTree(category_form, category_table);
+            } else if (layEvent === 'move') {
+                $.ajax({
+                    type: 'POST'
+                    , url: '/product/base/category/query'
+                    , dataType: 'json'
+                    , success: function (res) {
+                        category_index = category_move(obj, category_index, category_form, res);
+                    }
+                });
+
+            }
+        });
+
+        //移动按钮提交的监听
+        category_form.on('submit(category_move_btn)', function (data) {
+            $.ajax({
+                type: 'POST'
+                , url: '/product/base/category/move'
+                , dataType: 'json'
+                , data: data.field
+                , success: function (res) {
+                    state_response(res);
+                    if (res.code === 'FAIL') {
+                        layer.msg(res.desc, {icon: 2});
+                    } else {
+                        layer.msg(res.desc, {icon: 3});
+                        layer.close(category_index);
+                        category_updateTree(category_form, category_table);
+                        category_table.reload('category_table_filter');
+                    }
+                }
+            })
+        });
+
+        //属性详情页面的搜索提交监听
+        category_form.on('submit(category_attribute_search)', function (data) {
+            category_table.reload('category_attribute_table', {
+                where: {
+                    title: data.field.title,
+                    bindIs: data.field.bindIs,
+                    categoryId: data.field.categoryId
+                }
+            })
+        });
+
+        //监听绑定和解绑属性
+        category_form.on('switch(bindIsDemo)', function (obj) {
+            console.log("--------->checkbox" + this.value + "》" + this.name + ">" + obj.elem.checked);
+            var url = '/product/base/attribute/bindingCategory';
+            if (!obj.elem.checked) {
+                url = '/product/base/attribute/unBindingCategory';
+            }
+            $.ajax({
+                url: url
+                , type: 'POST'
+                , dataType: 'json'
+                , data: {
+                    attributeId: obj.value
+                    , categoryId: this.name
+                    , bindIs: obj.elem.checked
+                }
+                , success: function (res) {
+                    state_response(res);
+                    if (res.code === 'FAIL') {
+                        layer.msg(res.desc, {icon: 2});
+                    }
+                    //todo
+                }
+            })
+        });
+
+        //新增品类属性
+        category_form.on('submit(category_attribute_add)', function (obj) {
+            category_index = layer.open({
+                type: 1
+                , title: '新增属性'
+                , content: $('#category_attribute_add_demo').html() //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , area: '22%'
+            });
+        });
+
+        //监听提交新增属性
+        category_form.on('submit(category_attribute_add_submit)', function (data) {
+            $.ajax({
+                type: 'POST'
+                , url: '/product/base/attribute/add'
+                , dataType: 'json'
+                , data: {
+                    title: data.field.title
+                }
+                , success: function (res) {
+                    state_response(res);
+                    if (res.code === 'FAIL') {
+                        layer.msg(res.desc, {icon: 2});
+                    } else {
+                        layer.close(category_index);
+                        category_table.reload('category_attribute_table');
+                    }
+                }
+            })
+        });
+
+        //监听品类属性表的操作
+        category_table.on('tool(category_attribute_table_filter)', function (obj) {
+            var event = obj.event;
+            switch (event) {
+                case 'attribute_lang_add':
+//                    attribute_lang_add(obj, category_index, category_form);
+                    break;
+                case 'attribute_show':
+                    category_tab = attribute_show(category_element,category_tab,obj,category_table);
+                    break;
+                case 'attribute_delete':
+                    attribute_delete(obj);
+                    break;
+                case 'attribute_lang_show':
+                     attribute_lang_show(obj, category_index);
+                     break;
+            }
+        });
+
+//        //属性的修改
+//        category_table.on('edit(category_attribute_table_filter)', function(obj){
+//            var data = obj.data; //获得当前行数据
+//            $.ajax({
+//                type : 'POST',
+//                url : "/product/base/attribute/update",
+//                data: {
+//                    id: data.id,
+//                    title: data.title
+//                },
+//                dataType : 'json',
+//                success : function(res){
+//                    if(res.code === 'NOTICE'){
+//                        category_layer.msg('修改成功', {icon: 1});
+//                    }else{
+//                        category_layer.msg(res.desc, {icon: 2});
+//                        category_table.reload('attributeId');
+//                    }
+//                }
+//            });
+//        });
+
+        //属性的修改
+        category_table.on('edit(category_attribute_table_filter)', function(obj){
+            var data = obj.data; //获得当前行数据
+            $.ajax({
+                type : 'POST',
+                url : "/product/base/attribute/update",
+                data: {
+                    id: data.id,
+                    title: data.title
+                },
+                dataType : 'json',
+                success : function(res){
+                    if(res.code === 'NOTICE'){
+                        category_layer.msg('修改成功', {icon: 1});
+                    }else{
+                        category_layer.msg(res.desc, {icon: 2});
+                        category_table.reload('category_attribute_table');
+                    }
+                }
+            });
+        });
+
+        //属性值的修改
+        category_table.on('edit(category_attribute_value_table)', function(obj){
+            var data = obj.data; //获得当前行数据
+            $.ajax({
+                type : 'POST',
+                url : "/product/base/attributeValue/update",
+                data: {
+                    id: data.id,
+                    title: data.title,
+                    attributeId: data.attributeId
+                },
+                dataType : 'json',
+                success : function(res){
+                    if(res.code === 'NOTICE'){
+                        category_layer.msg('修改成功', {icon: 1});
+                    }else{
+                        category_layer.msg(res.desc, {icon: 2});
+                        category_table.reload('category_attribute_value_table');
+                    }
+                }
+            });
+        });
+
+
+//语言包
+//        category_form.on('submit(category_attribute_lang_add_submit)', function (data) {
+//            $.ajax({
+//                type: 'POST'
+//                , url: '/product/base/attributeLang/add'
+//                , data: data.field
+//                , success: function (res) {
+//                    state_response(res);
+//                    if (res.code === 'FAIL') {
+//                        layer.msg(res.desc, {icon: 2});
+//                    } else {
+//                        layer.close(category_index);
+//                        category_table.reload('category_attribute_table_filter');
+//                    }
+//                }
+//            })
+//        });
+//语言包
+//        category_form.on('submit(category_attribute_value_lang_add_submit)', function (data) {
+//            $.ajax({
+//                type: 'POST'
+//                , url: '/product/base/attributeValueLang/add'
+//                , data: data.field
+//                , success: function (res) {
+//                    state_response(res);
+//                    if (res.code === 'FAIL') {
+//                        layer.msg(res.desc, {icon: 2});
+//                    } else {
+//                        layer.close(category_index);
+//                        category_table.reload('category_attribute_value_table');
+//                    }
+//                }
+//            })
+//        });
+
+        category_form.on('submit(category_attribute_value_add)', function (data) {
+            console.log(data.field);
+            category_index = layer.open({
+                type: 1
+                , title: '新增属性值'
+                , content: template('category_attribute_value_add_demo', data.field) //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , area: '22%'
+            });
+        });
+
+        category_form.on('submit(category_attribute_value_add_submit)',function (data) {
+            $.ajax({
+                type: 'POST'
+                , url: '/product/base/attributeValue/add'
+                , data: data.field
+                , success: function (res) {
+                    state_response(res);
+                    if (res.code === 'FAIL') {
+                        layer.msg(res.desc, {icon: 2});
+                    } else {
+                        layer.close(category_index);
+                        category_table.reload('category_attribute_value_table');
+                    }
+                }
+            })
+        });
+
+        category_table.on('tool(category_attribute_value_table)',function (obj) {
+            console.log(obj);
+            var event = obj.event;
+            switch (event) {
+                case 'add':
+//                    attribute_value_lang_add(obj, category_index, category_form);
+                    break;
+                case 'show':
+                    category_tab = attribute_value_lang_show(category_element,category_tab,obj,category_table);
+                    break;
+                case 'del':
+                    layer.confirm('确认删除该属性值么?', function (category_del_index) {
+                        obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
+                        layer.close(category_del_index);
+                        //向服务端发送删除指令
+                        $.ajax({
+                            type: 'POST',
+                            url: "/product/base/attributeValue/delete",
+                            data: {
+                                attributeValueId: obj.data.id
+                            },
+                            dataType: 'json',
+                            success: function (res) {
+                                state_response(res);
+                                if (res.code === 'FAIL') {
+                                    layer.msg(res.desc, {icon: 2});
+                                }
+                            }
+                        });
+                    });
+                    break;
+            }
+        })
+
+    });
+
+    //品类语言包
+    function categoryLanguage(obj){
+        $.ajax({
+            trpe: "GET",
+            url: "/product/base/categoryLang/findByCategoryId",
+            dataType: 'json',
+            data: {
+                categoryId: obj.field.id
+            },
+            success: function (res) {
+                if (res.code === 'OK'){
+                    //language_api, add_api, dele_api, update_api, obj_data, obj_data_id
+                    multi_lang_operation("/product/base/language/find",
+                        "/product/base/categoryLang/add",
+                        "/product/base/categoryLang/delete",
+                        "/product/base/categoryLang/update",
+                        res, {categoryId: obj.field.id});
+                }
+            }
+        });
+    }
+
+    //加载树
+    function category_updateTree(form, category_table) {
+        $("#tree_wrap").html("<ul id='demo'></ul>");
+        $.ajax({
+            type: 'GET',
+            url: "/product/base/category/tree",
+            dataType: 'json',
+            success: function (res) {
+                console.log("请求菜单树", res);
+                state_response(res);
+                global_tree = layui.tree({
+                    elem: '#demo' //传入元素选择器
+                    , nodes: res.item.children
+                    , click: function (node) {
+                        console.log(window.product_lang_power);
+                        $("#category_detail_tpl").html(template('category_detail', node));
+                        if (node.leaf === false) {
+                            category_table.render({
+                                elem: '#category_table_filter'
+                                , method: 'POST'
+                                , even: true //开启隔行背景
+                                , page: true //关闭分页
+                                , url: "/product/base/category/nodeNameLike?parentId=" + node.id
+                                , cols: [[ //表头
+                                    {field: 'id', title: 'ID', sort: true, fixed: 'left'}
+                                    , {field: 'name', title: '名称'}
+                                    , {field: 'creator', title: '创建人'}
+                                    , {field: 'createAt', title: '创建时间'}
+                                    , {field: '', title: '是否末级', align: 'center', templet: '#leafTpl'}
+                                    , {field: '', fixed: 'right', title: '操作', align: 'center', toolbar: '#barDemo'} //这里的toolbar值是模板元素的选择器
+                                ]]
+                                , response: {
+                                    statusName: 'code' //数据状态的字段名称，默认：code
+                                    , statusCode: 'OK' //成功的状态码，默认：0
+                                    , msgName: 'desc' //状态信息的字段名称，默认：msg
+                                    , countName: 'total' //数据总数的字段名称，默认：count
+                                    , dataName: 'item' //数据列表的字段名称，默认：data
+                                }
+                            })
+                        } else {
+                            category_table.render({
+                                elem: '#category_attribute_table'
+                                , method: 'POST'
+                                , even: true //开启隔行背景
+                                , page: true //关闭分页
+                                , url: "/product/base/attribute/findList"
+                                , where: {
+                                    categoryId: node.id
+                                }
+                                , cols: [[ //表头
+                                    {field: 'id', title: 'ID', sort: true, fixed: 'left'}
+                                    , {field: 'title', title: '属性名称', edit: 'text'}
+                                    , {field: 'createAt', title: '创建时间'}
+                                    , {field: 'bindIs', title: '是否绑定', align: 'center', templet: '#attributeBindDemo'}
+                                    , {
+                                        field: '',
+                                        title: '语言包',
+                                        align: 'center',
+                                        width: '20%',
+                                        templet: '#attributeLangDemo'
+                                    } //这里的toolbar值是模板元素的选择器
+                                    , {
+                                        field: '',
+                                        fixed: 'right',
+                                        title: '操作',
+                                        align: 'center',
+                                        width: '20%',
+                                        toolbar: '#attributeFixDemo'
+                                    } //这里的toolbar值是模板元素的选择器
+                                ]]
+                                , response: {
+                                    statusName: 'code' //数据状态的字段名称，默认：code
+                                    , statusCode: 'OK' //成功的状态码，默认：0
+                                    , msgName: 'desc' //状态信息的字段名称，默认：msg
+                                    , countName: 'total' //数据总数的字段名称，默认：count
+                                    , dataName: 'item' //数据列表的字段名称，默认：data
+                                }
+                            });
+                            form.render('select');
+                        }
+
+                    }
+                });
+            }
+        });
+    }
+
+    //跳出子类添加的弹窗
+    function category_addChildren(data, category_index) {
+        category_index = layer.open({
+            type: 1
+            , title: '新增子类'
+            , content: template('category_addChildren_tpl', data.field) //注意，如果str是object，那么需要字符拼接。
+            , maxmin: true
+            , area: '22%'
+        });
+        return category_index;
+    }
+
+    //删除
+    function category_del(obj) {
+        layer.confirm('确认删除该子类么?', function (category_del_index) {
+//            obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
+            layer.close(category_del_index);
+            //向服务端发送删除指令
+            $.ajax({
+                type: 'POST',
+                url: "/product/base/category/delete",
+                data: {
+                    id: obj.data.id
+                },
+                dataType: 'json',
+                success: function (res) {
+                    if (res.code === 'NOTICE'){
+                        obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
+                    }
+                    state_response(res);
+                }
+            });
+        })
+    }
+
+    //跳出移动分类的弹窗
+    function category_move(obj, category_index, form, category_list) {
+        category_index = layer.open({
+            type: 1
+            , title: '移动分类'
+            , content: template('category_move_tpl', obj.data) //注意，如果str是object，那么需要字符拼接。
+            , maxmin: true
+            , area: ['25%', '50%']
+        });
+        $("#category_autocomplete").append(template('category_option_tpl', category_list));
+        form.render(); //刷新select选择框渲染
+        return category_index;
+    }
+
+    //新增语言包
+    function attribute_lang_add(obj,category_index,category_form) {
+
+        category_index = layer.open({
+            type: 1
+            , title: '新增语言包'
+            , content: template('category_attribute_lang_add_demo', obj.data) //注意，如果str是object，那么需要字符拼接。
+            , maxmin: true
+            , area: ['25%', '40%']
+            , success: function () {
+                $.ajax({
+                    type: 'POST'
+                    , url: '/product/base/language/find'
+                    , dataType: 'json'
+                    , success: function (res) {
+                        console.log(res.item);
+                        $('#attribute_lang_select').append(template('attribute_lang_option', res));
+                        category_form.render('select');
+                    }
+                });
+            }
+        });
+
+        return category_index;
+    }
+
+    //新增值语言包
+    function attribute_value_lang_add(obj,category_index,category_form) {
+
+        category_index = layer.open({
+            type: 1
+            , title: '新增语言包'
+            , content: template('category_attribute_value_lang_add_demo', obj.data) //注意，如果str是object，那么需要字符拼接。
+            , maxmin: true
+            , area: ['25%', '40%']
+            , success: function () {
+                $.ajax({
+                    type: 'POST'
+                    , url: '/product/base/language/find'
+                    , dataType: 'json'
+                    , success: function (res) {
+                        console.log(res.item);
+                        $('#attribute_value_lang_select').append(template('attribute_lang_option', res));
+                        category_form.render('select');
+                    }
+                });
+            }
+        });
+
+        return category_index;
+    }
+
+    //查看属性值
+    function attribute_show(category_element,category_tab,obj,category_table) {
+        //新增一个Tab项
+        console.log(category_tab);
+//        if(category_tab !== undefined){
+            category_element.tabDelete('demo','attribute_value_tab');
+//        }
+        category_tab =  category_element.tabAdd('demo', {
+            title: '【'+obj.data.title+'】属性值管理' //用于演示
+            ,content: template('category_attribute_value_tpl',obj.data)
+            ,id: 'attribute_value_tab'//实际使用一般是规定好的id，这里以时间戳模拟下
+        });
+        category_table.render({
+            elem: '#category_attribute_value_table'
+            , method: 'POST'
+            , even: true //开启隔行背景
+            , page: true //关闭分页
+            , url: "product/base/attributeValue/findByAttributeId?attributeId=" + obj.data.id
+            , cols: [[ //表头
+                {field: 'id', title: 'ID', sort: true, fixed: 'left'}
+                , {field: 'title', title: '名称',edit:'text'}
+                , {field: 'createAt', title: '创建时间'}
+                , {field: '', fixed: 'right', title: '操作', align: 'center', toolbar: '#categoryAttributeValueDemo'} //这里的toolbar值是模板元素的选择器
+            ]]
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+        });
+        category_tab.render('category_attribute_value_table');
+        category_element.tabChange('demo','attribute_value_tab');
+        return category_tab;
+    }
+
+    //查看属性语言包
+    function attribute_lang_show(obj) {
+        if(obj.data.attributeLangs === null ){
+            return false;
+        }
+        layer.open({
+            type: 1,
+            shade: false,
+            title: false,
+            time: 1000,//不显示标题
+            content: template('category_attributeLangTips', obj.data) //捕获的元素，注意：最好该指定的元素要存放在body最外层，否则可能被其它的相对元素所影
+        });
+    }
+
+    //查看属性值语言包
+    function attribute_value_lang_show(obj) {
+        if(obj.data.attributeValueLangs === null ){
+            return false;
+        }
+        layer.open({
+            type: 1,
+            shade: false,
+            title: false,
+            time: 1000,//不显示标题
+            content: template('category_attributeValueLangTips', obj.data) //捕获的元素，注意：最好该指定的元素要存放在body最外层，否则可能被其它的相对元素所影
+        });
+    }
+
+    //删除属性
+    function attribute_delete(obj) {
+        layer.confirm('确认删除该子类么?', function (category_del_index) {
+            obj.del(); //删除对应行（tr）的DOM结构，并更新缓存
+            layer.close(category_del_index);
+            //向服务端发送删除指令
+            $.ajax({
+                type: 'POST',
+                url: "/product/base/attribute/delete",
+                data: {
+                    id: obj.data.id
+                },
+                dataType: 'json',
+                success: function (res) {
+                    state_response(res);
+                    if (res.code === 'FAIL') {
+                        layer.msg(res.desc, {icon: 2});
+                    }
+                }
+            });
+        })
+    }
+
+
+</script>
+
+<!--弹出分类详情的模板-->
+<script type="text/html" id="category_detail">
+    <div class="layui-row border1ccc">
+        <div class="layui-form layui-form-pane margin-l-30">
+            <br>
+            <div class="layui-form-item">
+                <label class="layui-form-label">名称：</label>
+                <div class="layui-input-inline">
+                    <input value="{{name}}" type="text" name="name" required lay-verify="required" placeholder=""
+                           autocomplete="off" class="layui-input">
+                </div>
+                <label class="layui-form-label">品类ID</label>
+                <div class="layui-input-inline">
+                    <input value="{{id}}" type="text" name="id" disabled lay-verify="required"
+                           class="layui-input layui-disabled">
+                    <input value="{{usable}}" type="hidden" name="usable" disabled lay-verify="required"
+                           class="layui-input layui-disabled">
+                    <input value="{{leaf}}" type="hidden" name="leaf" disabled lay-verify="required"
+                           class="layui-input layui-disabled">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">品类编号</label>
+                <div class="layui-input-inline">
+                    <input value="{{no}}" type="text" name="no" disabled lay-verify="required"
+                           class="layui-input layui-disabled">
+                </div>
+                <label class="layui-form-label">上级id</label>
+                <div class="layui-input-inline">
+                    <input value="{{parentId}}" name="parentId" type="text" disabled lay-verify="required"
+                           class="layui-input layui-disabled">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <div>
+                    {{ if($imports.$window.product_write_power) }}
+                    <button class="layui-btn float-l" lay-submit lay-filter="category_update_btn"><i class="layui-icon">&#xe642;</i>修改名称</button>
+                    <button class="layui-btn layui-btn-normal" lay-submit lay-filter="category_add_children"><i class="layui-icon">&#xe654;</i>新增子类</button>
+                    {{/if}}
+                    {{ if($imports.$window.product_lang_power) }}
+                    <button class="layui-btn" lay-submit lay-filter="category_language"><i class="layui-icon">&#xe60b;</i>语言包查看</button>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="margin-top: 50px;" class="layui-row border1ccc">
+        {{if !leaf}}
+        <div class="layui-form layui-form-pane margin-l-30">
+            <br>
+            <div class="layui-form-item">
+                <label class="layui-form-label">关键词：</label>
+                <div class="layui-input-inline">
+                    <input value="" type="text" name="name" placeholder=""
+                           autocomplete="off" class="layui-input">
+                </div>
+                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="category_search">模糊搜索</button>
+            </div>
+        </div>
+
+
+        <div>
+            <table id="category_table_filter" lay-filter="category_table_filter"></table>
+        </div>
+        {{else}}
+        <div class="layui-tab" style="margin-top: 0px" lay-filter="demo">
+            <ul class="layui-tab-title">
+                <li class="layui-this" lay-id="11">属性列表</li>
+            </ul>
+            <div class="layui-tab-content">
+                <div class="layui-tab-item layui-show">
+                    <div class="layui-form layui-form-pane margin-l-30">
+                        <br>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">属性名称：</label>
+                            <div class="layui-input-inline">
+                                <input value="" type="text" name="title" placeholder=""
+                                       autocomplete="off" class="layui-input">
+                            </div>
+                            <label class="layui-form-label">是否绑定：</label>
+                            <div class="layui-input-inline">
+                                <select name="bindIs" id="bindIs">
+                                    <option value="">不限</option>
+                                    <option value="true">已绑定</option>
+                                    <option value="false">未绑定</option>
+                                </select>
+                            </div>
+                            <input type="hidden" name="categoryId" value="{{id}}"/>
+                            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="category_attribute_search">搜索</button>
+                            {{ if($imports.$window.product_write_power) }}
+                            <button class="layui-btn layui-btn" lay-submit lay-filter="category_attribute_add">新增属性</button>
+                            {{/if}}
+                        </div>
+                    </div>
+
+
+                    <div>
+                        <table id="category_attribute_table" lay-filter="category_attribute_table_filter"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{/if}}
+    </div>
+</script>
+
+<!--table中按钮模板-->
+<script type="text/html" id="barDemo">
+    {{# if(window.product_write_power){ }}
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="move" style="text-align: center;">移动</button>
+    <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del" style="text-align: center;">删除</button>
+    {{#  } }}
+</script>
+
+<!--新增子类弹出框模板-->
+<script type="text/html" id="category_addChildren_tpl">
+    <div class="layui-row margin-l-30">
+        <div class="layui-form layui-form-pane margin-l-30">
+            <br>
+            <div class="layui-form-item">
+                <label class="layui-form-label">上级名称</label>
+                <div class="layui-input-inline">
+                    <input value="{{name}}" type="text" disabled lay-verify="required"
+                           class="layui-input layui-disabled">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">父级id</label>
+                <div class="layui-input-inline">
+                    <input value="{{id}}" type="text" name="parentId" disabled lay-verify="required"
+                           class="layui-input layui-disabled">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">名称：</label>
+                <div class="layui-input-inline">
+                    <input value="" type="text" name="name" required lay-verify="required" placeholder=""
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="float-r" style="margin-right: 60px;">
+                    <button class="layui-btn layui-btn-normal float-l" lay-submit lay-filter="category_add_btn">
+                        确认
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<!--将状态转换为中文的模板-->
+<script type="text/html" id="leafTpl">
+    {{#  if(d.leaf === true){ }}
+    <span style="color: #F581B1;">是</span>
+    {{#  } else { }}
+    <span>否</span>
+    {{#  } }}
+</script>
+
+<!--移动子类弹出框模板-->
+<script type="text/html" id="category_move_tpl">
+    <div class="layui-row margin-l-30">
+        <div class="layui-form layui-form-pane margin-l-30">
+            <br>
+            <div class="layui-form-item">
+                <label class="layui-form-label">ID</label>
+                <div class="layui-input-inline">
+                    <input value="{{id}}" type="text" name="currentCategoryId" disabled lay-verify="required"
+                           class="layui-input layui-disabled">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">名称</label>
+                <div class="layui-input-inline">
+                    <input value="{{name}}" type="text" disabled lay-verify="required"
+                           class="layui-input layui-disabled">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">移动到：</label>
+                <div class="layui-input-inline">
+                    <select name="targetCategoryId" lay-search id="category_autocomplete">
+                        <option value="">输入自动完成</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="float-r" style="margin-right: 60px;">
+                    <button class="layui-btn layui-btn-normal float-l" lay-submit lay-filter="category_move_btn">
+                        确认
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<!--品类下拉的模板-->
+<script id="category_option_tpl" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.name}}</option>
+    {{/each}}
+</script>
+
+<!--属性table的语言包-->
+<script id="attributeLangDemo" type="text/html">
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="attribute_lang_show" style="text-align: center;">
+        <i class="layui-icon">&#xe615;</i>
+        查看
+    </button>
+    <button class="layui-btn layui-btn-xs layui-btn" lay-event="attribute_lang_add" style="text-align: center;">
+        <i class="layui-icon">&#xe654;</i>
+        新增
+    </button>
+    <!--{{#  layui.each(d.attributeLangs, function(index, item){ }}-->
+    <!--<li>-->
+    <!--<span class="layui-bg-gray layui-btn-xs" >{{ item.langName }}: {{item.name}}</span>-->
+    <!--</li>-->
+    <!--{{#  }); }}-->
+</script>
+
+<!--属性语言包的tips-->
+<script id="category_attributeLangTips" type="text/html">
+    <div style="width: 200px;background-color: #5FB878">
+            {{each attributeLangs value index}}
+            <li style="margin-left: 10px; color: #fff; font-family: Arial">
+                {{ value.langName }}: {{value.name}}
+            </li>
+            {{/each }}
+    </div>
+</script>
+
+<!--属性值语言包的tips-->
+<script id="category_attributeValueLangTips" type="text/html">
+    <div style="width: 200px;background-color: #5FB878">
+        {{each attributeValueLangs value index}}
+        <li style="margin-left: 10px; color: #fff; font-family: Arial">
+            {{ value.langName }}: {{value.name}}
+        </li>
+        {{/each }}
+    </div>
+</script>
+
+<!--属性表单操作按钮-->
+<script id="attributeFixDemo" type="text/html">
+    {{# if(window.product_write_power){ }}
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="attribute_show" style="text-align: center;"><i
+            class="layui-icon">&#xe615;</i>属性值
+    </button>
+    <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="attribute_delete" style="text-align: center;">
+        <i class="layui-icon">&#xe640;</i>
+        删除
+    </button>
+    {{# } }}
+</script>
+
+<!--绑定属性的demo-->
+<script id="attributeBindDemo" type="text/html">
+    <input type="checkbox" name="{{d.categoryId}}" value="{{d.id}}" lay-skin="switch" lay-text="是|否"
+           lay-filter="bindIsDemo" {{ d.bindIs ? 'checked' : '' }}>
+</script>
+
+<!--新增属性的模板-->
+<script id="category_attribute_add_demo" type="text/html">
+    <div class="layui-form layui-form-pane margin-l-30">
+        <br>
+        <div class="layui-form-item">
+            <label class="layui-form-label">名称：</label>
+            <div class="layui-input-inline">
+                <input value="" type="text" name="title" required lay-verify="required" placeholder=""
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-inline" style="float: right;">
+                <button class="layui-btn layui-btn" lay-submit lay-filter="category_attribute_add_submit"
+                        style="text-align: center;">确认
+                </button>
+            </div>
+        </div>
+    </div>
+</script>
+
+<!--新增属性语言包的模板-->
+<script id="category_attribute_lang_add_demo" type="text/html">
+    <div class="layui-form layui-form-pane margin-l-30">
+        <br>
+        <div class="layui-form-item">
+            <label class="layui-form-label">语言：</label>
+            <div class="layui-input-inline">
+                <select name="langCode" id="attribute_lang_select" lay-filter="attribute_lang_select">
+                    <option value="">请选择</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">名称：</label>
+            <div class="layui-input-inline">
+                <input value="" type="text" name="title" required lay-verify="required" placeholder=""
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item margin-t-30">
+            <div class="layui-input-inline" style="float: right;">
+                <input name="attributeId" type="hidden" value="{{id}}"/>
+                <button class="layui-btn layui-btn" lay-submit lay-filter="category_attribute_lang_add_submit"
+                        style="text-align: center;">确认
+                </button>
+            </div>
+        </div>
+    </div>
+</script>
+
+<!--新增属性值语言包的模板-->
+<script id="category_attribute_value_lang_add_demo" type="text/html">
+    <div class="layui-form layui-form-pane margin-l-30">
+        <br>
+        <div class="layui-form-item">
+            <label class="layui-form-label">语言：</label>
+            <div class="layui-input-inline">
+                <select name="langCode" id="attribute_value_lang_select" lay-filter="attribute_value_lang_select">
+                    <option value="">请选择</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">名称：</label>
+            <div class="layui-input-inline">
+                <input value="" type="text" name="title" required lay-verify="required" placeholder=""
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item margin-t-30">
+            <div class="layui-input-inline" style="float: right;">
+                <input name="attributeId" type="hidden" value="{{id}}"/>
+                <button class="layui-btn layui-btn" lay-submit lay-filter="category_attribute_value_lang_add_submit"
+                        style="text-align: center;">确认
+                </button>
+            </div>
+        </div>
+    </div>
+</script>
+
+<!--属性语言包的模板-->
+<script id="attribute_lang_option" type="text/html">
+    {{each item value index}}
+    <option value="{{value.langCode}}">{{value.name}}</option>
+    {{/each}}
+</script>
+
+<!--属性值的模板-->
+<script id="category_attribute_value_tpl" type="text/html">
+    <div class="layui-tab-item layui-show">
+        <div class="layui-form layui-form-pane margin-l-30">
+            <br>
+            <div class="layui-form-item">
+                <input type="hidden" name="attributeId" value="{{id}}"/>
+                <button class="layui-btn layui-btn" lay-submit lay-filter="category_attribute_value_add">新增属性值
+                </button>
+            </div>
+        </div>
+        <div>
+            <table id="category_attribute_value_table" lay-filter="category_attribute_value_table"></table>
+        </div>
+    </div>
+</script>
+
+<!--table中按钮模板-->
+<script type="text/html" id="categoryAttributeValueDemo">
+    <button class="layui-btn layui-btn-xs layui-btn" lay-event="show" style="text-align: center;">查看语言包</button>
+    <button class="layui-btn layui-btn-xs layui-btn-normal" lay-event="add" style="text-align: center;">新增语言包</button>
+    <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del" style="text-align: center;">删除</button>
+</script>
+
+<!--新增属性值的模板-->
+<script id="category_attribute_value_add_demo" type="text/html">
+    <div class="layui-form layui-form-pane margin-l-30">
+        <br>
+        <div class="layui-form-item">
+            <label class="layui-form-label">名称：</label>
+            <div class="layui-input-inline">
+                <input value="" type="text" name="title" required lay-verify="required" placeholder=""
+                       autocomplete="off" class="layui-input">
+                <input value="{{attributeId}}" type="hidden" name="attributeId" required lay-verify="required" placeholder=""
+                       autocomplete="off" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-inline" style="float: right;">
+                <button class="layui-btn layui-btn" lay-submit lay-filter="category_attribute_value_add_submit"
+                        style="text-align: center;">确认
+                </button>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+

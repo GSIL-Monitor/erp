@@ -1,0 +1,212 @@
+<br>
+<div class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">日期:</label>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" id="scheduleDate" name="scheduleDate" >
+        </div>
+        <label class="layui-form-label">物流线路:</label>
+        <div class="layui-input-inline">
+            <select name="shippingWayId" id="shippingWayIdSelect">
+                <option value="">请选择</option>
+            </select>
+        </div>
+        <label class="layui-form-label" >选择仓库:</label>
+        <div class="layui-input-inline">
+            <select name="wmsId" lay-search id="wmsIdSelect">
+                <option value=" ">不限</option>
+            </select>
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn" lay-submit lay-filter="position_search">搜索</button>
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn layui-btn-warm" onclick="addShippingSchedule()">
+                <i class="layui-icon">&#xe608;</i> 新增
+            </button>
+        </div>
+    </div>
+</div>
+<table id="demo" lay-filter="test"></table>
+
+
+<script>
+    var add_shipping_schedule_index,schedule_data,window_index,edit_shipping_schedule_index = false;
+    layui.use(['layer', 'table', 'element', 'form','laydate'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0,{time:5*1000});
+        var table = layui.table;
+        var form = layui.form;
+        var laydate = layui.laydate;
+
+        store_wmsId_option('wmsIdSelect');
+
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#scheduleDate'//指定元素
+        });
+
+        tms_shippingWayId_option("shippingWayIdSelect");
+
+        table.render({
+            elem: '#demo'
+            , id: 'demo'
+            , url: '/tms/shippingSchedule/query' //数据接口
+            , method: 'post'
+            ,height: 'full-150' //高度最大化减去差值
+            , done: function (res, curr, count) {
+                var element = layui.element;
+                element.init();
+                layer.close(index);
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , page: true //开启分页
+            , cols: [[ //表头
+                 {field: 'scheduleDate', title: '日期',width:120}
+                ,{field: 'shippingWayName', title: '物流线路名称'}
+                ,{field: 'wmsName', title: '仓库'}
+                , {field: 'generalCargoNum', title: '每日可配数量(普货|特货|所有)',templet:'#cargoNumRender',width:220}
+                , {field: 'todayGeneraNum', title: '今日已配数量(普货|特货|所有)',templet:'#todayNumRender',width:220}
+                , {field: 'eachGeneralNum', title: '每次可配数量(普货|特货|所有)',templet:'#eachNumRender',width:220}
+                , {field: 'onceGeneralNum', title: '单次已配数量(普货|特货|所有)',templet:'#onceNumRender',width:220}
+                , {field: 'eachCount', title: '已轮询次数'}
+                , {field: 'sorted', title: '优先顺序'}
+                , {field: 'enable', title: '状态',templet:'#enableRender'}
+                , {field: '', title: '操作', templet: '#operationDemo', align: 'center',fixed: 'right',width:220}
+            ]]
+        });
+        form.on('submit(position_search)', function(data){
+            table.reload('demo', {
+                where: {
+                    shippingWayId:data.field.shippingWayId,
+                    wmsId:data.field.wmsId,
+                    scheduleDate:data.field.scheduleDate
+                }    //设定异步数据接口的额外参数，任意设
+                , page: {
+                    page: 1 //重新从第 1 页开始
+                }
+            });
+            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+        });
+
+        table.on("tool(test)",function (obj){
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值  ）
+            schedule_data = data;
+            if (layEvent === 'position-enabled') { //启用
+                layer.confirm('你确定要启用该物流日程吗?', {icon: 3, title:'提示'}, function(index){
+                    //do something
+                    window_index = index;
+                    enditScheduleEnable(1);
+                },function(index){
+                    layer.close(index);
+                });
+            }else if (layEvent === 'position-disable') { //启用
+                layer.confirm('你确定要禁用该物流日程吗?', {icon: 3, title:'提示'}, function(index){
+                    window_index = index;
+                    enditScheduleEnable(2);
+                },function(index){
+                    layer.close(index);
+                });
+            } else if (layEvent === 'position-edit') { //启用
+                $.get('view/tms/allocation/edit_shippingSchedule.html', function(str){
+                    edit_shipping_schedule_index = layer.open({
+                        type: 1
+                        ,title :'编辑'
+                        ,content: str //注意，如果str是object，那么需要字符拼接。
+                        ,maxmin: true
+                        ,area: ['50%','80%']
+                    });
+                });
+            }
+        });
+
+    });
+    function enditScheduleEnable(enable){
+        var table = layui.table;
+        $.ajax({
+            type: 'PUT',
+            url: "/tms/shippingSchedule/updateEnable",
+            data:{
+                id:schedule_data.id,
+                enable:enable
+            },
+            dataType: 'json',
+            success: function (res) {
+                console.log("更新元素返回值", res);
+                if(res.code==='NOTICE') {
+                    table.reload('demo');
+                    layer.msg('更新物配额状态成功', {icon: 1});
+                }else{
+                    layer.msg(res.desc,{icon:2});
+                }
+                layer.close(window_index);
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+            }
+        });
+
+    }
+
+</script>
+
+
+<script type="text/javascript">
+    function addShippingSchedule(){
+        $.get('view/tms/allocation/add_shippingSchedule.html', function(str){
+            add_shipping_schedule_index = layer.open({
+                type: 1
+                ,title :'新增'
+                ,content: str //注意，如果str是object，那么需要字符拼接。
+                ,maxmin: true
+                ,area: ['50%','80%']
+            });
+        });
+    }
+</script>
+
+
+<script type="text/html" id="cargoNumRender">
+    {{#  if(d.generalCargoNum != null ){ }}
+        {{d.generalCargoNum}} | {{d.specialCargoNum}} | {{d.cargoNum}}
+    {{#  } }}
+</script>
+<script type="text/html" id="todayNumRender">
+    {{#  if(d.todayGeneralNum != null ){ }}
+        {{d.todayGeneralNum}} | {{d.todaySpecialNum}} | {{d.todayCargoNum}}
+    {{#  } }}
+</script>
+<script type="text/html" id="eachNumRender">
+    {{#  if(d.eachGeneralNum != null ){ }}
+        {{d.eachGeneralNum}} | {{d.eachSpecialNum}} | {{d.eachCargoNum}}
+    {{#  } }}
+</script>
+<script type="text/html" id="onceNumRender">
+    {{#  if(d.onceGeneralNum != null ){ }}
+        {{d.onceGeneralNum}} | {{d.onceSpecialNum}} | {{d.onceCargoNum}}
+    {{#  } }}
+</script>
+
+<script type="text/html" id="enableRender">
+    {{#  if(d.enable==1){ }}
+    <a>启用</a>
+    {{#  } else if(d.enable==2) { }}
+    <a>禁用</a>
+    {{#  } }}
+</script>
+
+
+<script type="text/html" id="operationDemo">
+    {{#  if(d.enable==1){ }}
+    <a class="layui-btn layui-btn-xs" lay-event="position-disable">禁用</a>
+    {{#  } else if(d.enable==2) { }}
+    <a class="layui-btn layui-btn-xs" lay-event="position-enabled">启用</a>
+    {{#  }  }}
+    <a class="layui-btn layui-btn-xs" lay-event="position-edit">编辑</a>
+</script>

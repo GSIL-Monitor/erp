@@ -1,0 +1,162 @@
+<style type="text/css">
+    td > .layui-table-cell {
+        height: 100px;
+        line-height: 28px;
+        padding: 0 15px;
+        position: relative;
+        overflow-y: auto;
+    }
+</style>
+<script id="invalidItemTpl" type="text/html">
+    <form class="layui-form ">
+        <div class="layui-form-item">
+            <label class="layui-form-label">报废单号</label>
+            <label class="layui-form-mid">{{ id }}</label>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">仓库</label>
+            <label class="layui-form-mid">{{ stockName }}</label>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">报废类型</label>
+            <label class="layui-form-mid">{{ invalidTypeEnum.display }}</label>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">费用计算</label>
+            <div class="layui-form-mid">{{ calculateTypeEnum.display }}</div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">报废总价</label>
+            <label class="layui-form-mid">{{ invalidTotal }}</label>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">备注</label>
+            <label class="layui-form-mid">{{ memo }}</label>
+        </div>
+
+        <div class="layui-form-item" id="sto_inv_item_add">
+            <button class="layui-btn layui-btn-normal margin-l-111" lay-submit lay-filter="btnImp">批量导入</button>
+        </div>
+
+        <label class="layui-form-label">报废明细</label>
+
+        <table id="invalidItemTplTable" lay-filter="invalidItemTplTable"></table>
+
+    </form>
+</script>
+<form class="layui-form " id="invalidItemTplFrom"></form>
+
+<script type="text/html" id="sto_invalidItem_option">
+    <form class="layui-form">
+        {{# if(window.transit_invalid_edit == true && d.state == 'draft'){ }}
+        <button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="delete">删除</button>
+        {{# } }}
+    </form>
+</script>
+
+<script type="text/html" id="tra-inv-attr-tpl">
+    {{#  layui.each(d.spuList, function(index, item){ }}
+    <div><a href="javascript:;" class="layui-table-link">{{item.innerTitle}}</a></div>
+    {{#  layui.each(item.skuList, function(index, item){ }}
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;{{item.sku}}&nbsp;&nbsp;{{item.attr}}&nbsp;<span class="text-red">x</span>&nbsp;{{item.qty}}
+    </div>
+    {{#  }); }}
+    {{#  }); }}
+</script>
+
+<script type="text/javascript">
+    layui.use(['form', 'layer', 'table'], function () {
+        var layer = layui.layer;
+        var inv_item_form = layui.form;
+        var inv_item_table = layui.table;
+
+        if (window.transit_invalid_edit == true && sto_invalid_itemReq.state=='draft') {
+            $('#sto_inv_item_add').show();
+        }
+
+        inv_item_form.render();
+
+        console.log('sto_invalid_itemReq:' + JSON.stringify(sto_invalid_itemReq));
+        $("#invalidItemTplFrom").html(template('invalidItemTpl', sto_invalid_itemReq));
+
+        var inv_item_tab=inv_item_table.render({
+            elem: '#invalidItemTplTable'
+            , url: '/store/invalid/getDetail' //数据接口
+            , method: 'post'
+            , where: sto_invalid_itemReq
+            , page: true //开启分页
+            , even: true  //开启隔行背景
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , cols: [[ //表头
+                {width: 80, type: 'numbers'}
+                , {field: 'trackingNoOld', title: '原运单号', width: 80}
+                , {field: 'logisticsNameOld', title: '物流', width: 80}
+                , {field: 'deptName', title: '部门', width: 80}
+                , {field: 'innerName', title: '产品名', width: 80}
+                , {field: 'spu', title: 'SPU', width: 80}
+                , {templet: '#tra-inv-attr-tpl', title: '属性值', width: 200, height: 200}
+                , {field: 'sku', title: 'SKU', width: 80}
+                , {field: 'storageLocal', title: '库位', width: 80}
+                , {field: 'storageAge', title: '库龄（天）', width: 120}
+                , {
+                    title: '操作',
+                    templet: '#sto_invalidItem_option',
+                    fixed: 'right',
+                    width: 250,
+                    align: 'center'
+                }
+            ]]
+        });
+
+        //批量导入
+        inv_item_form.on('submit(btnImp)', function (data) {
+            invalidAddTrack();
+            return false;
+        });
+
+        //监听工具条
+        inv_item_table.on('tool(invalidItemTplTable)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+            console.log('obj:' + JSON.stringify(obj));
+
+            if (layEvent === 'delete') {
+                console.log('into delete...');
+                postAjax('store/invalid/deleteItem', data.id);
+                inv_item_tab.reload({where:sto_invalid_itemReq});
+            }
+        });
+
+        function postAjax(url, data) {
+            $.ajax({
+                type: 'POST',
+                url: url,
+                dataType: 'json',
+                data: {id: data},
+                success: function (res) {
+                    state_response(res);
+                    sto_invalid_tab.reload({
+                        where: sto_invalid_tab_query
+                    });
+                    layer.msg('操作成功');
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    layer.msg('操作失败，请重试');
+                }
+            });
+        }
+    });
+
+</script>

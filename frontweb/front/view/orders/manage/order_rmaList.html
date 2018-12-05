@@ -1,0 +1,584 @@
+<style type="text/css">
+    td > .layui-table-cell {
+        line-height: 28px;
+        padding: 0 15px;
+        position: relative;
+        overflow: unset;
+        text-overflow: unset;
+        white-space: unset;
+        box-sizing: border-box;
+    }
+
+    .more_btngroup > .layui-nav-item {
+        line-height: 30px;
+    }
+
+    .more_btngroup > .layui-nav-item > .layui-nav-child {
+        top: 32px;
+    }
+
+    #importM p {
+        line-height: 22px;
+    }
+
+    .fail_box {
+        height: 400px;
+        overflow: auto;
+    }
+</style>
+<br>
+<form class="layui-form" action="" id="changeForm">
+    <div class="layui-form-item">
+        <label class="layui-form-label">站点来源</label>
+        <div class="layui-input-inline">
+            <input type="text" name="webUrl" placeholder="站点来源" autocomplete="off" class="layui-input">
+        </div>
+        <label class="layui-form-label">退货单状态</label>
+        <div class="layui-input-inline">
+            <select name="rmaStatusEnum">
+                <option value="">不限</option>
+            </select>
+        </div>
+        <label class="layui-form-label">类型</label>
+        <div class="layui-input-inline">
+            <select name="changeTypeEnum">
+                <option value="">不限</option>
+            </select>
+        </div>
+        <label class="layui-form-label">是否回收</label>
+        <div class="layui-input-inline">
+            <select name="recycleGoodsEnum">
+                <option value="">不限</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">售后来源</label>
+        <div class="layui-input-inline">
+            <select name="rmaSourceEnum">
+                <option value="">不限</option>
+            </select>
+        </div>
+        <label class="layui-form-label">申请时间</label>
+        <div class="layui-input-inline">
+            <input type="hidden" name="applyStartTime" id="applyStartTime">
+            <input type="hidden" name="applyEndTime" id="applyEndTime">
+            <input type="text" class="layui-input" name="applyTime" id="applyTime" placeholder="申请时间">
+        </div>
+        <label class="layui-form-label">退货原因</label>
+        <div class="layui-input-inline">
+            <select name="changeReasonEnum">
+                <option value="">不限</option>
+            </select>
+        </div>
+        <label class="layui-form-label">取件物流</label>
+        <div class="layui-input-inline">
+            <select name="logisticId" id="logisticId">
+                <option value="">不限</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">更多条件</label>
+        <div class="layui-input-inline">
+            <select name="condition_name">
+                <option value="">请选择</option>
+                <option value="rmaId">退货单编号</option>
+                <option value="orderId">订单流水号</option>
+                <option value="merchantOrderNo">网站订单号</option>
+            </select>
+        </div>
+        <div class="layui-input-inline">
+            <input type="text" name="condition_keyword" placeholder="" autocomplete="off" class="layui-input">
+        </div>
+
+        <!--用于按钮显示-->
+        <div id="button_area">
+            <button class="layui-btn" lay-submit lay-filter="searchForm"><i class="layui-icon">&#xe615;</i>搜索</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+
+        <script type="text/html" id="button_module">
+            {{#  if(window.order_rma_batch_create == true){ }}
+            <button type="button" class="layui-btn layui-btn-normal" id="bathApplyChange"><i
+                    class="layui-icon">&#xe67c;</i>批量创建退货申请单
+            </button>
+            <a href="/orders/aftersale/exportTemplate" class="layui-btn"><i class="layui-icon">&#xe601;</i>下载模板</a>
+            {{#  } }}
+            {{#  if(window.order_rma_batch_import == true){ }}
+            <button type="button" class="layui-btn layui-btn-normal" style="margin-left: 10px" lay-submit
+                    lay-filter="btn_import"><i class="layui-icon">&#xe638;</i>批量导入寄回运单号
+            </button>
+            {{#  } }}
+            {{#  if(window.order_rma_export == true){ }}
+            <button class="layui-btn" lay-submit lay-filter="btn_export"><i class="layui-icon">&#xe629;</i>申请单导出
+            </button>
+            {{#  } }}
+        </script>
+
+
+    </div>
+</form>
+
+<table id="orderChangeTable" lay-filter="orderChangeTable" style="overflow-x: auto;"></table>
+<!--批量退换货申请模态框 begin-->
+<div style="display:none">
+    <div id="bathApplyModel" style="width: 90%; margin-top: 20px">
+        <form class="layui-form" action="">
+            <div class="layui-form-item">
+                <label class="layui-form-label"><span style="color:#FF0000;">*</span>类型</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="changeType" value="0" title="退货" checked="">
+                    <input type="radio" name="changeType" value="1" title="换货">
+                </div>
+            </div>
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label"><span style="color:#FF0000;">*</span>导入内容</label>
+                <div class="layui-input-block">
+                    <textarea name="content" lay-verify="required" placeholder="从Excel中复制运单号、原因"
+                              style="height: 250px;width: 90%;" class="layui-textarea"></textarea>
+                </div>
+            </div>
+            <div class="layui-form-item" style="width: 91%;">
+                <label class="layui-form-label"><span style="color:#FF0000;">*</span>来源</label>
+                <div class="layui-input-block">
+                    <select name="sourceType" lay-verify="required">
+                        <option value=""></option>
+                        <option value="0">问题件</option>
+                        <option value="1">物流自退</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-submit lay-filter="batchApplySubmit">确定</button>
+                    <button type="button" class="layui-btn layui-btn-primary" id="cancelAndCloseModel"
+                            onclick="closeModel()">取消
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="inputModule" style="display: none;">
+    <div class="layui-row" style="padding: 20px;">
+        <div class="layui-col-sm7">
+            <form class="layui-form">
+                <div class="layui-form-item layui-form-text">
+                    <!--<div class="layui-input-block">-->
+                    <textarea name="content" lay-verify="required" placeholder="请从Excel中复制退换货申请单号、订单流水号、寄回运单号"
+                              class="layui-textarea" style="height: 500px;"></textarea>
+                    <!--</div>-->
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block" style="text-align: center;">
+                        <button class="layui-btn" lay-submit lay-filter="inputSubmit">导入</button>
+                        <button type="button" class="layui-btn layui-btn-primary"
+                                onclick="layer.close(inputModule);">取消
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="layui-col-sm5" id="importResult" style="padding-left: 20px;">
+            <p style="color: red">操作技巧：</p>
+            <p>按住ctrl键，可以直接在excel多选数据列</p>
+        </div>
+    </div>
+</div>
+
+
+<form method="post" action="orders/aftersale/exportFiledImport" hidden id="exportFailExcelForm">
+    <input name="key" type="hidden" value="">
+</form>
+
+<!--退货单状态  begin-->
+<script id="OrdersRmaStateEnumModule" type="text/html">
+    {{each ordersRmaStateEnum value index}}
+    <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>
+<!--退货单状态  end-->
+
+<!--退货单类型  begin-->
+<script id="ChangeTypeEnumModule" type="text/html">
+    {{each changeTypeEnum value index}}
+    <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>
+<!--退货单类型态  end-->
+
+<!--是否回收  begin-->
+<script id="RecycleGoodsEnumModule" type="text/html">
+    {{each recycleGoodsEnum value index}}
+    <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>
+<!--是否回收  end-->
+
+<!--售后来源  begin-->
+<script id="RmaSourceEnumModule" type="text/html">
+    {{each rmaSourceEnum value index}}
+    <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>
+<!--售后来源  end-->
+
+<!--退货原因  begin-->
+<script id="ChangeReasonEnumModule" type="text/html">
+    {{each changeReasonEnum value index}}
+    <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>
+<!--退货原因  end-->
+
+<script type="text/html" id="rmaSourceEnum">
+    {{d.rmaSourceEnum.display}}
+</script>
+
+<script type="text/html" id="changeTypeEnum">
+    {{d.changeTypeEnum.display}}
+</script>
+
+<script type="text/html" id="rmaStatusTpl">
+    {{d.rmaStatusEnum.display}}
+</script>
+
+
+<script type="text/html" id="recycleGoodsEnum">
+    {{d.recycleGoodsEnum.display}}
+</script>
+
+
+<!--批量退换货申请模态框 end-->
+<script type="text/html" id="barChange">
+    <a class="layui-btn layui-btn-xs" lay-event="detail"><i class="layui-icon">&#xe615;</i>查看</a>
+    {{# if (window.order_rma_edit == true && (d.rmaStatusEnum.name == 'draft'|| d.rmaStatusEnum.name == 'reject') && d.changeTypeEnum.name == 'returned'){ }}
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit"><i class="layui-icon">&#xe642;</i>编辑</a>
+    {{# } }}
+    {{# if (window.order_rma_cancel == true && (d.rmaStatusEnum.name == 'draft' || d.rmaStatusEnum.name == 'reject'|| d.rmaStatusEnum.name == 'waitDelivery' ) && d.changeTypeEnum.name == 'returned'){ }}
+    <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="cancel"><i class="layui-icon">&#x1006;</i>取消</a>
+    {{# } }}
+    {{# if (window.order_rma_approve == true && d.rmaStatusEnum.name == 'waitAudit' && d.changeTypeEnum.name == 'returned'){ }}
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="approve"><i class="layui-icon">&#xe609;</i>审核</a>
+    {{# } }}
+    {{# if (window.order_rma_modify == true && d.rmaStatusEnum.name == 'waitDelivery' && d.changeTypeEnum.name == 'returned'){ }}
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="modify"><i class="layui-icon">&#xe642;</i>修改运单号</a>
+    {{# } }}
+</script>
+
+<script type="text/html" id="imgeDetail">
+    <a class="layui-btn layui-btn-xs" lay-event="voucher"><i class="layui-icon">&#xe615;</i>查看</a>
+</script>
+
+<script id="ImportResultModule" type="text/html">
+    <p>一共导入 {{totalCount}} 条</p>
+    <p>处理成功 {{successCount}} 条</p>
+    <p>处理失败 <span style="color: red;">{{failCount}}</span> 条</p>
+    <br>
+    {{if failList.length > 0}}
+    <p>失败退换货申请单号：</p>
+    <div class="fail_box">
+        {{each failList value index}}
+        <p><span style="color: red;">{{value.transNo}}</span><span
+                style="padding-left: 16px;">{{value.failReason}}</span>
+        </p>
+        {{/each}}
+    </div>
+    {{/if}}
+</script>
+
+<script>
+    var applyModelIndex;
+    var rmaId = "";
+    var queryParam = "";
+    layui.use(['layer', 'table', 'element', 'form', 'laydate', 'upload', 'laytpl'], function () {
+        var laydate = layui.laydate;
+        var layer = layui.layer;
+        var table_obj = "";
+        var laytpl = layui.laytpl;
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#applyTime' //指定元素
+            , type: 'datetime'
+            , range: '~' //或 range: '~' 来自定义分割字符
+        });
+        var table = layui.table;
+        tms_shippingWayId_option('logisticId');
+        var upload = layui.upload;
+
+        //导入、导出按钮模板渲染
+        laytpl(button_module.innerHTML).render({}, function (html) {
+            document.getElementById('button_area').innerHTML += html;
+        });
+
+        //创建一个上传组件
+        upload.render({
+            elem: '#bathApplyChange'
+            , url: '/orders/aftersale/bathApplyChange'
+            , accept: 'file'
+            , exts: "xls|xlsx"
+            , done: function (res, index, upload) { //上传后的回调F
+                state_response(res);
+                if (res.success) {
+                    table.reload('demo');
+                    layer.msg('导入execl成功', {icon: 1});
+
+                } else {
+                    // layer.msg(res.desc + '- key:' + res.item, {icon: 2});
+                    layer.confirm('<h3 style="text-align: center;margin-top: 16px;">成功1000条，失败<span style="color: red;">100</span>条</h3>', {
+                        btn: ['失败记录下载'],
+                        btnAlign: 'c',
+                        title: false
+                    }, function () {
+
+                        console.log("res", res.item.failListKey);
+                        var exporForm = $('<form></form>');
+                        exporForm.attr('action', 'orders/aftersale/exportFiledImport');
+                        exporForm.attr('method', 'post');
+                        var input_key = $('<input type="text" name="key" />');
+                        input_key.val(res.item.failListKey);
+                        exporForm.append(input_key);
+                        exporForm.appendTo('body').submit();
+
+                        layer.close(layer.index);
+                    });
+                }
+            }
+        })
+
+        // 枚举
+        $.ajax({
+            type: 'GET',
+            url: "/orders/common/enumList",
+            dataType: 'json',
+            success: function (res) {
+                state_response(res);
+                $("select[name='rmaStatusEnum']").append(template('OrdersRmaStateEnumModule', res.item));
+                $("select[name='changeTypeEnum']").append(template('ChangeTypeEnumModule', res.item));
+                $("select[name='recycleGoodsEnum']").append(template('RecycleGoodsEnumModule', res.item));
+                $("select[name='rmaSourceEnum']").append(template('RmaSourceEnumModule', res.item));
+                $("select[name='changeReasonEnum']").append(template('ChangeReasonEnumModule', res.item));
+                form.render();
+            }
+        });
+
+        table_obj = table.render({
+            elem: '#orderChangeTable'
+            , id: 'orderChangeTable'
+            , url: '/orders/aftersale/find' //数据接口
+            , method: 'post'
+            , height: 'full-270' //高度最大化减去差值
+            , done: function (res, curr, count) {
+                var element = layui.element;
+                element.init();
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , page: true //开启分页
+            , limit: 20
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , cols: [[ //表头
+                {align: 'center', field: 'id', title: '退货单编号', width: 100}
+                , {align: 'center', field: 'ordersId', title: '订单流水号', width: 100}
+                , {align: 'center', field: 'logisticName', title: '发货物流', width: 100}
+                , {align: 'center', field: 'refundId', title: '退款单号', width: 100}
+                , {align: 'center', field: 'webUrl', title: '站点来源', width: 180}
+                , {align: 'center', field: '', title: '售后来源', templet: '#rmaSourceEnum', width: 100}
+                , {align: 'center', field: '', title: '查看凭证', templet: '#imgeDetail', width: 100}
+                , {align: 'center', field: '', templet: '#rmaStatusTpl', title: '状态', width: 100}
+                , {align: 'center', field: '', templet: '#changeTypeEnum', title: '类型', width: 100}
+                , {align: 'center', field: '', templet: '#recycleGoodsEnum', title: '是否回收', width: 120}
+                , {align: 'center', field: 'refundAmount', title: '金额', width: 100}
+                , {align: 'center', field: 'applyTime', title: '申请时间', width: 180}
+                , {align: 'center', field: 'applyUserName', title: '申请人', width: 100}
+                , {align: 'center', field: 'checkUserName', title: '审核人', width: 100}
+                , {align: 'center', field: 'checkTime', title: '审核时间', width: 180}
+                , {
+                    align: 'center',
+                    field: '',
+                    title: '操作',
+                    templet: '#barChange',
+                    width: 300,
+                    heigth: 80,
+                    fixed: 'right'
+                }
+            ]]
+        });
+
+        //监听工具条
+        table.on('tool(orderChangeTable)', function (obj) { //注：tool是工具条事件名，orderChangeTable是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+
+            if (layEvent === 'detail') { //查看详情
+                rmaId = data.id;
+                pageType = 'detail';
+                openDetailPage("详情");
+            } else if (layEvent === 'cancel') { //取消
+                rmaId = data.id;
+                pageType = "cancel";
+                openDetailPage("取消");
+            } else if (layEvent === 'approve') { //审批
+                rmaId = data.id;
+                pageType = 'approve';
+                openDetailPage("审批");
+            } else if (layEvent === 'modify') { //修改
+                rmaId = data.id;
+                pageType = 'modify';
+                openDetailPage("修改运单号");
+            } else if (layEvent === 'voucher') {
+                //查看凭证
+                $.getJSON('/orders/aftersale/voucher?rmaId=' + data.id, function (json) {
+                    if (json.item.data != null && json.item.data != undefined && json.item.data.length > 0) {
+                        $.each(json.item.data, function (index, item) {
+                            json.item.data[index].src = window.product_img_host + json.item.data[index].src;
+                        })
+                    }
+                    layer.photos({
+                        photos: json.item
+                        , anim: 5
+                        , closeBtn: 1
+                    });
+                });
+            } else if (layEvent === 'edit') {//编辑
+                rmaId = data.id;
+                rmaShowType = 'edit';
+                $.get('view/orders/manage/component/rma_comp.html', function (str) {
+                    rmaIndex = layer.open({
+                        type: 1
+                        , title: '编辑退货单据'
+                        , content: str //注意，如果str是object，那么需要字符拼接。
+                        , maxmin: true
+                        , shadeClose: true
+                        , area: ['75%', '85%']
+                        , success: function (layero, index) {
+                            layero.find('.layui-btn').css('text-align', 'right');
+                        }
+                    });
+                });
+            }
+        });
+
+        var form = layui.form;
+        form.render();
+        //监听查询
+        form.on('submit(searchForm)', function (data) {
+            var condition_name = data.field.condition_name;
+            queryParam[condition_name] = $.trim(data.field.condition_keyword);
+            queryParam = data.field;
+            var showTimearray = queryParam.applyTime.split("~");
+            queryParam.applyStartTime = $.trim(showTimearray[0]);
+            queryParam.applyEndTime = $.trim(showTimearray[1]);
+            var condition_name = data.field.condition_name;
+            queryParam[condition_name] = $.trim(data.field.condition_keyword);
+            //上述方法等价于
+            table_obj.reload({
+                where: queryParam    //设定异步数据接口的额外参数，任意设
+                , page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+            });
+            return false;
+        });
+
+        //监听导入
+        form.on('submit(btn_import)', function (data) {
+            //绑定批量退货弹出一个模态框
+            inputModule = layer.open({
+                id: 'importM',
+                type: 1,
+                title: '寄回运单号批量导入',
+                area: ['1000px', '700px'],
+                // resize: false,
+                shadeClose: true, //点击遮罩关闭
+                content: $("#inputModule").html()
+            });
+            return false;
+        });
+
+        //监听导入提交
+        form.on('submit(inputSubmit)', function (data) {
+            $.ajax({
+                type: 'POST',
+                url: "/orders/aftersale/import",
+                dataType: 'json',
+                data: data.field,
+                success: function (res) {
+                    if (res.success) {
+                        layer.msg("导入完成");
+                    } else {
+                        layer.msg(res.desc);
+                    }
+
+                    $('#importM #importResult').html(template('ImportResultModule', res.item));
+
+                },
+                error: function () {
+                    layer.msg("提交失败");
+                }
+            });
+
+            return false;
+        });
+
+        form.on('submit(btn_export)', function (data) {
+            var showTimeArray = data.field.applyTime.split("~");
+            document.getElementById("applyStartTime").value = $.trim(showTimeArray[0]);
+            document.getElementById("applyEndTime").value = $.trim(showTimeArray[1]);
+
+            var form = $('#changeForm');
+            form.attr("method", "POST");
+            form.attr("action", "/orders/aftersale/export");
+            return true;
+        });
+
+        form.on('submit(export)', function (data) {
+            new_obj = rft(data);
+            var form = document.forms[0];
+            form.method = 'POST';
+            form.action = '/orders/manage/order_question/export';
+            return true;
+        });
+    });
+
+    function closeModel() {
+        layer.close(applyModelIndex);
+    }
+
+    function openDetailPage(title) {
+        $.get('view/orders/manage/order_rma_detail.html', function (str) {
+            applyModelIndex = layer.open({
+                type: 1
+                , title: title
+                , content: str //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , shadeClose: true
+                , area: ['70%', '80%']
+            });
+        });
+    }
+
+    //扩展js的replace方法，让其有替换所有的功能
+    String.prototype.replaceAll = function (oldstring, newstring) {
+        return this.replace(new RegExp(oldstring, "gm"), newstring)
+    }
+
+</script>
+
+
+
+
+
+

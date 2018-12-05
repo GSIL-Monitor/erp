@@ -1,0 +1,161 @@
+*{
+	margin: 0;
+	padding: 0;
+}
+a{
+	text-decoration: none !important;
+}
+.text-center{
+	text-align: center;
+}
+.text-right{
+	text-align: right;
+}
+.layui-body{overflow-y: scroll;}
+.layui-table-cell{
+	white-space: normal !important;
+}
+.float-l{
+		float: left;
+}
+.float-r{
+		float: right;
+}
+.clear-float{
+		overflow: hidden;
+}
+.hide{
+	display: none;
+}
+.text-red{
+	color:red;
+}
+.padding-t10{
+	padding-top: 10px;
+}
+.border1ccc{
+	border: 1px solid #ccc;
+}
+.padding10{
+	padding: 10px;
+}
+.padding30{
+	padding: 30px;
+}
+.padding-l-30{
+	padding-left: 30px;
+}
+.padding-l-50{
+	padding-left: 50px;
+}
+.margin-l-30{
+	margin-left: 30px;
+}
+.margin-l-50{
+	margin-left: 50px;
+}
+.margin-l-70{
+	margin-left: 70px;
+}
+.margin-l-111{
+	margin-left: 111px;
+}
+.margin-t-3{
+	margin-top: 3px;
+}
+.margin-b-30{
+	margin-bottom: 30px; 
+}
+.margin20_0{
+	margin: 20px 0px;
+}
+.margin20{
+	margin: 20px;
+}
+.click_span{
+	cursor: pointer;
+}
+.fix-position{
+	position: fixed;
+}
+.posi-relative{
+	position: relative;
+}
+.width-percent50{
+	width: 50%;
+}
+.word_break{
+	word-break:break-all;
+}
+.width100{
+	width:100px;
+}
+.width180{
+	width:180px;
+}
+/*必填项左侧小红星*/
+.required_mark{
+	font-size: 22px;
+	vertical-align: -webkit-baseline-middle;
+	color: red;
+	margin-right: 5px;
+}
+
+
+
+
+/*输入自动完成组件start*/
+.auto_matchinput{
+    width: 150px;
+    line-height: 28px;
+}
+.auto_matchwrap{
+    width: 150px;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 2px;
+    line-height: 32px;
+    font-size: 14px;
+}
+.auto_matchwrap > p:hover{
+    background: #009688;
+    color: #fff;
+}
+/*输入自动完成组件end*/
+
+
+/*组件选择按钮start*/
+.componentchoose_btn{
+	position: absolute;
+    left: 196px;
+    top: 8px;
+    z-index: 999999;
+}
+.empty_inputbtn{
+    position: absolute;
+    left: 169px;
+    top: 10px;
+    z-index: 999999;
+    cursor: pointer;
+}
+/*//
+图片上传
+*/
+#upload_box{
+	width: 87.2%;
+	margin-left: 109px;
+	height: 100px;
+	border: 1px dashed #999;
+}
+#new_add_imageUpload{
+	width: 80.2%;
+	text-align: center;
+}
+.my_img{
+	width: 150px; height: 150px;
+}
+.ctrlv_tip{
+	text-align: center;
+	padding: 42px;
+}

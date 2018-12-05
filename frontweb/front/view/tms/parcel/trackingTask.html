@@ -1,0 +1,598 @@
+<style type="text/css">
+    /*td > .layui-table-cell {*/
+        /*height: 100px;*/
+        /*line-height: 28px;*/
+        /*padding: 0 15px;*/
+        /*position: relative;*/
+        /*overflow-y: auto;*/
+    /*}*/
+
+    .layui-form-select {
+        text-align: left;
+    }
+
+    .spu_show:after {
+        display: block;
+        content: "";
+        clear: both;
+    }
+
+    .orders_item_content h4 {
+        font-weight: bolder;
+    }
+
+    .more_btngroup {
+        display: inline-block;
+        padding: 0;
+    }
+
+    .more_btngroup > .layui-nav-item {
+        line-height: 30px;
+    }
+    #table_tb{
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    .more_btngroup > .layui-nav-item > .layui-nav-child {
+        top: 32px;
+    }
+
+    .layui-table-link {
+        cursor: pointer;
+        color: #01AAED;
+    }
+
+    .orders_item_content .border_lf_solid {
+        border-left: 1px solid rgb(174, 216, 255);
+        border-right: 1px solid rgb(174, 216, 255);
+    }
+
+    .readID {
+        display: none;
+    }
+
+    #this_page {
+        margin-top: 10px;
+        width: 49px;
+        height: 23px;
+        display: inline-block;
+        text-align: center;
+    }
+
+
+
+    .orders_btn_check, .orders_check_detail, .orders_item_content_detail {
+        float: left;
+    }
+
+    .orders_more_operate {
+        float: left;
+        margin-top: 10px;
+    }
+    .orders_item_content .adjust_height{
+        height: 150px;
+    }
+    .orders_item_content_detail {
+        box-sizing: border-box;
+        width: 20%;
+        padding-top: 10px;
+        padding-left: 20px;
+        height: 110px;
+    }
+
+    .orders_item:after, .orders_item_content:after {
+        content: "";
+        display: block;
+        clear: both;
+    }
+
+    .orders_item_content_val {
+        margin-right: 20px;
+    }
+
+    .detail_item1_key {
+        margin-right: 10px;
+    }
+
+    .detail_item1_value {
+        margin-right: 20px;
+    }
+
+    .bg_romatic {
+        background: #FF5722;
+        display: inline-block;
+        color: #fff;
+        padding: 2px 5px 2px 5px;
+        border-radius: 3px;
+    }
+
+    .orders_item {
+        background: #f2f2f2;
+        border: 1px solid #f2f2f2;
+        padding-bottom: 12px;
+        padding-top: 12px;
+    }
+    .orders_hover_bg{
+        background:rgb(174, 216, 255) ;
+        border: 1px solid rgb(174,216,255);
+    }
+    .orders_item_content.hover_border{
+        border: 1px solid rgb(174,216,255);
+    }
+    .orders_item_content {
+        margin-bottom: 26px;
+        border: 1px solid #f2f2f2;
+
+    }
+    .orders_item.orders_nomsg{
+        padding-bottom: 0;
+        padding-top: 0;
+    }
+    .orders_btn_check {
+        text-align: center;
+        padding: 10px;
+    }
+
+    .orders_check_detail {
+        margin-right: 20px;
+    }
+
+    .orders_check_detail_item2 {
+        margin-top: 5px;
+    }
+
+
+    .orders_item_content_custom {
+        float: left;
+        width: 40%;
+        height: 110px;
+        border-left:1px solid #F2F2F2 ;
+        border-right:1px solid #F2F2F2 ;
+        padding-left: 20px;
+        padding-top: 10px;
+        box-sizing: border-box;
+        padding-bottom: 10px;
+    }
+
+    .content_item {
+        margin-top: 5px;
+    }
+
+    .content_item:after {
+        content: '';
+        display: block;
+        clear: both;
+    }
+
+    .orders_item_content_busi {
+        height: 110px;
+        border-left:1px solid #F2F2F2 ;
+        padding-bottom: 10px;
+        float: left;
+        width: 20%;
+        padding-left: 20px;
+        padding-top: 10px;
+        box-sizing: border-box;
+    }
+
+    .orders_item_content_product {
+        padding-bottom: 10px;
+        width: 20%;
+        float: left;
+        height: 110px;
+        border-right:1px solid #F2F2F2;
+        padding-left: 20px;
+        padding-top: 10px;
+        box-sizing: border-box;
+    }
+
+    .orders_item_content_logistics {
+        height: 110px;
+        padding-bottom: 10px;
+        width: 20%;
+        float: left;
+        padding-left: 20px;
+        padding-top: 10px;
+        box-sizing: border-box;
+    }
+
+    .detail_item1_value {
+        margin-right: 20px;
+    }
+
+    .spu_unit_wrap {
+        height: 20px;
+        overflow: hidden;
+    }
+
+    .ellipsis_class {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 50%;
+    }
+
+    .show_spu_unitbtn {
+        position: absolute;
+        top: 1px;
+        left: 50%;
+    }
+
+    .product_hide {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        float: left;
+        width: 50%;
+    }
+
+    .sku_hide {
+        display: none;
+    }
+
+    .spu_unit_title:after {
+        content: '';
+        display: block;
+        clear: both;
+    }
+
+    .has_more_btn {
+        text-align: left;
+        width: 50%;
+        float: left;
+    }
+</style>
+<!--<style>
+    td > .layui-table-cell {
+        height: auto;
+        line-height: 28px;
+        padding: 0 15px;
+        position: relative;
+        overflow-y: auto;
+    }
+</style>-->
+<br>
+<div class="layui-form">
+    <div class="layui-form-item">
+        <label class="layui-form-label" >订单ID:</label>
+        <div class="layui-input-inline">
+            <input  type="text" name="orderId" autocomplete="off"
+                    class="layui-input">
+        </div>
+        <label class="layui-form-label" >运单号:</label>
+        <div class="layui-input-inline">
+            <input  type="text" name="trackNo" autocomplete="off"
+                    class="layui-input">
+        </div>
+
+        <label class="layui-form-label">轨迹接口：</label>
+        <div class="layui-input-inline">
+            <select name="apiCode" id="trackApiCodeSelect" lay-search>
+                <option value="">请选择</option>
+            </select>
+        </div>
+        
+        <label class="layui-form-label">物流线路:</label>
+        <div class="layui-input-inline">
+            <select name="shippingWayId" id="shippingWayIdSelect" lay-search>
+                <option value="">请选择</option>
+            </select>
+        </div>
+        <label class="layui-form-label">归类状态:</label>
+        <div class="layui-input-inline">
+            <select name="classifyCode" >
+                <option value="">请选择</option>
+                <option value="1">未上线</option>
+                <option value="2">退货</option>
+                <option value="3">派送失败</option>
+                <option value="4">拒收</option>
+                <option value="5">问题件</option>
+                <option value="6">配送中</option>
+                <option value="7">已签收</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"></label>
+        <div class="layui-input-inline">
+            <select name="timeType" >
+                <option value="1">上线时间</option>
+                <option value="2">配送时间</option>
+                <option value="3">拒收时间</option>
+                <option value="4">退货时间</option>
+                <option value="5">最后一次抓取时间</option>
+            </select>
+        </div>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="startTime" id="startTime">
+        </div>
+        <div class="layui-input-inline">
+            <input type="text" class="layui-input" name="endTime" id="endTime">
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn" lay-submit lay-filter="position_search">搜索</button>
+        </div>
+        <div class="layui-input-inline">
+            <button class="layui-btn layui-btn-warm" onclick="addTrackingTask()">
+                <i class="layui-icon">&#xe608;</i> 新增
+            </button>
+        </div>
+    </div>
+
+</div>
+<table id="demo" lay-filter="test"></table>
+<div class="layui-form" id="data_page">
+    <div class="layui-form-item">
+        <button class="layui-btn layui-btn-xs" style="margin-left: 5px" lay-submit lay-filter="btn_prev">前一页</button>
+        <span id="this_page">1</span>
+        <button class="layui-btn layui-btn-xs" lay-submit lay-filter="btn_next">后一页</button>
+    </div>
+</div>
+<script>
+    var add_tasl_index, trackling_data, task_detail_index, trackling_id_data = false;
+    //搜索条件
+    var searchParam = {};
+    layui.use(['layer', 'table', 'element', 'form', 'laydate'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0,{time:5*1000});
+        var table = layui.table;
+        var form = layui.form;
+
+        var laydate = layui.laydate;
+
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#startTime' //指定元素
+        });
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#endTime' //指定元素
+        });
+
+        // laydate.render();
+
+        $.ajax({
+            type: 'POST',
+            url: "/tms/trackApi",
+            data: {
+                limit:100000
+            },
+            dataType: 'json',
+            success: function (res) {
+                console.log("获取物 流公司列表数据", res);
+                state_response(res);
+                $("#trackApiCodeSelect").append(template('option-trackApiId-task', res));
+                form.render();
+            }
+        });
+
+        $.ajax({
+            type: 'POST',
+            url: "/tms/base/shippingway/query",
+            data: {
+                page:1,
+                limit:100000,
+                shippingWayName:null
+            },
+            dataType: 'json',
+            success: function (res) {
+                console.log("获取物 流公司列表数据", res);
+                state_response(res);
+                $("#shippingWayIdSelect").append(template('option-shippingWayId', res));
+                form.render();
+            }
+        });
+
+        table.render({
+            elem: '#demo'
+            , id: 'demo'
+            , url: '/tms/trackingTask/query' //数据接口
+            , method: 'post'
+            , data:{page:1,limit:10}
+//            , height: 'full-200' //高度最大化减去差值
+            , done: function (res, curr, count) {
+                var element = layui.element;
+                element.init();
+                layer.close(index);
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            ,page:false
+            , cols: [[ //表头
+                {field: 'trackNo', title: '运单号', templet: '#trackNoRender', width: 150, unresize: true}
+                , {field: 'shippingWayName', title: '物流线路', width: 100, unresize: true}
+                , {field: 'fetchCount', title: '抓取次数', width: 130, unresize: true}
+                , {field: 'trackStatus', title: '物流状态', templet: '#trackStatusRender', width: 120, unresize: true}
+                , {field: 'routineStatus', title: '程序归类状态', templet: '#routineStatusRender', width: 150, unresize: true}
+                , {
+                    field: 'classifyStatus',
+                    title: '归类状态 ',
+                    templet: '#classifyStatusRender',
+                    width: 150,
+                    unresize: true
+                }
+                , {field: 'onlineTime', title: '上线时间', width: 130, unresize: true}
+                , {field: 'pendingTime', title: '派单中的时间', width: 130, unresize: true}
+                , {field: 'rejectTime', title: '拒收时间', width: 130, unresize: true}
+                , {field: 'receiveTime', title: '签收时间', width: 130, unresize: true}
+                , {field: 'returnedTime', title: '退货时间', width: 130, unresize: true}
+                , {field: 'lastCaptureTime', title: '最后一次抓取时间', width: 130, unresize: true}
+                , {field: 'complete', title: '状态', templet: '#syncStatusRender', width: 100, unresize: true}
+                // , {field: '', title: '操作', templet: '#operationDemo', align: 'center',fixed: 'right',width:80}
+            ]]
+        });
+
+        table.on('tool(test)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+            trackling_data = data;
+            if (layEvent === 'position-detail') {
+                $.get('view/tms/parcel/trackingTaskDetailList.html', function (str) {
+                    task_detail_index = layer.open({
+                        type: 1
+                        ,title: '包裹轨迹'
+                        , content: str //注意，如果str是object，那么需要字符拼接。
+                        , maxmin: true
+                        ,area: ['50%','80%']
+                    });
+                });
+            }
+
+        });
+
+        form.on('submit(position_search)', function (data) {
+
+            table.reload('demo', {
+                where: {
+                    shippingWayId: data.field.shippingWayId,
+                    orderId: data.field.orderId,
+                    trackNo: data.field.trackNo,
+                    classifyCode: data.field.classifyCode,
+                    timeType: data.field.timeType,
+                    startTime: data.field.startTime + " 00:00:00",
+                    endTime: data.field.endTime + " 59:59:59",
+                    apiCode: data.field.apiCode,
+                }    //设定异步数据接口的额外参数，任意设
+                , page: {
+                    page: 1 //重新从第 1 页开始
+                }
+            });
+            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+        });
+
+        form.on('submit(btn_prev)', function (data) {
+            var page = $("#this_page").text();
+            if ($("#this_page").text() == 1) {
+                return;
+            } else {
+                $("#this_page").text(page - 1);
+                if (searchParam) {
+                    searchParam.page = page - 1;
+                    searchParam.limit = 10;
+                   /* getData({page: page - 1, limit: 10});*/
+                    getData(data,page - 1,10);
+                } else {
+                  /*  getData({page: page - 1, limit: 10});*/
+                    getData(data,page - 1,10);
+                }
+                if (page_len == 10) {
+                    $("#btn_next").prop("disabled") == true && $("#btn_next").attr("disabled", false);
+                }
+            }
+        });
+
+        form.on('submit(btn_next)', function (data) {
+            var page = $("#this_page").text();
+            $("#this_page").text(parseInt(page) + 1);
+            if (searchParam) {
+                searchParam.page = parseInt(page) + 1;
+                searchParam.limit = 10;
+                getData(data,parseInt(page) + 1,10);
+            } else {
+                getData(data,parseInt(page) + 1,10);
+            }
+
+            if (page_len < 10) {
+                $("#btn_next").attr("disabled", true);
+                return;
+            }
+        });
+        var page_len = 0;
+        function getData(data,page, limit) {
+            table.reload('demo', {
+                where: {
+                    shippingWayId: data.field.shippingWayId,
+                    orderId: data.field.orderId,
+                    trackNo: data.field.trackNo,
+                    classifyCode: data.field.classifyCode,
+                    timeType: data.field.timeType,
+                    startTime: data.field.startTime + " 00:00:00",
+                    endTime: data.field.endTime + " 59:59:59",
+                    apiCode: data.field.apiCode,
+                    page: page, //重新从第 1 页开始
+                    limit:limit,
+                }
+            });
+            return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+        }
+
+    });
+</script>
+<script>
+    function addTrackingTask() {
+        $.get('view/tms/parcel/add_trackingTask.html', function(str){
+            add_tasl_index = layer.open({
+                type: 1
+                ,title :'物流轨迹导入'
+                ,content: str //注意，如果str是object，那么需要字符拼接。
+                ,maxmin: true
+                ,area: ['25%','40%']
+            });
+        });
+    }
+</script>
+<script>
+    function taskDetail(id) {
+        trackling_id_data = id;
+        $.get('view/tms/parcel/trackingTaskDetailList.html', function (str) {
+            task_detail_index = layer.open({
+                type: 1
+                ,title: '包裹轨迹'
+                , content: str //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                ,area: ['50%','80%']
+            });
+        });
+    }
+</script>
+
+
+<script id="trackNoRender" type="text/html">
+    <span  class="layui-table-link" onclick='taskDetail({{d.id}})' >{{d.trackNo}}</span>
+</script>
+
+<script id="option-trackApiId-task" type="text/html">
+    {{each item value index}}
+    <option value="{{value.apiCode}}">{{value.apiName}}</option>
+    {{/each}}
+</script>
+
+<script type="text/html" id="syncStatusRender">
+    {{#  if(d.complete==0){ }}
+    未完成
+    {{#  } else if(d.complete==1) { }}
+    完成
+    {{#  } }}
+</script>
+<script type="text/html" id="classifyStatusRender">
+    {{#  if(d.classifyStatus != null && d.classifyStatusTime != null){ }}
+        {{d.classifyStatus}}|{{d.classifyStatusTime}}
+    {{#  } }}
+</script>
+<script type="text/html" id="trackStatusRender">
+    {{#  if(d.trackStatus != null && d.trackStatusTime != null){ }}
+        {{d.trackStatus}}|{{d.trackStatusTime}}
+    {{#  } }}
+</script>
+<script type="text/html" id="routineStatusRender">
+    {{#  if(d.routineStatus != null && d.routineStatusTime != null){ }}
+        {{d.routineStatus}}|{{d.routineStatusTime}}
+    {{#  } }}
+</script>
+
+
+<script id="option-shippingWayId" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.shippingWayName}}</option>
+    {{/each}}
+</script>
+
+<script type="text/html" id="operationDemo">
+    <a class="layui-btn layui-btn-xs" lay-event="position-detail">轨迹</a>
+</script>

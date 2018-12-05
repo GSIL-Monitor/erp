@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FSM EntityName="ErrorGoods" EntityDao="ErrorGoodsMapper" ParentEntityName="">
+
+	<States>
+		<!-- 正常流 -->
+		<!--在创建的时候要改变库存在途数，将增加在途数，然后发起采购需求计算-->
+		<State Name="start" Description="开始">
+			<Event Name="create" Description="创建" DstState="waitBusinessApprove" After="createErrorGoodsAfter"/>
+		</State>
+
+
+		<!--不主动调用该事件，应该所有采购单明细业务审核通过后，触发业务同意事件，有一个不同意，就触发业务不同意事件-->
+		<!--该状态由采购明细单驱动-->
+		<State Name="waitBusinessApprove" Description="待业务审核">
+			<Event Name="giveUp" Description="放弃" DstState="cancel" After="giveUpErrorGoodsAfter"/>
+			<Event Name="agreeByBusiness" Description="业务同意" DstState="executing" After="agreeErrorGoodsAfter"/>
+			<Event Name="disagreeByBusiness" Description="业务不同意" DstState="businessDisagree"/>
+		</State>
+
+		<State Name="businessDisagree" Description="业务不同意">
+			<Event Name="giveUp" Description="放弃" DstState="cancel" After="giveUpErrorGoodsAfter"/>
+		</State>
+
+		<State Name="executing" Description="执行中">
+			<Event Name="completing" Description="完成" DstState="completed" After="completingErrorGoodsAfter"/>
+		</State>
+
+		<State Name="completed" Description="已完成">
+		</State>
+
+		<State Name="cancel" Description="已取消">
+		</State>
+	</States>
+
+</FSM>

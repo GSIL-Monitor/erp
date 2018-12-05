@@ -1,0 +1,100 @@
+<style>
+    .fail_box{
+        height: 400px;
+        overflow:  auto;
+    }
+</style>
+
+<div class="layui-row" style="padding: 20px;">
+    <div class="layui-col-sm7">
+        <form class="layui-form">
+            <div class="layui-form-item layui-form-text">
+                <textarea name="content" lay-verify="required" placeholder="请从Excel中复制黑名单类型，黑名单内容"
+                          class="layui-textarea" style="height: 500px;"></textarea>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block import-btn" style="text-align: center;">
+                    <button class="layui-btn" type="button" lay-submit lay-filter="importBlackPageBtn">导入</button>
+                    <button type="button" class="layui-btn layui-btn-primary" id="cancelAndCloseModel"
+                            onclick="layer.close(importBlackList_index);">取消
+                    </button>
+                </div>
+                <div class="layui-input-block import-btn-succ" style="text-align: center;display:none">
+                    <button class="layui-btn" type="button" onclick="layer.close(importBlackList_index);">关闭</button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+    <div class="layui-col-sm5" id="importResult" style="padding-left: 20px;">
+        <p style="color: red">操作技巧：</p>
+        <p>按住ctrl键，可以直接在excel多选数据列</p>
+    </div>
+</div>
+
+
+<script>
+    layui.use(['form','layer','jquery'],function () {
+
+        var import_blackList_form = layui.form;
+        var import_blackList_layer = layui.layer;
+        var import_blackList_table = layui.table;
+        var $ = layui.$;
+
+        import_blackList_form.on('submit(importBlackPageBtn)',function (obj){
+            $('button').addClass("layui-disabled");
+            $('button').attr("disabled","disabled")
+            $.ajax({
+                type: 'POST',
+                url : "/orders/base/black_list/import",
+                data: {
+                    "content": obj.field.content
+                },
+                dataType: 'json',
+                success: function(data){
+                    $('button').removeAttr("disabled");
+                    $('button').removeClass("layui-disabled");
+
+                    if(data.code == "FAIL"){
+                        layer.msg(data.desc);
+                        return;
+                    }
+
+                    $('#importResult').html(template('blackImportResult', data.item));
+                    $('.import-btn').hide();
+                    $('.import-btn-succ').show();
+                },
+                error: function(data){
+                    $('button').removeAttr("disabled");
+                    $('button').removeClass("layui-disabled");
+                    layer.msg(data.desc);
+                }
+            })
+
+            return false;
+        });
+
+    });
+
+    $("#closeBtn").click(function(){
+
+    })
+</script>
+
+
+<script id="blackImportResult" type="text/html">
+    <p>一共导入 {{totalCount}} 条</p>
+    <p>导入成功 {{succList.length}} 条</p>
+    <p>导入失败 <span style="color:red">{{failList.length}}</span> 条</p>
+    <br>
+    {{if failList.length > 0}}
+    <p>失败导入信息：</p>
+    <div class="fail_box">
+        {{each failList value index}}
+        <p>{{value.item}}<span style="padding-left: 16px;">{{value.reason}}</span></p>
+        {{/each}}
+    </div>
+    {{/if}}
+</script>
+
+

@@ -1,0 +1,83 @@
+<br>
+<div class="clear-float">
+	<div id="treemultiselect_wrap" class="float-l"></div>
+</div>
+<br>
+<script type="text/html" id="multiselectmodal_tpl">
+		{{each children value index}}
+				<div class="margin-l-30"><i class="layui-icon">&#xe7a0;</i>{{value.name}}</div>
+				{{each value.children val idx}}
+						{{if val.children}}
+								<div class="margin-l-50"><i class="layui-icon">&#xe61d;</i>{{val.name}}</div>
+								{{each val.children val2 idx2}}
+										{{if val2.checked}}
+												<div><input class="margin-l-70 labelcheckbox" type="checkbox" name="" checked="checked" data-id="{{val2.id}}" data-labelObjectId="{{val2.labelObjectId}}"><span class="label_text">{{val2.name}}</span></div>
+										{{else}}
+												<div><input class="margin-l-70 labelcheckbox" type="checkbox" name="" data-id="{{val2.id}}" data-labelObjectId="{{val2.labelObjectId}}"><span class="label_text">{{val2.name}}</span></div>
+										{{/if}}
+								{{/each}}
+						{{else}}
+								{{if val.checked}}
+										<div><input class="margin-l-50 labelcheckbox" type="checkbox" name="" checked="checked" data-id="{{val.id}}" data-labelObjectId="{{val.labelObjectId}}"><span class="label_text">{{val.name}}</span></div>
+								{{else}}
+										<div><input class="margin-l-50 labelcheckbox" type="checkbox" name="" data-id="{{val.id}}" data-labelObjectId="{{val.labelObjectId}}"><span class="label_text">{{val.name}}</span></div>
+								{{/if}}
+						{{/if}}
+				{{/each}}
+		{{/each}}
+</script>
+
+<script type="text/javascript">
+		function render_multiselecttree(url){
+				$.ajax({
+                      url: url,
+                      dataType: 'json',
+                      type: 'GET',
+                      success: function (res) {
+	                          console.log("树形多选", res);
+	                          state_response(res);
+	                          $("#treemultiselect_wrap").html(template('multiselectmodal_tpl', res.item));
+                      }
+                });
+		}
+		function treemultiselect_modalrender(url,that,add_api,del_api){
+	                          render_multiselecttree(url);
+	                          $('#treemultiselect_wrap').on('change', '.labelcheckbox', function() {
+										// var id_array = [],name_array = [];
+										// $(".labelcheckbox:checked").each(function(){
+										// 		id_array.push($(this).attr("data-id"));
+										// 		name_array.push($(this).next(".label_text").text());
+										// });
+										// console.log("已选的标签id数组",id_array);
+										// console.log("已选的标签name数组",name_array);
+										if ($(this).is(':checked')) {
+												// alert("11");
+												$.ajax({
+														  url: add_api+'&labelId='+$(this).attr("data-id"),
+									                      dataType: 'json',
+									                      type: 'GET',
+									                      success: function (res) {
+									                      		state_response(res);
+							                      				render_multiselecttree(url);
+									                      		// $(that).siblings(".component_input").val(name_array.join(",")).attr("data-id",id_array);
+																//layer.close(treemultiselectmodal_index);	
+								                      	  }
+												});
+										}else{
+												$.ajax({
+														  url: del_api+'?labelObjectId='+$(this).attr("data-labelObjectId"),
+									                      dataType: 'json',
+									                      type: 'GET',
+									                      success: function (res) {
+									                      		if (res.code == "FAIL") {
+									                      			$(this).attr("checked","checked");
+									                      		}
+									                      		// $(that).siblings(".component_input").val(name_array.join(",")).attr("data-id",id_array);
+																//layer.close(treemultiselectmodal_index);	
+								                      	  }
+												});
+										}
+							  });   
+		}
+		
+</script>

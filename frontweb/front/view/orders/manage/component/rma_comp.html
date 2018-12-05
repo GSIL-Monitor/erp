@@ -1,0 +1,753 @@
+<style>
+    .detail-row-space .layui-row{
+        margin-bottom: 5px;
+    }
+    #detailContainer td > .layui-table-cell{
+        height:auto !important;
+    }
+    .label-wd-90{
+        width: 90px;
+    }
+    #fsmHistoryDiv .product_hide {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap !important;
+    }
+</style>
+
+
+<!-- RMA 申请模板 -->
+<div class="layui-container detail-row-space" id="rma_apply_container">
+
+</div>
+
+<script type="text/html" id="rma_apply_tpl">
+    <div>
+    <br>
+
+    <div class="layui-row layui-col-space15">
+            <div class="layui-col-md4">
+                <div class="layui-row">
+                    <div class="layui-col-md3">
+                        <div class="">订单流水号:</div>
+                    </div>
+                    <div class="layui-col-md9">
+                        <div class="">{{item.rmaInfo.orderId}}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-md4">
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md3">
+                        <div class="">下单时间:</div>
+                    </div>
+                    <div class="layui-col-md9">
+                        <div class="">{{item.rmaInfo.purchaseAt}}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-md4">
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md3">
+                            <div class="">订单金额:</div>
+                        </div>
+                        <div class="layui-col-md9">
+                            <div class="" >{{item.rmaInfo.orderAmount}}</div>
+                        </div>
+                        <input type='input' hidden='true' id="confirmAmount" value="{{item.rmaInfo.confirmAmount}}">
+                    </div>
+                </div>
+        </div>
+
+
+        <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="layui-row">
+                        <div class="layui-col-md3">
+                            <div class="">付款类型:</div>
+                        </div>
+                        <div class="layui-col-md9">
+                            <div class="">{{item.rmaInfo.payMethod.display}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md4">
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md3">
+                            <div class="">发货运单号:</div>
+                        </div>
+                        <div class="layui-col-md9">
+                            <div class="">{{item.rmaInfo.orderTrackingNo}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md4">
+                        <div class="layui-row layui-col-space15">
+                            <div class="layui-col-md3">
+                                <div class="">订单来源:</div>
+                            </div>
+                            <div class="layui-col-md9">
+                                <div class="">{{item.rmaInfo.webUrl}}</div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+    <br>
+   
+    <form  class="layui-form">
+
+        <!-- <div class="layui-form-item"> -->
+            <input type='input'  hidden='true' name='orderId' value="{{item.rmaInfo.orderId}}">
+            <input type='input'  hidden='true' name='rmaId' value="{{item.rmaInfo.rmaId}}">
+        <!-- </div> -->
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <table class="layui-table" id="orderItem" lay-filter="itemTb">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>商品项次ID</th>
+                        <th>SKU</th>
+                        <th>产品名称</th>
+                        <th>订单数量</th>
+                        <th>可退数量</th>
+                        <th>单价</th>
+                        <th>币种</th>
+                        <th>申请数量</th>
+                    </tr>
+                </thead>
+                <tbody id="orderItem_list">
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <br>
+
+   
+    <div>
+            <div class="layui-form-item">
+                    <label class="layui-form-label label-wd-90"><span class="required_mark">*</span>退换货类型</label>
+                    <div class="layui-input-inline">
+                        <select name="changeType" id="changeType" disabled="disabled" >
+                            <option value="">请选择</option>
+                        </select>
+                    </div>
+                    <label class="layui-form-label"><span class="required_mark">*</span>售后来源</label>
+                    <div class="layui-input-inline">
+                        <select name="rmaSource" id="rmaSource" lay-verify="required">
+                            <option value="">请选择</option>
+                        </select>
+                    </div>
+                    <label class="layui-form-label label-wd-90"><span class="required_mark">*</span>是否回收</label>
+                    <div class="layui-input-inline">
+                        <select name="recycleGoods" id="recycleGoods" lay-verify="required">
+                            <option value="">请选择</option>
+                        </select>
+                    </div>
+            </div>
+
+            <div class="layui-form-item">
+                    <label class="layui-form-label label-wd-90"><span class="required_mark">*</span>退换货原因</label>
+                    <div class="layui-input-inline">
+                        <select name="changeReason" id="changeReason"  lay-filter="changeReasonEvent" lay-verify="required">
+                            <option value="">请选择</option>
+                        </select>
+                    </div>
+                    <div class="layui-input-inline" id="changeReasonOtherMemo" style="display:none">
+                        <input type="text"  name="changeReasonOtherMemo" placeholder="为其说明它时，需要录入文字" autocomplete="off" class="layui-input">
+                    </div>
+                   
+                    <!-- <label class="layui-form-label">问题描述</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="questionMemo" autocomplete="off" class="layui-input" lay-verify="required">
+                    </div> -->
+            </div>
+
+            <div class="layui-form-item">
+                    <label class="layui-form-label">问题描述</label>
+                    <div class="layui-input-block">
+                        <textarea name="questionMemo" rows="1" placeholder="" value="{{item.rmaInfo.questionMemo}}" autocomplete="off" class="layui-textarea"></textarea>
+                    </div>
+            </div>
+            <!-- {{item.rmaInfo.logisticsName}} -->
+            <div class="layui-form-item">
+                    <label class="layui-form-label label-wd-90">退款方式</label>
+                    <div class="layui-input-inline">
+                        <input style="border:none" type="text" name="changeWay" value="{{item.rmaInfo.changeWay.display}}" disabled="disabled" class="layui-input">
+                    </div>
+                    <label class="layui-form-label">退款物流</label>
+                    <div class="layui-input-inline">
+                        <input style="border:none"  type="text" name="logisticsName" value="{{item.rmaInfo.logisticsName}}" disabled="disabled"  class="layui-input">
+                    </div>
+                    <label class="layui-form-label label-wd-90"><span class="required_mark">*</span>寄回运单号</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id='trackingNo' name="trackingNo" value="{{item.rmaInfo.trackingNo}}" autocomplete="off" lay-verify="required" class="layui-input">
+                    </div>
+            </div>
+
+        
+            <div class="layui-form-item">
+                  
+                    <label class="layui-form-label label-wd-90"><span class="required_mark">*</span>退款金额</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="amount" name="amount" lay-verify="amount|required|number" value="{{item.rmaInfo.applyAmount}}" autocomplete="off" class="layui-input">
+                    </div>
+                    <!-- <label class="layui-form-label"><span class="required_mark">*</span>顾客收款账号</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="account" name="account" autocomplete="off" value="TODO" class="layui-input">
+                    </div> -->
+            </div>
+   
+              
+
+
+                   
+            <div class="layui-upload">
+                <button type="button" class="layui-btn" id="uploadImgBtn">多图片上传</button> 
+                    <blockquote class="layui-elem-quote layui-quote-nm" style="margin-top: 10px;">
+                      预览图：
+                    <div class="layui-upload-list" id="uploadImgPreview"></div>
+                </blockquote>
+            </div>
+
+
+            <div class="layui-form-item">      
+                    <label class="layui-form-label">备注</label>
+                    <!-- <div class="layui-input-block">
+                        <input type="text" name="applyMemo" value="{{item.rmaInfo.applyMemo}}" autocomplete="off" value="TODO" class="layui-input">
+                    </div> -->
+                        <div class="layui-input-block">
+                            <textarea name="applyMemo" rows="1" placeholder="" value="" autocomplete="off" class="layui-textarea"></textarea>
+                        </div>
+            </div>
+
+
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn"  type="reset">重置</button>
+                    {{ if item.rmaInfo.changeType.name == 'returned' }}
+                        <button lay-submit type="button" lay-filter="save" submit-type='draft' class="layui-btn layui-btn-primary">保存草稿</button>
+                        <button lay-submit type="button" lay-filter="save" submit-type='waitAudit' class="layui-btn layui-btn-primary">提交审核</button>
+                    {{ /if}}
+                    {{ if item.rmaInfo.changeType.name == 'reject' }}
+                        <button class="layui-btn" type="button" lay-submit lay-filter="save"  submit-type='auditPass' >提交</button>
+                    {{ /if}}    
+                </div>
+            </div>
+
+        </div>
+    </form>
+
+
+     <div id='fsmHistoryDiv' style="display:none">
+        <fieldset class="layui-elem-field layui-field-title">
+                <legend>退换货状态机历史</legend>
+        </fieldset>
+        <table id="fsmTableEdit2" lay-filter="fsmTableEdit2"></table>
+     </div>
+
+
+    </div>
+
+</script>
+
+
+<script>
+
+
+    layui.use(['element', 'table', 'form', 'upload','layer'], function () {
+
+        var table = layui.table;
+        var table2 = layui.table;
+        var form = layui.form;
+        var element = layui.element;
+        var upload = layui.upload;
+        var layer = layui.layer;
+
+
+        initOrderData(table, form,element,upload,layer);
+        
+
+        form.verify({
+            amount: function(value, item){ //value：表单的值、item：表单的DOM对象
+            // console.log(rmaType);
+                // if(rmaType == 'returned'){
+                    var comfirmAmount = Number($("#confirmAmount").val());
+                    if(Number(value) > comfirmAmount){
+                        return '退款金额不能大于订单未退金额（未退金额含待提交及待退的金额）';
+                    }
+                // }    
+            },
+            qty: function(value, item){
+                var r = /^\d+$/;
+                if(r.test(value) == false){
+                    return '只能输入非负整数';      
+                }
+                var qty =  Number(value);
+                var maxQty = Number(item.getAttribute("maxQty"));
+
+                if(qty > maxQty){
+                    return '退货数量不能大于订单未退数量（未退金额含待提交及待退的数量）';          
+                }
+            }
+  
+        });   
+
+        
+
+        form.on('submit(save)', function (data) {
+    
+
+            var submitType = $(data.elem).attr("submit-type");
+
+            var postData = getPostData(data,submitType);
+
+            if(postData.changeReason == 'missing' && postData.recycleGoods == 'yes'){
+                layer.confirm('退货原因为丢件，是否回收货物不能为"是"', function(index){                    
+                    layer.close(index);
+                  }); 
+                  return false; 
+            }
+
+            var itemQtyList = postData.orderItemQtyList;
+            var isQtyValid =  false;
+            for(var i = 0 ; i < itemQtyList.length; i++){
+                if(Number(itemQtyList[i].qty)> 0){
+                    isQtyValid = true;
+                    break;
+                }
+            }
+            if(!isQtyValid){
+                layer.confirm('所要退换货的数量不能全为0', function(index){                    
+                    layer.close(index);
+                  }); 
+                  return false;
+            }
+            preventRepeat(data); 
+   
+
+
+            if(data.field.rmaId){
+                //修改
+                $.ajax({
+                    type: 'POST',
+                    url: "/orders/aftersale/update",
+                    contentType:"application/json",
+                    data:  JSON.stringify(postData),
+                    dataType: 'json',
+                    success: function (res) {
+                        state_response(res, data);
+                        if(res.code==='FAIL') {
+                            layer.msg(res.desc);
+                            return false;
+                        }
+                        layer.msg(res.desc);
+                        layer.close(rmaIndex);
+                        try{
+                            table.reload('orderChangeTable', {
+                                where: queryParam    //设定异步数据接口的额外参数，任意设
+                                , page: {
+                                    curr: 1 //重新从第 1 页开始
+                                }
+                            });
+                        }catch(e){
+                            
+                        }
+
+                        return false;
+                    },
+                    error: function (res) {
+                        state_response(res);
+                        layer.msg(res.desc);
+                        return false;
+                    }
+                });
+                return false;
+
+            } else{
+                //新建
+                $.ajax({
+                    type: 'POST',
+                    url: "/orders/aftersale/add",
+                    contentType:"application/json",
+                    data:  JSON.stringify(postData),
+                    dataType: 'json',
+                    success: function (res) {
+                        state_response(res, data);
+                        if(res.code==='FAIL') {
+                            layer.msg(res.desc);
+                            return false;
+                        }
+                        layer.msg(res.desc);
+                        layer.close(rmaIndex);
+                        return false;
+                    },
+                    error: function (res) {
+                        state_response(res, data);
+                        layer.msg(res.desc);
+                        return false;
+                    }
+                });
+
+            } 
+            
+            return false;
+        });
+
+
+    });
+
+    function getOrderItemQty(){  
+        var itemArray = [];
+        $("#orderItem_list").find("tr").each(function (index,that) {
+           var result=$(that).find(".layui-form-checkbox").hasClass("layui-form-checked");
+           if(result){
+                var itemObj = {};
+                itemObj.orderItemId = $(that).find(".itemId").text();
+                itemObj.qty = $(that).find(".ordersItemApplyQty").val();
+                if(itemObj.qty > 0){
+                   itemArray.push(itemObj);
+                }
+           }
+           
+        });
+        return itemArray;
+    }
+
+    function getImageList(){
+        var imgList = [];
+        $("input[name='mainImageUrl']").each(function(index,item){
+            imgList.push($(this).val());
+            }
+        );
+        return imgList;
+    }
+
+        function getPostData(data, state) {
+            
+
+            var itemArray = getOrderItemQty();
+            var imgList = getImageList();
+            var postData = data.field;
+
+
+            // postData.orderId = field.orderId;
+            // postData.rmaId =  field.rmaId;
+            // postData.changeReason = field.changeReason;
+            // postData.rmaSource = field.rmaSource;
+            // postData.recycleGoods = field.recycleGoods;
+            // postData.questionMemo = field.questionMemo;
+            // postData.applyMemo = field.applyMemo;
+            // postData.trackingNo = field.trackingNo;
+            // postData.amount = field.amount;
+
+            postData.imgs = imgList;
+            postData.applyType =  data.field.changeType;
+            postData.orderItemQtyList = itemArray;
+
+            postData.rmaState = state;
+
+            return postData;
+        }
+
+
+
+    function initOrderData(table, form,element,upload,layer) {
+        //详情页面
+        if(rmaShowType == 'detail'){
+            $.ajax({
+                type: 'GET',
+                url: "/orders/aftersale/detail?rmaId=" + rmaOrderId,
+                dataType: 'json',
+                success: function (res) {
+                    if(res.code == 'FAIL'){
+                        layer.msg(res.desc);
+                        return;
+                    }   
+                    done_render(table,upload,form,element,res); 
+                
+                }
+            });
+        }else if(rmaShowType == 'edit'){
+            $.ajax({
+                type: 'GET',
+                url: "/orders/aftersale/detail?rmaId=" + rmaId,
+                dataType: 'json',
+                success: function (res) {
+                    if(res.code == 'FAIL'){
+                        layer.msg(res.desc);
+                        return;
+                    }
+                    done_render(table,upload,form,element,res);      
+                
+                }
+            });
+           
+            // loadFsmHistory(table,"fsmTable","/orders/aftersale/fms",{"rmaId":rmaId});
+        }else if(rmaShowType == 'apply'){
+            // rmaOrderId = id;
+            // rmaType =  type;
+            // rmaShowType = 'apply';
+            $.ajax({
+                type: 'GET',
+                url: "/orders/aftersale/preApplyInfo",
+                data:{
+                    "orderId": rmaOrderId,
+                    "rmaType": rmaType
+                },
+                dataType: 'json',
+                success: function (res) {
+                    if(res.code == 'FAIL'){
+                        layer.msg(res.desc);
+                        return;
+                    }        
+                    done_render(table,upload,form,element,res);                
+                }
+            });
+
+        }   
+    }
+
+    function done_render(table,upload,form,element,res){
+        rmaType = res.item.rmaInfo.changeWay.name;
+        $("#rma_apply_container").html(template('rma_apply_tpl', res));
+        var obj = {};
+        obj.item = res.item.rmaItemInfoList;
+        $("#orderItem_list").append(template("product_unit_tr",obj));  
+        // res.item.rmaInfo.changeType.name   
+        initSelect(form,res);
+        initUpload(upload,res);
+        element.init();
+        initFsmTableData(table,res.item.rmaInfo.rmaId);
+
+        
+        form.on('select(changeReasonEvent)', function(data){
+            if(data.value == 'other'){
+                $("#changeReasonOtherMemo").show();
+                $("input[name='changeReasonOtherMemo']").attr("lay-verify","required");
+            }else{
+                $("#changeReasonOtherMemo").hide();
+                $("input[name='changeReasonOtherMemo']").removeAttr("lay-verify");
+            }
+        });
+
+        form.render();
+    }
+
+
+    function initSelect(form,data){
+        $.ajax({
+            type: 'GET',
+            url: "/orders/common/enumList",
+            dataType: 'json',
+            success: function (res) {
+                state_response(res);
+                var obj = new Object;
+                obj.item = res.item.changeTypeEnum;
+                $("#changeType").append(template('option-enum-tpl', obj));
+                obj.item = res.item.rmaSourceEnum;
+                $("#rmaSource").append(template('option-enum-tpl', obj));
+                obj.item = res.item.recycleGoodsEnum;
+                $("#recycleGoods").append(template('option-enum-tpl', obj));
+                obj.item = res.item.changeReasonEnum;
+                $("#changeReason").append(template('option-enum-tpl', obj));
+              
+                // $('#changeType option[value="' + data.item.rmaInfo.changeType.name + '"]').attr('selected','selected');
+                $("#changeType").val(data.item.rmaInfo.changeType.name);
+
+               
+                if(data.item.rmaInfo.changeType.name == 'reject'){
+
+                    $('#recycleGoods').attr('disabled','disabled');                   
+                    $('#changeReason').attr('disabled','disabled');
+                    $('#trackingNo').attr('disabled','disabled');
+                    $('#amount').attr('disabled','disabled');
+                    $('#account').attr('disabled','disabled');
+                    $('input[name="qty"]').attr('disabled','disabled');
+                    $('.cb-disabled').attr('disabled','disabled');
+                   
+                    if(data.item.rmaInfo.rmaId){
+                       
+                        //编辑 拒收页面  ！！业务上，拒收是无法编辑的，请忽略
+                        $("#recycleGoods").val(data.item.rmaInfo.recycleGoods.name);
+                        $("#changeReason").val(data.item.rmaInfo.changeReason.name);
+                        $("#rmaSource").val(data.item.rmaInfo.rmaSource.name);
+                        $("#changeReasonOtherMemo").show();
+                        $("input[name='changeReasonOtherMemo']").val(changeReasonOtherMemo);
+
+                    }
+                    if(!data.item.rmaInfo.rmaId){
+                        //新建 拒收页面  
+                        $('#recycleGoods').val(data.item.rmaInfo.recycleGoods.name);
+                        $('#changeReason').val(data.item.rmaInfo.changeReason.name);
+                        if(rmaSource == 'ordersquestion'){
+                            $('#rmaSource option[value="ordersquestion"]').attr('selected','selected');
+                            $('#rmaSource').attr('disabled','disabled');      
+                        }else{
+                            $('#rmaSource option[value="system"]').attr('selected','selected');
+                            $('#rmaSource').attr('disabled','disabled');      
+                        }
+                        $("#changeReasonOtherMemo").show();
+                        $("input[name='changeReasonOtherMemo']").val("拒收");
+                        $("input[name='changeReasonOtherMemo']").attr('disabled','disabled');
+                        
+                    }
+                    // $('#changeReason').trigger("change");
+                    
+                }else if(data.item.rmaInfo.changeType.name == 'returned'){
+                    if(data.item.rmaInfo.rmaId){
+                        // 编辑 退货页面
+                        $('#recycleGoods option[value="' + data.item.rmaInfo.recycleGoods.name + '"]').attr('selected','selected');
+                        $('#changeReason option[value="' + data.item.rmaInfo.changeReason.name + '"]').attr('selected','selected');
+                        $('#rmaSource option[value="' + data.item.rmaInfo.rmaSource.name + '"]').attr('selected','selected');
+                        if(data.item.rmaInfo.changeReason.name == 'other'){
+                            $("#changeReasonOtherMemo").show();
+                            $("input[name='changeReasonOtherMemo']").val(data.item.rmaInfo.changeReasonOtherMemo);
+                        }
+                    }
+                    if(!data.item.rmaInfo.rmaId){
+                        //新建 拒收页面  
+                        // $('#recycleGoods option[value="' + data.item.rmaInfo.recycleGoods.name + '"]').attr('selected','selected');
+                        // $('#changeReason option[value="' + data.item.rmaInfo.changeReason.name + '"]').attr('selected','selected');
+                    }
+                    // $("input[name='changeReason']").trigger("select");
+
+                }
+
+                
+                // if(data.item.rmaInfo.changeType.name == 'reject'){
+
+                //     $('#recycleGoods option[value="' + data.item.rmaInfo.recycleGoods.name + '"]').attr('selected','selected');
+                //     $('#changeReason option[value="' + data.item.rmaInfo.changeReason.name + '"]').attr('selected','selected');
+                //     $('#rmaSource option[value="' + data.item.rmaInfo.rmaSource.name + '"]').attr('selected','selected');
+
+                    
+
+                // }
+                
+
+                
+                form.render('select'); //刷新select选择框渲染
+                
+
+                
+            }
+        });
+    }
+
+
+    function initUpload(upload,res){
+        upload.render({
+            elem: '#uploadImgBtn'
+            ,url: '/product/commons/upload'
+            ,multiple: true
+            ,size: 5000
+            ,number: 5
+            ,field: 'file'
+            ,method: 'post'
+            ,data : {
+                type:'productNew'
+            }
+            ,done: function(res){
+                if(res.code === "OK"){
+                    res.mainImageUrl = res.item;
+                    res.productImgPrefix = window.product_img_host;
+                    var count =  $(".upload_file_cls").length;
+                    if(count >= 5){
+                        layer.msg("上传文件个数不能超过5个");
+                        return false;
+                    }
+                    $('#uploadImgPreview').append(template('newAdd_imageUpLoadTpl', res));
+                }
+            }
+        });
+        var imgList = res.item.rmaInfo.imgList;
+        for(var i = 0; i < imgList.length; i++){
+            var imageData = {};
+            imageData.mainImageUrl = imgList[i];
+            imageData.productImgPrefix = window.product_img_host;
+            $('#uploadImgPreview').append(template('newAdd_imageUpLoadTpl', imageData));
+        }
+    }
+
+    function removeImage(elem) {
+        $(elem).parent().parent().remove();
+    }
+
+
+    function initFsmTableData(t_able,rmaId) {
+        if(!rmaId){
+            return ;
+        }
+
+        $("#fsmHistoryDiv").show();
+        //状态机table渲染
+        setTimeout(function(){
+            t_able.render({
+                elem: '#fsmTableEdit2'
+                , url: '/orders/aftersale/fms?rmaId=' + rmaId //数据接口
+                , method: 'get'
+                , response: {
+                    statusName: 'code' //数据状态的字段名称，默认：code
+                    , statusCode: 'OK' //成功的状态码，默认：0
+                    , msgName: 'desc' //状态信息的字段名称，默认：msg
+                    , countName: 'total' //数据总数的字段名称，默认：count
+                    , dataName: 'item' //数据列表的字段名称，默认：data
+                }
+                , done: function (res, curr, count) {
+                   $(".layui-table-cell.laytable-cell-4-memo").addClass("product_hide").attr("title",$(".layui-table-cell.laytable-cell-4-memo").text());
+                }
+                , cols: [[ //表头
+                    {field: 'optUid', title: '操作人', width: 100}
+                    , {field: 'createAt', title: '操作时间', width: 170}
+                    , {field: 'eventNameDisplay', title: '操作内容', width: 400}
+                    , {field: 'memo', title: '备注'}
+                ]]
+            });
+        },500);
+    }
+
+</script>
+
+
+<!--图片模板-->
+<script type="text/html" id="newAdd_imageUpLoadTpl">
+    <div  class="layui-input-inline">
+        <div>
+            <img style=" width: 150px; height: 150px;" src="{{productImgPrefix}}/{{mainImageUrl}}" />
+        </div>
+        <div align='center'>
+            <a onclick='removeImage(this)' href='javascript:;'>删除</a>
+            <input value="{{mainImageUrl}}" class='upload_file_cls' type="hidden" name="mainImageUrl" class="layui-input" required>
+        </div>
+    </div>
+</script>
+
+
+<script type="text/html" id="product_unit_tr">
+    {{ each item val index}}
+    <tr>
+        <td>
+            <input class="layui-input cb-disabled" lay-skin="primary" checked="checked" type="checkbox" value="" />
+        </td> 
+        <td class='itemId'>{{val.itemId}}</td>
+        <td>{{val.sku}}</td>
+        <td>{{val.productTitle}}</td>
+        <td>{{val.ordersItemQty}}</td>
+        <td>{{val.ordersItemReturnQty}}</td>
+        <td>{{val.singleAmountShow}}</td>
+        <td>{{val.currencyName}}</td>
+        <td><input type="text"  name="qty" maxQty="{{val.ordersItemReturnQty}}" value="{{val.ordersItemApplyQty}}" class="layui-input ordersItemApplyQty" autocomplete="off" lay-verify="qty|required|number"  /></td>
+    </tr>
+    {{/each}}
+</script>
+
+
+<!--枚举下拉框 -->
+<script id="option-enum-tpl" type="text/html">
+    {{each item value index}}
+        <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>

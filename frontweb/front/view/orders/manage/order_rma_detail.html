@@ -1,0 +1,701 @@
+<style>
+    #container {
+        padding: 25px;
+    }
+
+    .label {
+        text-align: right;
+    }
+
+    #container img {
+        width: 120px;
+        height: 120px;
+        margin-bottom: 5px;
+    }
+
+    #container h3 {
+        padding: 0 30px;
+    }
+
+    #historyList {
+        float: right;
+    }
+
+    #cancelInfo {
+        text-align: center;
+        margin: 50px 0;
+    }
+
+</style>
+
+<div id="container">
+    <div id="declarationInfo"></div>
+    <div id="approveInfo"></div>
+    <div id="reviewInfo"></div>
+    <div id="backInfo"></div>
+    <div id="cancelInfo"></div>
+    <fieldset class="layui-elem-field layui-field-title">
+        <legend>退换货状态机历史</legend>
+    </fieldset>
+    <button class="layui-btn layui-btn-normal" id="addMemo"><i class="layui-icon">&#xe654;</i>添加备注</button>
+    <table id="fsmTable" lay-filter="fsmTable"></table>
+</div>
+
+<script type="text/html" id="declaration-info">
+    <fieldset class="layui-elem-field layui-field-title">
+        <legend>申报信息</legend>
+    </fieldset>
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4 ">
+                    <div class="label">订单流水号：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{orderId}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">订单来源：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{webUrl}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4 ">
+                    <div class="label">订单金额：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{leftSymbol}}{{orderAmount}}{{rightSymbol}}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">下单时间：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{purchaseAt}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">发货运单号：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{orderTrackingNo}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4 ">
+                    <div class="label">付款类型：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{payMethod.display}}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">申请时间：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{applyTime}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">来源：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{rmaSource.display}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">类型：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{changeType.display}}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退货单号：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{id}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退款方式：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{changeWay.display}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退款物流：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{logisticsName}}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退款金额：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{leftSymbol}}{{applyAmount}}{{rightSymbol}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退货原因：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{changeType.display}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">是否回收：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{recycleGoods.display}}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退货单状态：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{rmaStatus.display}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">退款单号：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{refundId}}
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md4">
+                    <div class="label">问题描述：</div>
+                </div>
+                <div class="layui-col-md8">
+                    {{questionMemo}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md1">
+                    <div class="label">退货商品：</div>
+                </div>
+                <div class="layui-col-md11">
+                    <table id="rmaItemTable" lay-filter="rmaItemTable"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{if imgList && imgList.length>0}}
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md1">
+                    <div class="label">图片凭证：</div>
+                </div>
+                <div class="layui-col-md11" id="rmaImgArea">
+                    {{each imgList value index}}
+                    <img src="{{productImgPrefix}}/{{value}}">
+                    {{/each}}
+                </div>
+            </div>
+        </div>
+    </div>
+    {{/if}}
+
+    {{if checkMemo && checkMemo.length > 0}}
+    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+        <legend>审核意见</legend>
+    </fieldset>
+    <h3>{{checkMemo}}</h3>
+    {{/if}}
+
+    {{if $imports.$window.pageType != 'modify' && trackingNo && trackingNo.length > 0}}
+    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+        <legend>寄回信息</legend>
+    </fieldset>
+    <h3>寄回运单号：{{trackingNo}}</h3>
+    {{/if}}
+
+    {{if rmaStatus.name =='finished'}}
+    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+        <legend>收货信息</legend>
+    </fieldset>
+    <table id="deliveryTable" lay-filter="deliveryTable"></table>
+    {{/if}}
+</script>
+<script type="text/html" id="approve-info">
+    <fieldset class="layui-elem-field layui-field-title">
+        <legend>退货单审核意见</legend>
+    </fieldset>
+    <form class="layui-form" id="approveForm">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md8 layui-col-md-offset2">
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md2">
+                        <div class="label">审核备注：</div>
+                    </div>
+                    <div class="layui-col-md9">
+                        <textarea id="auditMemo" name="auditMemo" class="layui-textarea" placeholder="审核备注"
+                                  lay-verify="required"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md8 layui-col-md-offset2" style="text-align: center;">
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md4 layui-col-md-offset2">
+                        <button class="layui-btn" lay-filter="approve" lay-submit>通过</button>
+                    </div>
+                    <div class="layui-col-md4">
+                        <button class="layui-btn  layui-btn-danger" lay-filter="reject" lay-submit>驳回</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</script>
+<script type="text/html" id="back-info">
+    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+        <legend>寄回信息</legend>
+    </fieldset>
+    <form class="layui-form layui-form-pane" id="trackingNoForm">
+        <div class="layui-form-item">
+            <div class="layui-inline">
+                <label class="layui-form-label" style="width: 150px;">寄回运单号</label>
+                <div class="layui-input-inline" style="width: 300px;">
+                    <input type="text" id="trackingNo" name="trackingNo" autocomplete="off" class="layui-input"
+                           lay-verify="required"
+                           value="{{trackingNo}}" disabled>
+                </div>
+                <button class="layui-btn layui-btn-normal" type="button" lay-filter="modify" id="btn_modify">修改</button>
+                <button class="layui-btn" type="button" lay-filter="modify_submit" id="btn_modify_submit"
+                        style="display: none;" lay-submit>提交
+                </button>
+                <button class="layui-btn layui-btn-primary" type="button" lay-filter="modify_cancel"
+                        id="btn_modify_cancel"
+                        style="display: none;">取消
+                </button>
+            </div>
+        </div>
+    </form>
+</script>
+<script type="text/html" id="cancel-info">
+    <form id="cancelForm">
+        <button class="layui-btn layui-btn-lg  layui-btn-danger" lay-filter="rmaCancel" id="rmaCancel" lay-submit>取消
+        </button>
+    </form>
+</script>
+<!--<script type="text/html" id="review-info"></script>-->
+
+<div id="add-memo" style="display: none">
+    <form class="layui-form" id="addMemoForm" style="padding: 25px;">
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">文本域</label>
+            <div class="layui-input-block">
+                <textarea name="memo" placeholder="请输入内容" class="layui-textarea" lay-verify="required"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="memo_submit">提交</button>
+                <button type="button" class="layui-btn layui-btn-primary" lay-filter="memo_cancel"
+                        onclick="layer.close(memoModelIndex)">取消
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+<script>
+
+    // $("#declarationInfo").html(template('declaration-info', rowData));
+
+    var rmaData;
+
+
+    layui.use(['layer', 'table', 'form'], function () {
+        var layer = layui.layer;
+        var table = layui.table;
+        var form = layui.form;
+
+        $.ajax({
+            type: 'GET',
+            url: "/orders/aftersale/detail",
+            dataType: 'json',
+            data: {rmaId: rmaId},
+            success: function (data) {
+                state_response(data);
+                rmaData = data.item;
+                // 初始化状态机列表
+                initFsmTableData(table);
+                //图片前缀
+                rmaData.rmaInfo.productImgPrefix = window.product_img_host;
+                initPage(rmaData.rmaInfo);
+                initTableData(table, rmaData.rmaItemInfoList);
+                // if (rmaData.rmaInfo.rmaStatus.name == 'finished')
+                initDeliveryTableData(table, rmaData.rmaItemInfoList);
+            }, error: function (data) {
+                layer.msg("获取详情失败");
+            }
+        });
+
+        // 审核同意
+        form.on('submit(approve)', function (data) {
+
+            layer.confirm('审核通过后，将完成退款生成换货订单。确定要审核通过吗？', {
+                btn: ['确定', '取消']
+            }, function () {
+                data.field.rmaId = rmaId;
+                data.field.result = true;
+
+                preventRepeat(data);//防止重复提交
+                $.ajax({
+                    type: 'POST',
+                    url: "/orders/aftersale/approve",
+                    dataType: 'json',
+                    data: data.field,
+                    success: function (res) {
+                        state_response(res, data);//防止重复提交
+
+                        if (res.success) {
+                            layer.msg("审批完成");
+                            // closeModel();
+                            table.reload('orderChangeTable', {
+                                where: queryParam    //设定异步数据接口的额外参数，任意设
+                                , page: {
+                                    curr: 1 //重新从第 1 页开始
+                                }
+                            });
+                        } else {
+                            layer.msg(res.desc);
+                        }
+                    },
+                    error: function () {
+                        layer.msg("提交失败");
+                    }
+                });
+            });
+
+            return false;
+        });
+        // 审核驳回
+        form.on('submit(reject)', function (data) {
+            data.field.rmaId = rmaId;
+            data.field.result = false;
+            $.ajax({
+                type: 'POST',
+                url: "/orders/aftersale/approve",
+                dataType: 'json',
+                data: data.field,
+                success: function (res) {
+                    if (res.success) {
+                        layer.msg("审批完成");
+                        closeModel();
+                        table.reload('orderChangeTable', {
+                            where: queryParam    //设定异步数据接口的额外参数，任意设
+                            , page: {
+                                curr: 1 //重新从第 1 页开始
+                            }
+                        });
+                    } else {
+                        layer.msg(res.desc);
+                    }
+                },
+                error: function () {
+                    layer.msg("提交失败");
+                }
+            });
+            return false;
+        });
+        // 添加备注
+        form.on('submit(memo_submit)', function (data) {
+            data.field.rmaId = rmaId;
+            $.ajax({
+                type: 'POST',
+                url: "/orders/aftersale/addFmsDemo",
+                dataType: 'json',
+                data: data.field,
+                success: function (res) {
+                    if (res.success) {
+                        layer.msg("添加备注完成");
+                        layer.close(memoModelIndex);
+                        table.reload('fsmTable');
+                    } else {
+                        layer.msg(res.desc);
+                    }
+                },
+                error: function () {
+                    layer.msg("提交失败");
+                }
+            });
+            return false;
+        });
+
+        // 申请单取消
+        form.on('submit(rmaCancel)', function (data) {
+            layer.confirm('你确定要取消申请单据吗？', {
+                btn: ['确定', '取消']
+            }, function () {
+                data.field.rmaId = rmaId;
+                $.ajax({
+                    type: 'GET',
+                    url: "/orders/aftersale/cancel",
+                    dataType: 'json',
+                    data: data.field,
+                    success: function (res) {
+                        if (res.success) {
+                            layer.msg("取消申请单完成");
+                            $('#rmaCancel').hide();
+                            table.reload('fsmTable');
+                            table.reload('orderChangeTable', {
+                                where: queryParam    //设定异步数据接口的额外参数，任意设
+                                , page: {
+                                    curr: 1 //重新从第 1 页开始
+                                }
+                            });
+                        } else {
+                            layer.msg(res.desc);
+                        }
+                    },
+                    error: function () {
+                        layer.msg("提交失败");
+                    }
+                });
+            }, function () {
+                //
+            });
+
+            return false;
+        });
+
+
+        // 寄回运单号修改
+        form.on('submit(modify_submit)', function (data) {
+            layer.confirm('确定要个修改运单号吗？', {
+                btn: ['确定', '取消'] //按钮
+            }, function () {
+                data.field.rmaId = rmaId;
+                $.ajax({
+                    type: 'POST',
+                    url: "/orders/aftersale/updateTrackingNo",
+                    dataType: 'json',
+                    data: data.field,
+                    success: function (res) {
+                        if (res.success) {
+                            layer.msg("修改寄回运单号完成");
+                            table.reload('fsmTable');
+                        } else {
+                            layer.msg(res.desc);
+                        }
+                    },
+                    error: function () {
+                        layer.msg("提交失败");
+                    }
+                });
+            }, function () {
+
+                // 重置表单
+                document.getElementById("trackingNoForm").reset();
+                // layer.msg('也可以这样', {
+                //     time: 20000, //20s后自动关闭
+                //     btn: ['明白了', '知道了']
+                // });
+            });
+
+            return false;
+        });
+    });
+
+    function initPage(tmpData) {
+
+        $("#declarationInfo").html(template('declaration-info', tmpData));
+        if (pageType == 'approve') {
+            $("#approveInfo").html(template('approve-info', tmpData));
+        }
+        // else if (pageType == 'detail') {
+        //     $("#reviewInfo").html(template('review-info', tmpData));
+        // }
+        else if (pageType == 'modify') {
+            $("#backInfo").html(template('back-info', tmpData));
+        } else if (pageType == 'cancel') {
+            $("#cancelInfo").html(template('cancel-info', tmpData));
+        }
+
+        $('#btn_modify').click(function () {
+            $('#trackingNo').prop('disabled', false);
+            $('#trackingNo').select();
+            $('#btn_modify').hide();
+            $('#btn_modify_submit').show();
+            $('#btn_modify_cancel').show();
+        });
+
+        $('#btn_modify_submit').click(function () {
+            $('#trackingNo').prop('disabled', true);
+            $('#trackingNo').blur();
+            $('#btn_modify').show();
+            $('#btn_modify_submit').hide();
+            $('#btn_modify_cancel').hide();
+        });
+
+        $('#btn_modify_cancel').click(function () {
+            $('#trackingNo').prop('disabled', true);
+            $('#btn_modify').show();
+            $('#btn_modify_submit').hide();
+            $('#btn_modify_cancel').hide();
+            // 重置表单
+            document.getElementById("trackingNoForm").reset();
+        });
+
+        $('#addMemo').click(function () {
+            memoModelIndex = layer.open({
+                type: 1
+                , title: "添加备注"
+                , content: $('#add-memo').html()
+                , shadeClose: true
+                , area: ['600px', 'auto']
+            });
+
+        });
+    }
+
+    function initTableData(table, data) {
+        //方法渲染：
+        table.render({
+            elem: '#rmaItemTable',
+            id: 'rmaItemTable',
+            data: data,
+            width: '99%',
+            cols: [[ //表头
+                {field: 'sku', title: 'SKU', width: 160}
+                , {field: 'productTitle', title: '产品名称', width: 500}
+                , {field: 'ordersItemQty', title: '原数量', width: 100}
+                , {field: 'ordersItemApplyQty', title: '申请数量', width: 100}
+                , {field: 'singleAmountShow', title: '单价', width: 100}
+                , {field: 'currencyName', title: '币种'}
+            ]]
+        });
+    }
+
+    // 收货商品表
+    function initDeliveryTableData(table, data) {
+        //方法渲染：
+        table.render({
+            elem: '#deliveryTable',
+            id: 'deliveryTable',
+            data: data,
+            width: '99%',
+            cols: [[ //表头
+                {field: 'sku', title: 'SKU', width: 140}
+                , {field: 'productTitle', title: '产品名称', width: 400}
+                , {field: 'attrTitleArray', title: '商品属性', width: 400}
+                , {field: 'ordersItemApplyQty', title: '申请数量', width: 90}
+                , {field: 'inQty', title: '收货数量', width: 90}
+                , {field: 'storageLocation', title: '入库货位'}
+            ]]
+        });
+    }
+
+    function initFsmTableData(table) {
+        //状态机table渲染
+        table.render({
+            elem: '#fsmTable'
+            , id: 'fsmTable'
+            , url: '/orders/aftersale/fms?rmaId=' + rmaId //数据接口
+            , method: 'get'
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , cols: [[ //表头
+                {field: 'optUid', title: '操作人', width: 100}
+                , {field: 'createAt', title: '操作时间', width: 170}
+                , {field: 'eventNameDisplay', title: '操作内容', width: 400}
+                , {field: 'memo', title: '备注'}
+            ]]
+        });
+    }
+
+    function closeEditForm() {
+        layer.close(detailIndex)
+    }
+
+</script>
+
+
+<script id="img-tmp" type="text/html">
+    {{each imgList value index}}
+    <img src="{{value}}">
+    {{/each}}
+</script>
+

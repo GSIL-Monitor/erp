@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FSM EntityName="PurchaseReturnedItem" EntityDao="PurchaseReturnedItemMapper" ParentEntityName="">
+	<States>
+		<State Name="start" Description="开始">
+			<Event Name="create" Description="创建" DstState="stayRefund" />
+		</State>
+		<State Name="stayRefund" Description="待申请退款">
+			<Event Name="financeAffirmRefund" Description="在库-财务确认退款" DstState="returnByStorage" />
+			<Event Name="financeAffirmRefundInWay" Description="在途-财务确认退款" DstState="completed" />
+			<Event Name="cancelRefund" Description="取消采退" DstState="cancel" />
+		</State>
+		<State Name="returnByStorage" Description="待仓储退货">
+			<Event Name="cancelRefund" Description="取消采退" DstState="cancel" />
+			<Event Name="deliveryStock" Description="出库" DstState="completed" After="purchaseReturnedDeliveryStockAfter"/>
+		</State>
+
+		<State Name="completed" Description="已完成">
+		</State>
+
+		<State Name="cancel" Description="已取消">
+		</State>
+	</States>
+</FSM>

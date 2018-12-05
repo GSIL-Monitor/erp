@@ -1,0 +1,138 @@
+<div class="layui-fluid">
+    <br>
+    <div class="layui-form">
+        <div class="layui-form-item">
+            <!--<label class="layui-form-label">创建时间:</label>-->
+            <!--<div class="layui-input-inline">-->
+                <!--<input type="text" class="layui-input" id="createTime">-->
+                <!--<div class="auto_matchwrap layui-anim layui-anim-upbit layui-select-group" style="display: none;position: absolute;background-color: #fff;z-index: 999; ">-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<label class="layui-form-label">物流商</label>-->
+            <!--<div class="layui-input-inline">-->
+                <!--<select name="shippingName" lay-verify="required" lay-search id="shipping_queryselect">-->
+                    <!--<option value="">不限</option>-->
+                <!--</select>-->
+            <!--</div>-->
+            <div class="layui-input-inline">
+                <button class="layui-btn layui-btn-normal" onclick="addShipping()" id="add_shipping">新增</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+<table id="shippingTable" lay-filter="test"></table>
+
+<script src="/static/build/layui.js"></script>
+<script>
+    var add_shipping_index;
+    var edit_shipping_data;
+    var edit_shipping_index;
+    layui.use(['laydate',"layer",'form','table','element'], function(){
+        // var shipping_laydate = layui.laydate;
+        //
+        // //执行一个laydate实例
+        // shipping_laydate.render({
+        //     elem: '#createTime' //指定元素
+        // });
+
+
+        var shipping_layer = layui.layer;
+        var index = shipping_layer.load(0,{time:5*1000});
+        var shipping_form = layui.form;
+        var shipping_table = layui.table;
+
+        // $.ajax({
+        //     type: 'GET',
+        //     url: "/tms/shipping",
+        //     dataType: 'json',
+        //     success: function (res) {
+        //         console.log("获取物流公司列表数据", res);
+        //         state_response(res);
+        //         disposeData(res);
+        //     }
+        // });
+
+
+        shipping_table.render({
+            elem: '#shippingTable'
+            ,url: "/tms/shipping"
+//                , height: 700
+//                , style:'word-break: break-all;'
+            , even: true //开启隔行背景
+            , done: function (res, curr, count) {
+                var element = layui.element;
+                element.init();
+                layer.close(index);
+            }
+            ,height: 'full-150' //高度最大化减去差值
+            ,request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            ,response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+            , page: true //开启分页
+            , cols: [[ //表头
+                {field: 'id', title: 'id',fixed: 'left',width:100}
+                , {field: 'shippingCode', title: '代码'}
+                , {field: 'shippingName', title: '物流商'}
+                , {field: '', title: '操作', templet: '#editBut', align: 'center',fixed: 'right',width:300}
+            ]]
+        });
+
+        shipping_table.on("tool(test)",function (obj){
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            edit_shipping_data = data;
+
+            $.get('view/tms/base/edit_shipping.html', function (str) {
+                edit_shipping_index = layer.open({
+                    type: 1
+                    ,title: '编辑物流商'
+                    , content: str //注意，如果str是object，那么需要字符拼接。
+                    , maxmin: true
+                    , area: '50%',
+                });
+            });
+        });
+    });
+
+    function disposeData(shippingData){
+        var shipping_form = layui.form;
+        var shipping_table = layui.table;
+        $("#shipping_queryselect").append(template('option-tpl1', shippingData));
+        shipping_form.render('select'); //刷新select选择框渲染
+    }
+
+    function addShipping() {
+        $.get('view/tms/base/add_shipping.html', function(str){
+            console.log("我执行了。。。。。。。");
+            add_shipping_index =layer.open({
+                type: 1
+                ,tipsMore:false
+                ,title :'新增商户'
+                ,content: str //注意，如果str是object，那么需要字符拼接。
+                ,maxmin: true
+                ,area: '50%'
+            });
+        })
+    }
+
+</script>
+
+<script type="text/html" id="editBut">
+    <a class="layui-btn layui-btn-xs" lay-event="position-authority">编辑</a>
+</script>
+
+<script id="option-tpl1" type="text/html">
+    {{each item value index}}
+    <option value="{{value.id}}">{{value.shippingName}}</option>
+    {{/each}}
+</script>
+

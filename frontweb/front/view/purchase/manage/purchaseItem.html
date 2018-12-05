@@ -1,0 +1,410 @@
+<br>
+<div class="layui-fluid">
+    <div class="layui-form border1ccc">
+        <div class="layui-form-item" style="margin-top: 16px">
+            <label class="layui-form-label">部门</label>
+            <div class="layui-input-inline">
+                <select id="purchase_item_dept_select" name="deptId">
+                    <option value=""></option>
+                </select>
+            </div>
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-inline">
+                <select id="purchase_item_state_select" name="state">
+                    <option value=""></option>
+                </select>
+            </div>
+            <label class="layui-form-label">采购单号</label>
+            <div class="layui-input-inline">
+                <input value="" name="purchaseNo" type="text"
+                       class="layui-input">
+            </div>
+            <label class="layui-form-label">产品</label>
+            <div class="layui-input-inline">
+                <input value="" name="productTitle" type="text"
+                       class="layui-input">
+            </div>
+
+        </div>
+        <div class="layui-form-item" style="margin-top: 16px">
+            <label class="layui-form-label">创建日期</label>
+            <div class="layui-input-inline">
+                <input type="text" name="createAt" class="layui-input" id="purchase_time_range" placeholder=" - ">
+            </div>
+
+            <label class="layui-form-label">SKU</label>
+            <div class="layui-input-inline">
+                <input value="" name="sku" type="text"
+                       class="layui-input">
+            </div>
+            <label class="layui-form-label">审核人</label>
+            <div class="layui-input-inline">
+                <input type="text" name="auditor" class="auto_matchinput layui-input" style="width: 196px"
+                       oninput="input_match(this)" onblur="blur_event(this)"/>
+                <input type="hidden" name="auditorId" class="auto_complateval">
+                <div class="auto_matchwrap layui-anim layui-anim-upbit layui-select-group"
+                     style="display: none; position: absolute;background-color: #fff;z-index: 999; ">
+                </div>
+            </div>
+            <div class="layui-input-inline" style="margin-left: 40px;width: 20%;">
+                <button class="layui-btn" lay-submit lay-filter="purchase_item_search">搜索</button>
+                <button class="layui-btn layui-btn-warm" lay-submit lay-filter="purchase_item_export">导出</button>
+                <button class="layui-btn layui-btn-normal" lay-submit lay-filter="purchase_item_batchAgree">同意</button>
+                <button class="layui-btn layui-btn-danger" lay-submit lay-filter="purchase_item_batchDisagree">不同意</button>
+            </div>
+        </div>
+    </div>
+
+    <table id="purchase_item_table" lay-filter="purchase_item_table_demo"></table>
+</div>
+
+<script id="purchase_item_stateDemo" type="text/html">
+    {{#  if(d.state == 'draft'){  }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #5FB878;" lay-event="showHistory">草稿</a>
+    {{#  }else if(d.state == 'waitBusinessApprove'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #1E9FFF;" lay-event="showHistory">待业务审核</a>
+    {{# }else if(d.state == 'businessDisagree'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #FF5722;" lay-event="showHistory">业务不同意</a>
+    {{# }else if(d.state == 'waitFinanceApprove'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #01AAED;" lay-event="showHistory">待财务审核</a>
+    {{# }else if(d.state == 'financeDisagree'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #f54740;" lay-event="showHistory">财务不同意</a>
+    {{# }else if(d.state == 'refusePayment'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #f50503;" lay-event="showHistory">拒绝付款</a>
+    {{# }else if(d.state == 'waitPayment'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #67f531;" lay-event="showHistory">待付款</a>
+    {{# }else if(d.state == 'executing'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #009688;" lay-event="showHistory">执行中</a>
+    {{# }else if(d.state == 'completed'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #13e2f5;" lay-event="showHistory">已完成</a>
+    {{# }else if(d.state == 'cancel'){ }}
+    <a href="javascript:void(0);" style="cursor: pointer; color: #c2c2c2;" lay-event="showHistory">已取消</a>
+    {{# } }}
+
+</script>
+
+<script id="purchase_item_barDemo" type="text/html">
+    {{#  if((d.state == 'waitBusinessApprove') && window.purchaseItem_approve){  }}
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="agreeByBusiness">同意</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="disagreeByBusiness">不同意</a>
+    {{# } }}
+</script>
+
+
+<!--部门下拉的tpl-->
+<script id="purchase_item_dept_option" type="text/html">
+    {{each item.children value index}}
+    {{if value.leaf == false}}
+    <optgroup label="&nbsp;&nbsp;&nbsp;&nbsp;{{value.name}}">
+        {{each value.children val idx}}
+        {{if val.leaf == false}}
+        <optgroup label="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{val.name}}">
+            {{each val.children val2 idx2}}
+            <option value="{{val2.id}}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{val2.name}}</option>
+            {{/each}}
+        </optgroup>
+        {{/if}}
+        {{/each}}
+    </optgroup>
+    {{/if}}
+    {{/each}}
+</script>
+
+<!--状态下拉的tpl-->
+<script id="purchase_item_state_option" type="text/html">
+    {{each purchaseItemState value index}}
+    <option value="{{value.name}}" {{if value.name==='waitBusinessApprove' }} selected {{/if}}>{{value.display}}</option>
+    {{/each}}
+</script>
+
+
+<script type="text/html" id="purchaseItem_showHistory_tpl">
+    <table id="purchase_item_fsm_history_tpl" lay-filter="purchase_fsm_history_demo"></table>
+
+    </table>
+</script>
+
+<!--主函数-->
+<script type="text/javascript">
+    layui.use(['layer', 'form', 'table', 'element', 'laydate'], function () {
+        var purchase_item_layer = layui.layer;
+        var purchase_item_index = layer.load(0, {time: 5 * 1000});
+        var purchase_item_form = layui.form;
+        var purchase_item_table = layui.table;
+        var purchase_item_laydate = layui.laydate;
+        //初始化部门信息
+        initDeptSelect(purchase_item_form);
+        initStateSelect(purchase_item_form);
+        purchase_item_form.render();
+        //初始化表单
+        purchase_item_table.render({
+            elem: '#purchase_item_table'
+            , url: "/purchase/manage/purchaseItem/findList"
+            , even: true //开启隔行背景
+            , method: 'GET'
+            , height: 'full-260'
+            , request: {
+                limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , page: true //关闭分页
+            , done: function (res, curr, count) {
+                var element = layui.element;
+                element.init();
+                layer.close(purchase_item_index);
+            }
+            ,where :{
+                state:'waitBusinessApprove'
+            }
+            , cols: [[ //表头
+                {field: '', checkbox:true, fixed: 'left', minWidth: 90}
+                , {field: 'id', title: 'ID', fixed: 'left', minWidth: 90}
+                , {field: 'purchaseNo', title: '采购单号', fixed: 'left', minWidth: 90}
+                , {field: 'productTitle', title: '产品信息', minWidth: 110}
+                , {field: 'sku', title: 'SKU', minWidth: 100}
+                , {field: 'deptName', title: '部门', minWidth: 100}
+                , {field: '', title: '状态', align: 'center', toolbar: '#purchase_item_stateDemo', minWidth: 160}
+                , {field: 'purchaseQty', title: '采购需求数', minWidth: 100}
+                , {field: 'avgSaleQty', title: '日均销量', minWidth: 100}
+                , {field: 'pendingOrderQty', title: '待审单数', minWidth: 100}
+                , {field: 'quantity', title: '采购数量', minWidth: 100}
+                , {field: '', title: '入库数', minWidth: 100}
+                , {field: '', title: '在途采退数', minWidth: 100}
+                , {field: 'price', title: '采购单价', minWidth: 100}
+                , {field: 'amount', title: '采购总价', minWidth: 100}
+                , {field: 'auditor', title: '审核人', minWidth: 200}
+                , {field: 'audit_time', title: '审核时间', minWidth: 110}
+                , {field: 'memo', title: '备注', minWidth: 100}
+                , {field: '', title: '操作', fixed: 'right', align: 'center', toolbar: '#purchase_item_barDemo', minWidth: 160}
+            ]]
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+            }
+        });
+
+
+        //日期范围
+        purchase_item_laydate.render({
+            elem: '#purchase_time_range'
+            , type: 'datetime'
+            , range: '～'
+        });
+
+        //搜索
+        purchase_item_form.on('submit(purchase_item_search)', function (data) {
+            var createAt = data.field.createAt;
+            if (createAt != null) {
+                data.field.minCreateAt = createAt.split("～")[0];
+                data.field.maxCreateAt = createAt.split("～")[1];
+                data.field.createAt = undefined;
+            }
+            purchase_item_table.reload('purchase_item_table', {
+                where: data.field
+            });
+        });
+
+        //批量同意
+        purchase_item_form.on('submit(purchase_item_batchAgree)', function (data) {
+            var checkStatus = purchase_item_table.checkStatus('purchase_item_table')
+                ,data = checkStatus.data;
+            if(data.length>0){
+                var ids = new Array();
+                var islow = true;
+                $.each(data,function (i,n) {
+                    ids.push(n.id);
+                    if(n.state !== 'waitBusinessApprove'){
+                        islow = false;
+                        return false;
+                    }
+                });
+                if(islow === false){
+                    layer.msg('你的选择中有非待审核状态的明细！',{icon:3});
+                    return ;
+                }
+                layer.prompt({
+                    title: '批量同意采购明细，备注',
+                    formType: 0,
+                    value: '',
+                    yes: function (index, pass) {
+                        var memo = pass.find(".layui-layer-input").val();
+                        $.ajax({
+                            type: 'POST',
+                            url: '/purchase/manage/purchaseItem/processEventByIdStr',
+                            dataType: 'json',
+                            data: {
+                                idStr: JSON.stringify(ids),
+                                purchaseItemEvent: 'agreeByBusiness',
+                                memo: memo
+                            },
+                            success: function (res) {
+                                state_response(res);
+                                layer.close(index);
+                                purchase_item_table.reload('purchase_item_table');
+                            }
+                        })
+                    }
+                });
+            }else{
+                layer.msg('请选择要操作的明细！',{icon:3});
+            }
+        });
+
+        //批量不同意
+        purchase_item_form.on('submit(purchase_item_batchDisagree)', function (data) {
+            var checkStatus = purchase_item_table.checkStatus('purchase_item_table')
+                ,data = checkStatus.data;
+            if(data.length>0){
+                var ids = new Array();
+                var islow = true;
+                $.each(data,function (i,n) {
+                    ids.push(n.id);
+                    if(n.state !== 'waitBusinessApprove'){
+                        islow = false;
+                        return false;
+                    }
+                });
+                if(islow === false){
+                    layer.msg('你的选择中有非待审核状态的明细！',{icon:3});
+                    return ;
+                }
+                layer.prompt({
+                    title: '批量不同意错货明细，备注',
+                    formType: 0,
+                    value: '',
+                    yes: function (index, pass) {
+                        var memo = pass.find(".layui-layer-input").val();
+                        $.ajax({
+                            type: 'POST',
+                            url: '/purchase/manage/purchaseItem/processEventByIdStr',
+                            dataType: 'json',
+                            data: {
+                                idStr: JSON.stringify(ids),
+                                purchaseItemEvent: 'disagreeByBusiness',
+                                memo: memo
+                            },
+                            success: function (res) {
+                                state_response(res);
+                                layer.close(index);
+                                purchase_item_table.reload('purchase_item_table');
+                            }
+                        })
+                    }
+                });
+            }else{
+                layer.msg('请选择要操作的明细！',{icon:3});
+            }
+        });
+
+        purchase_item_table.on('tool(purchase_item_table_demo)', function (obj) {
+
+            var data = obj.data;
+            var layEvent = obj.event;
+            var tr = obj.tr;
+            if(layEvent === 'showHistory'){
+                showHistory(obj,purchase_item_table,purchase_item_index);
+            }else{
+                layer.prompt({
+                    title: this.text+'采购明细，备注',
+                    formType: 0,
+                    value: '',
+                    yes: function (index, pass) {
+                        var memo = pass.find(".layui-layer-input").val();
+                        $.ajax({
+                            type: 'POST',
+                            url: '/purchase/manage/purchaseItem/processEvent',
+                            dataType: 'json',
+                            data: {
+                                id: obj.data.id,
+                                purchaseItemEvent: obj.event,
+                                memo:memo
+                            },
+                            success: function (res) {
+                                state_response(res);
+                                layer.close(index);
+                                purchase_item_table.reload('purchase_item_table');
+                            }
+                        })
+                    }
+                });
+            }
+
+        });
+    });
+
+
+    function showHistory(obj,purchase_table,purchase_item_index) {
+        debugger;
+        purchase_item_index = layer.open({
+            type: 1,
+            title: '采购明细历史状态',
+            content: template('purchaseItem_showHistory_tpl', obj.data),
+            maxmin: true,
+            area: '50%',
+            offset:'10%',
+            success: function () {
+                purchase_table.render({
+                    elem: '#purchase_item_fsm_history_tpl'
+                    , url: "/purchase/manage/purchaseItem/queryFsmHistory?purchaseItemId="+obj.data.id
+                    , even: true //开启隔行背景
+                    , method: 'POST'
+                    , height: 'full-260'
+                    ,limit: 10
+                    , request: {
+                        pageName: 'page' //页码的参数名称，默认：page
+                        ,limitName: 'limit' //每页数据量的参数名，默认：limit
+                    }
+                    , page: true //关闭分页
+                    , done: function (res, curr, count) {
+                        var element = layui.element;
+                        element.init();
+                    }
+                    , cols: [[ //表头
+                        {field: 'srcStateDisplay', title: '原始状态',width:"15%"}
+                        ,{field: 'eventNameDisplay', title: '事件',width:"15%"}
+                        ,{field: 'dstStateDisplay', title: '目标状态',width:"15%"}
+                        ,{field: 'optUid', title: '用户',width:"15%"}
+                        ,{field: 'createAt', title: '时间',width:"20%"}
+                        ,{field: 'memo', title: '备注',width:"20%"}
+                    ]]
+                    , response: {
+                        statusName: 'code' //数据状态的字段名称，默认：code
+                        , statusCode: 'OK' //成功的状态码，默认：0
+                        , msgName: 'desc' //状态信息的字段名称，默认：msg
+                        , countName: 'total' //数据总数的字段名称，默认：count
+                        , dataName: 'item' //数据列表的字段名称，默认：data
+                    }
+                })
+            }
+        });
+    }
+
+
+    //初始化部门下拉
+    function initDeptSelect(required_form) {
+        $.ajax({
+            type: 'POST'
+            , dataType: 'json'
+            , url: '/purchase/base/userBuDeptRel/findDeptNodeByCurrentUser'
+            , success: function (res) {
+                $("#purchase_item_dept_select").append(template('purchase_item_dept_option', res));
+                required_form.render('select');
+            }
+        })
+    }
+
+    //初始化状态下拉
+    function initStateSelect(required_form) {
+        $.ajax({
+            type: 'GET'
+            , dataType: 'json'
+            , url: '/purchase/common/enumList'
+            , success: function (res) {
+                $("#purchase_item_state_select").append(template('purchase_item_state_option', res.item));
+                required_form.render('select');
+            }
+        })
+    }
+</script>

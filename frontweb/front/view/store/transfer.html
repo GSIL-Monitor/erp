@@ -1,0 +1,547 @@
+<style type="text/css">
+    td > .layui-table-cell {
+        height: 100px;
+        line-height: 28px;
+        padding: 0 15px;
+        position: relative;
+        overflow-y: auto;
+    }
+</style>
+<br>
+
+<div class="layui-form">
+    <div class="layui-form-item">
+
+        <label class="layui-form-label">调拨单号</label>
+        <div class="layui-input-inline">
+            <input type="text" name="id" lay-verify="" placeholder="请输入调拨单号" autocomplete="off"
+                   class="layui-input">
+        </div>
+
+        <label class="layui-form-label">调拨类型</label>
+        <div class="layui-input-inline">
+            <select name="type" lay-filter="type" id="type">
+                <option value="" name="">不限</option>
+            </select>
+        </div>
+
+        <label class="layui-form-label">状态</label>
+        <div class="layui-input-inline">
+            <select name="state" id="state">
+                <option value="">不限</option>
+            </select>
+        </div>
+
+        <label class="layui-form-label">调出仓</label>
+        <div class="layui-input-inline">
+            <select name="outWmsId" id="outWmsId">
+                <option value="">不限</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">调入仓</label>
+        <div class="layui-input-inline">
+            <select name="inWmsId" id="inWmsId">
+                <option value="">不限</option>
+            </select>
+        </div>
+
+        <label class="layui-form-label">创建时间</label>
+        <div class="layui-input-inline">
+            <input name="createTime" type="text" class="layui-input" id="createTime">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="btnSearch">搜索</button>
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="btnExport">导出</button>
+            <button class="layui-btn layui-btn-normal" onclick="sto_addTransfer()" id="sto_transfer_add"
+                    style="display: none">新建跨仓调拨
+            </button>
+            <button class="layui-btn layui-btn-normal" onclick="sto_addTransitTransfer()" id="sto_transfer_addTransit"
+                    style="display: none">新建转寄仓同仓调拨
+            </button>
+
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="sto_transfer_approve_opera_agreeBat"
+                    id="sto_transfer_approve_opera_agreeBat"
+                    style="display: none">同意(跨仓调)
+            </button>
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="sto_transfer_approve_dept_agreeBat"
+                    id="sto_transfer_approve_dept_agreeBat"
+                    style="display: none">同意(同仓调)
+            </button>
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="sto_transfer_approve_disagreeBat"
+                    id="sto_transfer_approve_opera_disagreeBat" style="display: none">不同意(跨仓调)
+            </button>
+            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="sto_transfer_approve_disagreeBat"
+                    id="sto_transfer_approve_dept_disagreeBat" style="display: none">不同意(同仓调)
+            </button>
+        </div>
+    </div>
+</div>
+
+<br>
+<table id="demo" lay-filter="test"></table>
+
+<script type="text/html" id="sto_transfer_option">
+    <form class="layui-form">
+        <!-- 登录用户与创建人同一个 -->
+
+        {{# if(d.state == "draft"){ }}
+        {{# if(window.transfer_edit == true ){ }}
+        <button type="button" class="layui-btn layui-btn-xs layui-btn-danger" lay-event="submit">提交</button>
+        <button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="cancel">取消调拨</button>
+        {{# } }}
+        {{# } }}
+
+
+        {{# if(window.transfer_approve_dept == true ){ }}
+        <!-- 调出部门审核权限 -->
+        {{# if(d.state == "wait_approve" && (d.type==0||d.type==4)){ }}
+        <button type="button" class="layui-btn layui-btn-xs" lay-event="outDeptTransPass">同意</button>
+        <button type="button" class="layui-btn layui-btn-xs layui-btn-warm " lay-event="disagreeOne">不同意</button>
+        {{# } }}
+        {{# if(d.state == "wait_in_dept_approve"){ }}
+        <!-- 调入部门审核权限 -->
+        <button type="button" class="layui-btn layui-btn-xs" lay-event="inDeptTransPass">同意</button>
+        <button type="button" class="layui-btn layui-btn-xs layui-btn-warm " lay-event="disagreeOne">不同意</button>
+        {{# } }}
+        {{# } }}
+
+        <!-- 运营部门审核权限 -->
+        {{# if(window.transfer_approve_opera == true ){ }}
+        {{# if(d.state == "wait_approve" && (d.type==1||d.type==2||d.type==3)){ }}
+        <button type="button" class="layui-btn layui-btn-xs" lay-event="transferApprovePass">同意</button>
+        <button type="button" class="layui-btn layui-btn-xs layui-btn-warm " lay-event="disagreeOne">不同意</button>
+        {{# } }}
+        {{# } }}
+
+        <button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="detail">查看详情</button>
+    </form>
+</script>
+
+
+<script id="transferType-option-tpl" type="text/html">
+    {{each transferTypeEnum value index}}
+    <option value="{{value.ordinal}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<script id="transferState-option-tpl" type="text/html">
+    {{each transferStateEnum value index}}
+    <option value="{{value.name}}">{{value.display}}</option>
+    {{/each}}
+</script>
+
+<script type="text/html" id="transferTypeTpl">
+    {{d.transferTypeEnum.display}}
+</script>
+
+<script type="text/html" id="transferStateTpl">
+    {{d.transferStateEnum.display}}
+</script>
+
+<script>
+
+    //添加调拨单参数
+    var storeAddTransferReq = {};
+
+    //添加调拨单弹出索引
+    var selectWmsIndex = "", addTransitTransferIndex;
+
+    //调拨单明细参数
+    var stoTransferItemReq = {};
+
+    //table和查询条件
+    var sto_transfer_tab, sto_transfer_tab_query;
+
+    layui.use(['layer', 'table', 'element', 'form', 'laydate'], function () {
+        var layer = layui.layer;
+        var index = layer.load(0, {time: 5 * 1000});
+        var table = layui.table;
+        var laydate = layui.laydate;
+        var form = layui.form;
+
+//        window.transfer_edit = true;
+//        window.transfer_approve_dept = true;
+//        window.transfer_approve_opera = true;
+
+
+        //权限按钮
+        if (window.transfer_edit == true) {
+            $('#sto_transfer_add').show();
+            $('#sto_transfer_addTransit').show();
+        }
+
+        if (window.transfer_approve_opera == true) {
+            $('#sto_transfer_approve_opera_agreeBat').show();
+            $('#sto_transfer_approve_opera_disagreeBat').show();
+        }
+        if (window.transfer_approve_dept == true) {
+            $('#sto_transfer_approve_dept_agreeBat').show();
+            $('#sto_transfer_approve_dept_disagreeBat').show();
+        }
+
+
+        //仓库下拉框
+        store_wmsId_option('outWmsId');
+        store_wmsId_option('inWmsId');
+
+        $.ajax({
+            type: 'GET',
+            url: "/store/common/enumList",
+            dataType: 'json',
+            data: '',
+            success: function (res) {
+                console.log("请求-下拉框数据", res);
+                state_response(res);
+                $("#type").append(template('transferType-option-tpl', res.item));
+                $("#state").append(template('transferState-option-tpl', res.item));
+                form.render('select'); //刷新select选择框渲染
+            }
+        });
+        form.render();
+        sto_transfer_tab = table.render({
+            elem: '#demo'
+            , url: '/store/transfer/search' //数据接口
+            , method: 'post'
+            , height: 870 - 200
+            , even: true  //开启隔行背景
+            , page: true //开启分页
+            , request: {
+                pageName: 'page' //页码的参数名称，默认：page
+                , limitName: 'limit' //每页数据量的参数名，默认：limit
+            }
+            , response: {
+                statusName: 'code' //数据状态的字段名称，默认：code
+                , statusCode: 'OK' //成功的状态码，默认：0
+                , msgName: 'desc' //状态信息的字段名称，默认：msg
+                , countName: 'total' //数据总数的字段名称，默认：count
+                , dataName: 'item' //数据列表的字段名称，默认：data
+
+            }
+            , cols: [[ //表头
+                {checkbox: true}
+                , {field: 'id', title: '调拨单号', width: 100}
+                , {templet: '#transferTypeTpl', title: '调拨类型', width: 150}
+                , {templet: '#transferStateTpl', title: '状态', width: 100}
+                , {field: 'outWmsName', title: '调出仓', width: 150}
+                , {field: 'outDeptName', title: '调出部门', width: 150}
+                , {field: 'inWmsName', title: '调入仓', width: 150}
+                , {field: 'inDeptName', title: '调入部门', width: 150}
+                , {field: 'transferQty', title: '总数量', width: 80}
+                , {field: 'sku', title: 'sku信息', width: 150}
+                , {field: 'description', title: '备注', width: 150}
+                , {field: 'creator', title: '创建人', width: 80}
+                , {field: 'createAt', title: '创建时间', width: 120}
+                , {field: '', title: '操作', templet: '#sto_transfer_option', fixed: 'right', width: 350, align: 'center'}
+            ]]
+
+        });
+        layer.close(index);
+
+        //执行一个laydate实例
+        laydate.render({
+            elem: '#createTime' //指定元素
+            , type: 'date'
+            , range: '~' //或 range: '~' 来自定义分割字符
+            , max: 'new Date()'
+            , theme: 'molv'
+        });
+
+        //搜索
+        form.on('submit(btnSearch)', function (data) {
+            sto_transfer_tab_query = setReqParam(data);
+
+            //上述方法等价于
+            sto_transfer_tab.reload({
+                method: 'post',
+                where: sto_transfer_tab_query,    //设定异步数据接口的额外参数，任意设
+                loading: true,
+                page: {
+                    page: 1 //重新从第 1 页开始
+                }
+            });
+            return false;
+        });
+
+        form.on('submit(btnExport)', function (data) {
+            console.log("data:", data);
+            index = layer.load(0, {time: 5 * 1000});
+            var exportExcelParam = setReqParam(data);
+            $.ajax({
+                type: 'POST',
+                url: 'store/transfer/preExportExcel',
+                dataType: 'json',
+                data: exportExcelParam,
+                success: function (res) {
+                    console.log("res:", res);
+                    layer.close(index);
+
+                    location.href = 'store/transfer/exportExcel';
+                    layer.msg('导出成功')
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    layer.msg('导出失败，请重试')
+                    console.log("ajax.  err:...");
+                    layer.close(index);
+                }
+            });
+            return false;
+        });
+
+        //同仓审批
+        form.on('submit(sto_transfer_approve_dept_agreeBat)', function (data) {
+            console.log(JSON.stringify(data.field));
+            console.log(data.field.type);
+            var checkStatus = table.checkStatus('demo'); //test即为基础参数id对应的值
+            console.log('checkStatus:' + JSON.stringify(checkStatus));
+            if (checkStatus.data.length) {
+                var out_dept_ids = [];
+                var in_dept_ids = [];
+
+                $.each(checkStatus.data, function (i, n) {
+                    if (n.state == "wait_approve" && (n.type==0||n.type==4)) {
+                        //同仓调出部门
+                        out_dept_ids.push(n.id);
+                    } else if (n.state == "wait_in_dept_approve") {
+                        //调入部门同意
+                        in_dept_ids.push(n.id);
+                    } else {
+                        layer.msg('状态[' + n.state + ']的单据不能勾选', {icon: 3});
+                        return false;
+                    }
+                });
+                if (out_dept_ids.length > 0 && in_dept_ids.length > 0) {
+                    layer.msg('请去掉不能勾选的单据再提交', {icon: 3});
+                    return false;
+                } else if (out_dept_ids.length > 0) {
+                    postAjaxBat('store/transfer/outDeptTransPassBat', {transferIds: out_dept_ids});
+                } else {
+                    postAjaxBat('store/transfer/inDeptTransPassBat', {transferIds: in_dept_ids});
+                }
+
+            } else {
+                layer.msg('请勾选要操作的行', {icon: 3});
+            }
+
+            return false;
+        });
+
+        //运营跨仓审批
+        form.on('submit(sto_transfer_approve_opera_agreeBat)', function (data) {
+            layer.msg(JSON.stringify(data.field));
+            console.log(JSON.stringify(data));
+            console.log(data.field.type);
+            var checkStatus = table.checkStatus('demo'); //test即为基础参数id对应的值
+            console.log('checkStatus:' + JSON.stringify(checkStatus));
+            if (checkStatus.data.length) {
+                var transferIds = [];
+
+                $.each(checkStatus.data, function (i, n) {
+                    if (n.state == "wait_approve" && (n.type==1||n.type==2||n.type==3)) {
+                        transferIds.push(n.id);
+                    } else {
+                        layer.msg('请去掉不能勾选的单据再提交', {icon: 3});
+                        return false;
+                    }
+
+                });
+                console.log('select_id:' + transferIds);
+                postAjaxBat('store/transfer/transferApprovePassBat', {transferIds: transferIds});
+            } else {
+                layer.msg('请勾选要操作的行', {icon: 3});
+            }
+            return false;
+        });
+
+
+        //同仓审批不同意
+        form.on('submit(sto_transfer_approve_dept_disagreeBat)', function (data) {
+            console.log(JSON.stringify(data.field));
+            console.log(data.field.type);
+            var checkStatus = table.checkStatus('demo'); //test即为基础参数id对应的值
+            console.log('checkStatus:' + JSON.stringify(checkStatus));
+            if (checkStatus.data.length) {
+                var out_dept_ids = [];
+                var in_dept_ids = [];
+
+                $.each(checkStatus.data, function (i, n) {
+                    if (n.state == "wait_approve" && (n.type==0||n.type==4)) {
+                        //同仓调出部门
+                        out_dept_ids.push(n.id);
+                    } else if (n.state == "wait_in_dept_approve") {
+                        //调入部门同意
+                        in_dept_ids.push(n.id);
+                    } else {
+                        layer.msg('状态[' + n.state + ']的单据不能勾选', {icon: 3});
+                        return false;
+                    }
+                });
+                if (out_dept_ids.length > 0 && in_dept_ids.length > 0) {
+                    layer.msg('请去掉不能勾选的单据再提交', {icon: 3});
+                    return false;
+                } else if (out_dept_ids.length > 0) {
+                    postAjaxBat('store/transfer/transferFailBat', {transferIds: out_dept_ids});
+                } else {
+                    postAjaxBat('store/transfer/transferFailBat', {transferIds: in_dept_ids});
+                }
+
+            } else {
+                layer.msg('请勾选要操作的行', {icon: 3});
+            }
+
+            return false;
+        });
+
+        //运营跨仓审批
+        form.on('submit(sto_transfer_approve_opera_disagreeBat)', function (data) {
+            var checkStatus = table.checkStatus('demo'); //test即为基础参数id对应的值
+            console.log('checkStatus:' + JSON.stringify(checkStatus));
+            if (checkStatus.data.length) {
+                var transferIds = [];
+
+                $.each(checkStatus.data, function (i, n) {
+                    if (n.state == "wait_approve" && (n.type==1||n.type==2||n.type==3)) {
+                        transferIds.push(n.id);
+                    } else {
+                        layer.msg('请去掉不能勾选的单据再提交', {icon: 3});
+                        return false;
+                    }
+
+                });
+                console.log('select_id:' + transferIds);
+                postAjaxBat('store/transfer/transferFailBat', {transferIds: transferIds});
+            } else {
+                layer.msg('请勾选要操作的行', {icon: 3});
+            }
+            return false;
+        });
+
+        //监听工具条
+        table.on('tool(test)', function (obj) { //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+
+            var data = obj.data; //获得当前行数据
+            var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+            var tr = obj.tr; //获得当前行 tr 的DOM对象
+
+//            console.log('obj:' + JSON.stringify(obj));
+
+            if (layEvent === 'submit') { //
+                postAjax('store/transfer/transferSubmit', data.id);
+            } else if (layEvent === 'cancel') { //
+                layer.msg('取消中。。。。');
+                postAjax('store/transfer/transferCancel', data.id);
+            } else if (layEvent === 'outDeptTransPass') { //
+                postAjax('store/transfer/outDeptTransPass', data.id);
+            } else if (layEvent === 'inDeptTransPass') { //
+                postAjax('store/transfer/inDeptTransPass', data.id);
+            } else if (layEvent === 'transferApprovePass') { //
+                postAjax('store/transfer/transferApprovePass', data.id);
+            } else if (layEvent === 'disagreeOne') { //
+                postAjax('store/transfer/transferFail', data.id);
+            } else if (layEvent === 'detail') {
+                console.log('into detail...');
+                stoTransferItemReq = data;
+                $.get('view/store/transferItem.html', function (str) {
+                    var transferItemIndex = layer.open({
+                        type: 1
+                        , title: '调拨单明细'
+                        , content: str //注意，如果str是object，那么需要字符拼接。
+                        , maxmin: true
+                        ,area: ['50%','80%']
+                    });
+                });
+            }
+        });
+
+        function setReqParam(data) {
+            var new_obj = data.field;
+
+            var createTime = data.field.createTime.split("~");
+            new_obj.createStartTime = $.trim(createTime[0]);//创建时间开始时间
+
+            if (createTime[1] != undefined && createTime[1] != '') {
+                new_obj.createEndTime = $.trim(createTime[1]) + ' 23:59:59';  //创建时间结束时间
+            } else {
+                new_obj.createEndTime = '';
+            }
+
+            console.log("search入参：", JSON.stringify(new_obj));
+            return new_obj;
+
+        }
+
+        function postAjaxBat(url, data) {
+            $.ajax({
+                type: 'POST',
+                url: url,
+                dataType: 'json',
+                traditional: true,
+                data: data,
+                success: function (res) {
+                    console.log('...res:' + JSON.stringify(res));
+                    state_response(res);
+                    sto_transfer_tab.reload({
+                        where: sto_transfer_tab_query
+                    });
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    layer.msg('操作失败，请重试');
+                }
+            });
+        }
+
+        function postAjax(url, data) {
+            $.ajax({
+                type: 'POST',
+                url: url,
+                dataType: 'json',
+                data: {transferId: data},
+                success: function (res) {
+                    state_response(res);
+                    sto_transfer_tab.reload({
+                        where: sto_transfer_tab_query
+                    });
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    layer.msg('操作失败，请重试');
+                }
+            });
+        }
+
+    });
+
+
+    //新增调拨
+    function sto_addTransfer() {
+        $.get('view/store/addTransferSelectWms.html', function (str) {
+            selectWmsIndex = layer.open({
+                type: 1
+                , title: '调拨仓库选择操作'
+                , content: str //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , area: ['800px', '400px']
+            });
+        });
+    }
+
+    //新增转寄仓同仓调拨
+    function sto_addTransitTransfer() {
+        $.get('view/store/addTransitTransfer.html', function (str) {
+            addTransitTransferIndex = layer.open({
+                type: 1
+                , title: '转寄仓同仓调拨操作'
+                , content: str //注意，如果str是object，那么需要字符拼接。
+                , maxmin: true
+                , area: ['700px', '700px']
+            });
+        });
+    }
+
+</script>
+
+
+
+

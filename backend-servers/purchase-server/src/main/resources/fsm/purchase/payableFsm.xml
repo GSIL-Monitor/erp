@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FSM EntityName="Payable" EntityDao="PayableMapper" ParentEntityName="">
+
+	<States>
+		<!--创建应付款项，初始状态待支付-->
+		<State Name="start" Description="开始">
+			<Event Name="create" Description="创建" DstState="waitPay"/>
+		</State>
+
+
+		<State Name="waitPay" Description="待支付">
+			<Event Name="createPayment" Description="生成付款单" DstState="executing" After="createPaymentAfter"/>
+			<Event Name="refusePay" Description="拒绝付款" DstState="nonPay" After="refusePayAfter"/>
+		</State>
+
+		<State Name="executing" Description="执行中">
+			<Event Name="pay" Description="付款" DstState="paid"/>
+		</State>
+
+		<State Name="nonPay" Description="拒绝付款">
+		</State>
+
+		<State Name="paid" Description="已付款">
+		</State>
+	</States>
+
+</FSM>

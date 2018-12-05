@@ -1,0 +1,287 @@
+<form class="layui-form" action="">
+    <div  style="height: 650px;">
+        <div>
+            <div id="abstractInfo">
+                <div style="margin: 10px auto">
+                    <button class="layui-btn" style="height: 50px;width: 100px;background-color:#eee;color:black;">
+                        {{item.orderInfo.orderStatusEnum}}
+                    </button>
+                </div>
+                <div style="margin: -55px 0px 0px 115px">
+                    <input type="hidden" name="orderId" value="{{item.orderInfo.orderId}}"/>
+                    <span class="">订单流水号:{{item.orderInfo.orderId}}</span>
+                    {{ if item.orderInfo.symbolLeft}}
+                    <span style="border: 1px solid #ccc; background-color:#eee;border-radius:4px;padding:10px 12px;margin-right:-6px;">{{item.orderInfo.symbolLeft}}</span>
+                    {{/if}}
+                    <input type="text" value="{{item.orderInfo.confirmAmount}}" class="layui-input" placeholder="订单总价"
+                           lay-verify="required|number" style="width: 150px;display: inline;border-left: solid 1px #d2d2d2;" name="confirmAmount"/>
+                    {{ if item.orderInfo.symbolRight}}
+                    <span style="border: 1px solid #ccc; background-color:#eee;border-radius:4px;padding:10px 12px;margin-left:-6px;">{{item.orderInfo.symbolRight}}</span>
+                    {{/if}}
+                </div>
+                <div style="margin-left: 115px;">
+                    <span class="">{{item.orderInfo.departmentUserInfo}}</span>
+                    <span class="">{{item.orderInfo.seoUserName}}</span>
+                </div>
+            </div>
+            {{if item.ordersLink != null}}
+            <div id="cunstomeInfo">
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                    <legend>客户信息</legend>
+                </fieldset>
+                <div class="layui-form-item">
+                    <input type="hidden" name="linkId" value="{{item.ordersLink.linkId}}">
+                    <label class="layui-form-label">姓:</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="lastName" name="lastName" value="{{item.ordersLink.lastName}}" maxlength="30"
+                               class="layui-input">
+                    </div>
+                    <label class="layui-form-label">名:</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="firstName" name="firstName" value="{{item.ordersLink.firstName}}"
+                               maxlength="30" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label"><span class="star-cls">*</span>电话:</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="telphone" name="telphone" value="{{item.ordersLink.telphone}}" maxlength="30"
+                               lay-verify="required" class="layui-input">
+                    </div>
+                    <label class="layui-form-label">邮箱:</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="email" name="email" value="{{item.ordersLink.email}}" maxlength="200"
+                               lay-verify="email" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">省（洲）:</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="province" name="province" value="{{item.ordersLink.province}}" maxlength="30"
+                               class="layui-input">
+                    </div>
+                    <label class="layui-form-label">城市:</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="city" name="city" value="{{item.ordersLink.city}}" maxlength="30"
+                               class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">区域:</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="area" name="area" value="{{item.ordersLink.area}}" maxlength="30"
+                               class="layui-input">
+                    </div>
+                    <label class="layui-form-label"><span class="star-cls">*</span>地址:</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="address" name="address" lay-verify="required"
+                               value="{{item.ordersLink.address}}" maxlength="255" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">邮编:</label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="zipcode" name="zipcode" value="{{item.ordersLink.zipcode}}" maxlength="30"
+                               class="layui-input">
+                    </div>
+                    <label class="layui-form-label">留言:</label>
+                    <div class="layui-form-label" style="text-align: left;width: 500px;">
+                        {{item.ordersLink.customerMeassage}}
+                    </div>
+                </div>
+            </div>
+            {{/if}}
+            {{if item.orderInfo != null}}
+            <div class="layui-collapse">
+                <div class="layui-colla-item">
+                    <h2 class="layui-colla-title" style="font-size: 20px;">订单信息</h2>
+                    <div class="layui-colla-content" id="orderInfo">
+                        <div class="layui-row layui-col-space15" layui-show>
+                            <div class="layui-col-md6">
+                                <div class="layui-row">
+                                    <div class="layui-col-md3">
+                                        <div class="">下单时间:</div>
+                                    </div>
+                                    <div class="layui-col-md9">
+                                        <div class="">{{item.orderInfo.purchaserAt}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md6">
+                                <div class="layui-row layui-col-space15">
+                                    <div class="layui-col-md3">
+                                        <div class="">地区:</div>
+                                    </div>
+                                    <div class="layui-col-md9">
+                                        <div class="">{{item.orderInfo.zoneName}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-row layui-col-space15">
+                            <div class="layui-col-md6">
+                                <div class="layui-row layui-col-space15">
+                                    <div class="layui-col-md3">
+                                        <div class="">支付方式:</div>
+                                    </div>
+                                    <div class="layui-col-md9">
+                                        <div class="">{{item.orderInfo.paymentMethod}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md6">
+                                <div class="layui-row layui-col-space15">
+                                    <div class="layui-col-md3">
+                                        <div class="">支付状态</div>
+                                    </div>
+                                    <div class="layui-col-md9">
+                                        <div class="">{{item.orderInfo.payState}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-row layui-col-space15">
+                            <div class="layui-col-md6">
+                                <div class="layui-row grid-demo layui-col-space15">
+                                    <div class="layui-col-md3">
+                                        <div class="">域名:</div>
+                                    </div>
+                                    <div class="layui-col-md9">
+                                        <div class="">{{item.orderInfo.domain}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md6">
+                                <div class="layui-row grid-demo layui-col-space15">
+                                    <div class="layui-col-md3">
+                                        <div class="">来源:</div>
+                                    </div>
+                                    <div class="layui-col-md9">
+                                        <div class="">{{item.orderInfo.orderFrom}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-row layui-col-space15">
+                            <div class="layui-col-md6">
+                                <div class="layui-row grid-demo layui-col-space15">
+                                    <div class="layui-col-md3">
+                                        <div class="">商家:</div>
+                                    </div>
+                                    <div class="layui-col-md9">
+                                        <div class="">{{item.orderInfo.merchantEnum}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md6">
+                                <div class="layui-row grid-demo layui-col-space15">
+                                    <div class="layui-col-md3">
+                                        <div class="">商家订单号:</div>
+                                    </div>
+                                    <div class="layui-col-md9">
+                                        <div class="">{{item.orderInfo.merchantOrderNo}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-row layui-col-space15">
+                            <div class="layui-col-md6">
+                                <div class="layui-row grid-demo layui-col-space15">
+                                    <div class="layui-col-md3">
+                                        <div class="">IP:</div>
+                                    </div>
+                                    <div class="layui-col-md9">
+                                        <div class="">{{item.orderInfo.ip}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{/if}}
+            <div id="skuInfo">
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                    <legend>商品信息</legend>
+                </fieldset>
+                {{if item.orderInfo != null}}
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md6">
+                        <div class="layui-row grid-demo layui-col-space15">
+                            <div class="layui-col-md3">
+                                <div class="">下单数量:</div>
+                            </div>
+                            <div class="layui-col-md9">
+                                <div class="">{{item.orderInfo.goodsQty}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md3">
+                        <div class="">套餐名:</div>
+                    </div>
+                    <div class="layui-col-md12">
+                        {{item.orderInfo.comboName}}
+                    </div>
+                </div>
+                {{/if}}
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md12">
+                        <table class="layui-table" id="orderItem" lay-filter="itemTb">
+                            <thead>
+                            <tr>
+                                <th>图片</th>
+                                <th>产品ID</th>
+                                <th>SKU</th>
+                                <th>产品名称</th>
+                                <th>产品属性</th>
+                                <th>数量</th>
+                                <!--<th>单价</th>
+                                <th>小计</th>-->
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody id="orderItem_list">
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md12">
+                        <button type="button" class="layui-btn" id="addOrders" onclick="addOrdersFun()">添加商品</button>
+                    </div>
+                </div>
+            </div>
+            <div id="remarKInfo">
+                <fieldset class="layui-elem-field layui-field-title" style="margin-top: 40px;">
+                    <legend>备注信息</legend>
+                </fieldset>
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">备注</label>
+                    <div class="layui-input-block">
+                        <textarea name="memo" placeholder="请输入内容" class="layui-textarea" value=""></textarea>
+                    </div>
+                </div>
+                <div id="fsmHistorys">
+                    <fieldset class="layui-elem-field layui-field-title" style="margin-top: 20px;">
+                        <legend>订单状态记录</legend>
+                    </fieldset>
+                    <div class="layui-row layui-col-space15">
+                        <div class="layui-col-md12">
+                            <table class="layui-table" id="fsmEditTable">
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br><br><br>
+    <div class="text-center" id="bottomDiv">
+        <button type="button" onclick="closeEditForm()" class="layui-btn layui-btn-primary">取消</button>
+        <button class="layui-btn" type="button" lay-submit lay-filter="submitApply" id="submitApply">确定</button>
+    </div>
+</form>

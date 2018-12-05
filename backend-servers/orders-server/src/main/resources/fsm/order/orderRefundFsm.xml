@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FSM EntityName="OrdersRefundBill" EntityDao="OrdersRefundBillMapper" ParentEntityName="">
+
+	<States>
+		<State Name="start" Description="">
+			<Event Name="create" Description="退款单创建(货到付款)" DstState="refunded"/>
+			<Event Name="createPre" Description="退款单创建(预付款)" DstState="toBeAudited"/>
+		</State>
+
+		<State Name="toBeAudited" Description="待审核">
+			<Event Name="refundAuditPass" Description="审核通过" DstState="toBeRefunded" After="refundAfter"/>
+			<Event Name="refundAuditReject" Description="审核不通过" DstState="notApproved" After="refundAfter"/>
+		</State>
+
+		<State Name="notApproved" Description="审核不通过">
+			<Event Name="toApplyRefund" Description="重新申请退款(预付款)" DstState="toBeAudited" After="refundAfter"/>
+			<Event Name="toRefunded" Description="重新申请退款(货到付款)" DstState="refunded" After="refundAfter"/>
+		</State>
+
+		<State Name="toBeRefunded" Description="待退款">
+			<Event Name="confrimRefund" Description="财务退款确认" DstState="refunded" After="refundAfter"/>
+		</State>
+
+		<State Name="refunded" Description="已退款">
+		</State>
+
+	</States>
+
+</FSM>
